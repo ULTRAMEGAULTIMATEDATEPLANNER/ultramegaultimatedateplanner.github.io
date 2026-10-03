@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Someday Club</title>
+<title>Ultra Mega Ultimate Date Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Dela+Gothic+One&family=Special+Elite&display=swap">
@@ -76,7 +76,7 @@ button,input{font:inherit;color:inherit}
 @media (min-width:720px){.wrap{padding-inline:32px}}
 
 /* masthead */
-.mast{position:relative;isolation:isolate;display:grid;gap:.6rem;padding-block-end:clamp(18px,3.4vw,30px)}
+.mast{container-type:inline-size;position:relative;isolation:isolate;display:grid;gap:.6rem;padding-block-end:clamp(18px,3.4vw,30px)}
 .mast::before{content:"";position:absolute;z-index:-1;right:0;top:-6%;width:clamp(150px,36vw,330px);aspect-ratio:1;border-radius:50%;
   background:radial-gradient(circle,var(--acc) 0 42%,transparent 46%) 0 0/9px 9px;
   -webkit-mask-image:radial-gradient(circle at 50% 50%,#000 0 40%,transparent 70%);mask-image:radial-gradient(circle at 50% 50%,#000 0 40%,transparent 70%)}
@@ -87,12 +87,16 @@ button,input{font:inherit;color:inherit}
 .sync[data-state="shared"]::before{background:var(--green);box-shadow:0 0 0 2px color-mix(in srgb,var(--green) 30%,transparent)}
 .sync[data-state="connecting"]::before{animation:blink 1s steps(2) infinite}
 @keyframes blink{50%{opacity:.15}}
-.logo{margin:.2rem 0 0;display:grid;font-family:var(--f-display);font-weight:400;text-transform:uppercase;
-  font-size:clamp(2.6rem,12.2vw,7.6rem);line-height:.86;letter-spacing:-.005em;text-wrap:balance;filter:url(#rough-lg)}
+.logo{--logo-w:min(100vw - 32px,48rem);margin:.2rem 0 0;display:grid;font-family:var(--f-display);font-weight:400;text-transform:uppercase;
+  font-size:calc(var(--logo-w) / 8.42);line-height:.88;letter-spacing:-.005em;filter:url(#rough-lg)}
+@supports (width:1cqi){.logo{--logo-w:min(100cqi,48rem)}}
+.logo .l1,.logo .l2,.logo .l3{display:block;white-space:nowrap}
+.logo .l2{font-size:calc(var(--logo-w) / 7.06)}
+.logo .l3{font-size:calc(var(--logo-w) / 10.02)}
 .logo .plate{grid-area:1/1;-webkit-mask-image:var(--wear);mask-image:var(--wear);-webkit-mask-size:260px;mask-size:260px}
 .logo .plate-acc{color:var(--acc);mix-blend-mode:var(--plate-blend);transform:translate(.05em,.04em);animation:register .9s cubic-bezier(.2,.8,.2,1) both}
 @keyframes register{from{transform:translate(.16em,-.06em)}to{transform:translate(.05em,.04em)}}
-.mast-sub{margin:.35rem 0 0;display:flex;flex-wrap:wrap;gap:.25rem 1.1rem}
+.mast-sub{margin:.7rem 0 0;display:flex;flex-wrap:wrap;gap:.25rem 1.1rem}
 .mast-sub .label{color:var(--ink)}
 
 /* tabs: one spot ink each */
@@ -272,7 +276,7 @@ button,input{font:inherit;color:inherit}
         <button class="btn btn-sm btn-acc" type="button" id="share" hidden>Share the list</button>
       </span>
     </div>
-    <h1 class="logo"><span class="plate">Someday<br>Club</span><span class="plate plate-acc" aria-hidden="true">Someday<br>Club</span></h1>
+    <h1 class="logo"><span class="plate"><span class="l1">Ultra Mega</span><span class="l2">Ultimate</span><span class="l3">Date Planner</span></span><span class="plate plate-acc" aria-hidden="true"><span class="l1">Ultra Mega</span><span class="l2">Ultimate</span><span class="l3">Date Planner</span></span></h1>
     <p class="mast-sub"><span class="label">Members: 2</span><span class="label" id="tally">0 on the list · 0 done</span></p>
   </header>
 
@@ -513,7 +517,7 @@ button,input{font:inherit;color:inherit}
   async function shareList() {
     const url = clubLink();
     if (navigator.share && matchMedia("(pointer: coarse)").matches) {
-      try { await navigator.share({ title: "Someday Club", text: "Our list of films, dishes and plans", url }); return; }
+      try { await navigator.share({ title: "Ultra Mega Ultimate Date Planner", text: "Our list of films, dishes and plans", url }); return; }
       catch (e) { if (e && e.name === "AbortError") return; }
     }
     try {

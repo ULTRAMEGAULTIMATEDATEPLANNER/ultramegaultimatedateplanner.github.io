@@ -1,4 +1,4 @@
-# Someday Club
+# Ultra Mega Ultimate Date Planner
 
 A shared, ranked list for two: films to watch, dishes to cook, and things to do together.
 
