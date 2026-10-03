@@ -422,6 +422,13 @@ button,input{font:inherit;color:inherit}
       return (u.protocol === "http:" || u.protocol === "https:") && u.hostname.includes(".") ? u.href : "";
     } catch { return ""; }
   }
+  // The database keeps links up to 2048 characters. A percent-encoded non-Latin link can be longer,
+  // so store its readable form instead (the browser re-encodes it when the link is opened).
+  function fitLink(link) {
+    if (!link || link.length <= 2048) return link;
+    try { const readable = decodeURI(link); if (readable.length <= 2048) return readable; } catch {}
+    return "";
+  }
   const host = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return "link"; } };
 
   // Shared data is untrusted: coerce every field to what the page expects.
@@ -446,13 +453,16 @@ button,input{font:inherit;color:inherit}
 
   /* ---------- storage ---------- */
 
+  // The main list's offline copy uses LS_DATA (the only copy the merge reads). A separate ?club= list
+  // that couldn't reach the database keeps its own copy, so it never leaks into the main list.
+  let localKey = LS_DATA;
   function saveLocal() {
     if (mode !== "local" && mode !== "fallback") return;
-    try { localStorage.setItem(LS_DATA, JSON.stringify(data)); } catch {}
+    try { localStorage.setItem(localKey, JSON.stringify(data)); } catch {}
   }
   function loadLocal() {
     try {
-      const raw = JSON.parse(localStorage.getItem(LS_DATA) || "null");
+      const raw = JSON.parse(localStorage.getItem(localKey) || "null");
       if (!raw || typeof raw !== "object") return;
       for (const l of ORDER) {
         if (Array.isArray(raw[l])) {
@@ -492,6 +502,20 @@ button,input{font:inherit;color:inherit}
       update: (l, id, p) => wrap(F.updateDoc(F.doc(col(l), id), p)),
       remove: (l, id) => wrap(F.deleteDoc(F.doc(col(l), id))),
       fetch: l => wrap(F.getDocs(col(l)).then(docs)),
+      // Create the document only if nothing is there yet; otherwise just fill its empty note/link.
+      // Resolves true when it created the document.
+      createOnce: (l, id, b) => wrap(F.runTransaction(fs, async tx => {
+        const ref = F.doc(col(l), id), snap = await tx.get(ref);
+        if (!snap.exists()) { tx.set(ref, b); return true; }
+        const fill = emptyFill(snap.data(), b);
+        if (fill) tx.update(ref, fill);
+        return false;
+      })),
+      fillEmpty: (l, id, b) => wrap(F.runTransaction(fs, async tx => {
+        const ref = F.doc(col(l), id), snap = await tx.get(ref);
+        const fill = snap.exists() && emptyFill(snap.data(), b);
+        if (fill) tx.update(ref, fill);
+      })),
       subscribe: (l, next, fail) => F.onSnapshot(col(l), s => next(docs(s), s.metadata.fromCache),
         e => fail({ code: String((e && e.code) || "unknown").replace(/-/g, "_"), message: e && e.message }))
     };
@@ -505,6 +529,14 @@ button,input{font:inherit;color:inherit}
   }
   const clubLink = () => location.origin + location.pathname + (club === MAIN_LIST ? "" : "?club=" + club);
 
+  // The note/link from `from` that `cur` is missing, or null if there's nothing to add.
+  function emptyFill(cur, from) {
+    const fill = {};
+    if (!(cur && cur.note) && from.note) fill.note = from.note;
+    if (!(cur && cur.link) && from.link) fill.link = from.link;
+    return Object.keys(fill).length ? fill : null;
+  }
+
   // Stable 16-hex-digit id from a string, so two browsers copying the same item pick the same document.
   function hashId(str) {
     let a = 0x811c9dc5, b = 0x9747b28c;
@@ -517,23 +549,22 @@ button,input{font:inherit;color:inherit}
   }
 
   // Items added while the site ran without the shared list live only in this browser. Whenever this
-  // browser opens the main shared list, copy over each one it hasn't copied before, and remember each
-  // as soon as it lands, so nothing is copied twice and nothing added later (an old tab, a visit
-  // where the database didn't load) gets left behind. Separate ?club= lists never receive them.
+  // browser opens the main shared list, copy over each one it hasn't copied before. Each item is
+  // recorded just before its copy is sent and un-recorded only if the copy is refused, so an item is
+  // never copied twice and a copy cut off mid-way can't bring back something deleted since. Items
+  // added later (an old tab, a visit where the database didn't load) are picked up on the next visit.
+  // Separate ?club= lists never receive them.
   let merging = false;
-  const triedThisVisit = new Set();   // a failed copy waits for the next visit instead of looping
+  const triedThisVisit = new Set();   // a refused copy waits for the next visit instead of looping
   async function mergeLocalItems() {
-    if (merging || mode !== "shared" || club !== MAIN_LIST || !ORDER.every(l => fresh[l])) return;
+    if (merging || mode !== "shared" || club !== MAIN_LIST || !backend.createOnce || !ORDER.every(l => fresh[l])) return;
     let local, imported;
     try {
       local = JSON.parse(localStorage.getItem(LS_DATA) || "null");
       imported = new Set(JSON.parse(localStorage.getItem(LS_IMPORTED) || "[]"));
     } catch { return; }
     if (!local || typeof local !== "object") return;
-    const remember = tag => {
-      imported.add(tag);
-      try { localStorage.setItem(LS_IMPORTED, JSON.stringify([...imported])); } catch {}
-    };
+    const saveImported = () => { try { localStorage.setItem(LS_IMPORTED, JSON.stringify([...imported])); } catch {} };
     // Same title in the same state (to do, or done) counts as the same item.
     const key = it => it.title.trim().toLowerCase() + (it.done ? "\u0000done" : "");
     const jobs = [];
@@ -549,27 +580,29 @@ button,input{font:inherit;color:inherit}
         .sort((a, b) => a.rank - b.rank || a.createdAt - b.createdAt);
       for (const it of items) {
         const { tag, ...body } = it;
+        body.link = fitLink(body.link);
         triedThisVisit.add(tag);
+        imported.add(tag);
         const same = existing.get(key(body));
+        let job;
         if (same) {
-          // Already on the shared list: keep its place, but keep a note or link only this browser had.
-          const fill = {};
-          if (!same.note && body.note) fill.note = body.note;
-          if (!same.link && body.link) fill.link = body.link;
-          if (Object.keys(fill).length) Object.assign(same, fill);
-          jobs.push((Object.keys(fill).length ? backend.update(l, same.id, fill) : Promise.resolve()).then(() => remember(tag)));
-          continue;
+          // Already on the shared list: keep it as it is, but add a note or link only this browser had.
+          job = emptyFill(same, body) ? backend.fillEmpty(l, same.id, body) : Promise.resolve();
+        } else {
+          body.rank = next++;
+          // The id comes from the title and state, so two browsers copying the same item meet on one
+          // document; createOnce never overwrites one that exists (even if renamed or marked done since).
+          const id = "imp-" + hashId(l + "|" + key(body));
+          existing.set(key(body), { id, ...body });
+          job = backend.createOnce(l, id, body).then(created => { if (created) added++; });
         }
-        body.rank = next++;
-        if (body.link.length > 2048) body.link = "";
-        const id = "imp-" + hashId(l + "|" + key(body));
-        existing.set(key(body), { id, ...body });
-        jobs.push(backend.set(l, id, body).then(() => { added++; remember(tag); }));
+        jobs.push(job.catch(() => { imported.delete(tag); saveImported(); }));
       }
     }
     if (!jobs.length) return;
+    saveImported();
     merging = true;
-    await Promise.allSettled(jobs);
+    await Promise.all(jobs);
     merging = false;
     if (added) toast(`Added ${added} item${added === 1 ? "" : "s"} from this browser to the shared list.`);
   }
@@ -907,8 +940,9 @@ button,input{font:inherit;color:inherit}
       e.preventDefault();
       const title = iT.value.trim();
       if (!title) { iT.focus(); return; }
-      const rawLink = iL.value.trim(), link = safeUrl(rawLink);
-      if (rawLink && !link) { toast("That link doesn't look like a web address. Fix it or clear it."); iL.focus(); return; }
+      const rawLink = iL.value.trim(), url = safeUrl(rawLink), link = mode === "shared" && club ? fitLink(url) : url;
+      if (rawLink && !url) { toast("That link doesn't look like a web address. Fix it or clear it."); iL.focus(); return; }
+      if (url && !link) { toast("That link is too long to save. Try a shorter link to the same page."); iL.focus(); return; }
       editing = null;
       focusAfter = { id: it.id, act: "edit" };
       patch(current, it.id, { title: title.slice(0, 140), note: iN.value.trim().slice(0, 400), link });
@@ -1182,8 +1216,9 @@ button,input{font:inherit;color:inherit}
       const t = $("#add-title"), n = $("#add-note"), k = $("#add-link"), top = $("#add-top");
       const title = t.value.trim();
       if (!title) { t.focus(); return; }
-      const rawLink = k.value.trim(), link = safeUrl(rawLink);
-      if (rawLink && !link) { toast("That link doesn't look like a web address. Fix it or clear it."); k.focus(); return; }
+      const rawLink = k.value.trim(), url = safeUrl(rawLink), link = mode === "shared" && club ? fitLink(url) : url;
+      if (rawLink && !url) { toast("That link doesn't look like a web address. Fix it or clear it."); k.focus(); return; }
+      if (url && !link) { toast("That link is too long to save. Try a shorter link to the same page."); k.focus(); return; }
       const note = n.value.trim().slice(0, 400), atTop = top.checked;
       t.value = ""; n.value = ""; k.value = ""; top.checked = false;
       t.focus();
@@ -1220,9 +1255,10 @@ button,input{font:inherit;color:inherit}
     });
   }
 
-  function startLocal(kind, tip) {
+  function startLocal(kind, tip, forClub) {
     mode = kind;
     fallbackTip = tip || "";
+    localKey = forClub && forClub !== MAIN_LIST ? LS_DATA + ":" + forClub : LS_DATA;
     club = null;
     loadLocal();
     ORDER.forEach(l => { loaded[l] = true; });
@@ -1251,7 +1287,7 @@ button,input{font:inherit;color:inherit}
       club = resolveClub();
       render();
       firebaseBackend(fbConfig, club).then(goShared).catch(() => {
-        startLocal("fallback", "Couldn't reach the shared list, so changes are saved in this browser for now. Reload to try again.");
+        startLocal("fallback", "Couldn't reach the shared list, so changes are saved in this browser for now. Reload to try again.", club);
       });
       return;
     }
