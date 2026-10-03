@@ -18,7 +18,7 @@ service cloud.firestore {
       return d.keys().hasOnly(['title', 'note', 'link', 'rank', 'done', 'doneAt', 'addedBy', 'createdAt'])
         && d.title is string && d.title.size() > 0 && d.title.size() <= 140
         && d.note is string && d.note.size() <= 400
-        && d.link is string && d.link.size() <= 500
+        && d.link is string && d.link.size() <= 2048
         && d.rank is number
         && d.done is bool
         && (d.doneAt == null || d.doneAt is number)

@@ -372,7 +372,7 @@ button,input{font:inherit;color:inherit}
   const ORDER = ["films", "dishes", "together"];
   const LS_DATA = "someday-club:lists:v1";
   const LS_TAB = "someday-club:tab";
-  const LS_MERGED = "someday-club:merged:";
+  const LS_IMPORTED = "someday-club:imported:v1";   // local item ids already copied to the shared list
   const FIREBASE_VERSION = "12.19.0";
   const CLUB_CODE = /^[a-z0-9]{8,40}$/i;
   const MAIN_LIST = "ultramegamainlist";   // the list behind the plain address
@@ -419,8 +419,7 @@ button,input{font:inherit;color:inherit}
     if (!/^[a-z][a-z0-9+.-]*:/i.test(s)) s = "https://" + s;
     try {
       const u = new URL(s);
-      const ok = (u.protocol === "http:" || u.protocol === "https:") && u.hostname.includes(".") && u.href.length <= 500;
-      return ok ? u.href : "";
+      return (u.protocol === "http:" || u.protocol === "https:") && u.hostname.includes(".") ? u.href : "";
     } catch { return ""; }
   }
   const host = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return "link"; } };
@@ -506,44 +505,73 @@ button,input{font:inherit;color:inherit}
   }
   const clubLink = () => location.origin + location.pathname + (club === MAIN_LIST ? "" : "?club=" + club);
 
-  // Items added before the shared list was switched on live only in this browser. The first time
-  // this browser sees the shared list, copy them in (skipping titles already there) and remember it.
-  let mergeStarted = false;
+  // Stable 16-hex-digit id from a string, so two browsers copying the same item pick the same document.
+  function hashId(str) {
+    let a = 0x811c9dc5, b = 0x9747b28c;
+    for (let i = 0; i < str.length; i++) {
+      const c = str.charCodeAt(i);
+      a = Math.imul(a ^ c, 0x01000193);
+      b = Math.imul(b ^ c, 0x5bd1e995);
+    }
+    return (a >>> 0).toString(16).padStart(8, "0") + (b >>> 0).toString(16).padStart(8, "0");
+  }
+
+  // Items added while the site ran without the shared list live only in this browser. Whenever this
+  // browser opens the main shared list, copy over each one it hasn't copied before, and remember each
+  // as soon as it lands, so nothing is copied twice and nothing added later (an old tab, a visit
+  // where the database didn't load) gets left behind. Separate ?club= lists never receive them.
+  let merging = false;
+  const triedThisVisit = new Set();   // a failed copy waits for the next visit instead of looping
   async function mergeLocalItems() {
-    if (mergeStarted || mode !== "shared" || !club || !ORDER.every(l => fresh[l])) return;
-    mergeStarted = true;
-    const flag = LS_MERGED + club;
-    let local = null;
+    if (merging || mode !== "shared" || club !== MAIN_LIST || !ORDER.every(l => fresh[l])) return;
+    let local, imported;
     try {
-      if (localStorage.getItem(flag)) return;
       local = JSON.parse(localStorage.getItem(LS_DATA) || "null");
+      imported = new Set(JSON.parse(localStorage.getItem(LS_IMPORTED) || "[]"));
     } catch { return; }
-    const writes = [];
-    if (local && typeof local === "object") {
-      for (const l of ORDER) {
-        if (!Array.isArray(local[l])) continue;
-        const have = new Set(data[l].map(i => i.title.trim().toLowerCase()));
-        let next = data[l].reduce((m, i) => Math.max(m, i.rank), -1) + 1;
-        const items = local[l].filter(x => x && typeof x === "object")
-          .map(x => ({ id: typeof x.id === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(x.id) ? x.id : backend.newId(l), ...clean(x) }))
-          .sort((a, b) => a.rank - b.rank || a.createdAt - b.createdAt);
-        for (const it of items) {
-          const key = it.title.trim().toLowerCase();
-          if (have.has(key) || find(l, it.id)) continue;
-          have.add(key);
-          const { id, ...body } = it;
-          body.rank = next++;
-          // Reusing the local id makes a retried merge overwrite its own copy instead of duplicating it.
-          writes.push(backend.set(l, id, body));
+    if (!local || typeof local !== "object") return;
+    const remember = tag => {
+      imported.add(tag);
+      try { localStorage.setItem(LS_IMPORTED, JSON.stringify([...imported])); } catch {}
+    };
+    // Same title in the same state (to do, or done) counts as the same item.
+    const key = it => it.title.trim().toLowerCase() + (it.done ? "\u0000done" : "");
+    const jobs = [];
+    let added = 0;
+    for (const l of ORDER) {
+      if (!Array.isArray(local[l])) continue;
+      const existing = new Map(data[l].map(i => [key(i), i]));
+      let next = data[l].reduce((m, i) => Math.max(m, i.rank), -1) + 1;
+      const items = local[l]
+        .filter(x => x && typeof x === "object" && typeof x.id === "string")
+        .map(x => ({ tag: l + ":" + x.id, ...clean(x) }))
+        .filter(it => !imported.has(it.tag) && !triedThisVisit.has(it.tag))
+        .sort((a, b) => a.rank - b.rank || a.createdAt - b.createdAt);
+      for (const it of items) {
+        const { tag, ...body } = it;
+        triedThisVisit.add(tag);
+        const same = existing.get(key(body));
+        if (same) {
+          // Already on the shared list: keep its place, but keep a note or link only this browser had.
+          const fill = {};
+          if (!same.note && body.note) fill.note = body.note;
+          if (!same.link && body.link) fill.link = body.link;
+          if (Object.keys(fill).length) Object.assign(same, fill);
+          jobs.push((Object.keys(fill).length ? backend.update(l, same.id, fill) : Promise.resolve()).then(() => remember(tag)));
+          continue;
         }
+        body.rank = next++;
+        if (body.link.length > 2048) body.link = "";
+        const id = "imp-" + hashId(l + "|" + key(body));
+        existing.set(key(body), { id, ...body });
+        jobs.push(backend.set(l, id, body).then(() => { added++; remember(tag); }));
       }
     }
-    const results = await Promise.allSettled(writes);
-    if (results.every(r => r.status === "fulfilled")) {
-      try { localStorage.setItem(flag, String(Date.now())); } catch {}
-      if (writes.length) toast(`Added ${writes.length} item${writes.length === 1 ? "" : "s"} from this browser to the shared list.`);
-    }
-    // On a failed write the flag stays unset, so the next page load finishes the job.
+    if (!jobs.length) return;
+    merging = true;
+    await Promise.allSettled(jobs);
+    merging = false;
+    if (added) toast(`Added ${added} item${added === 1 ? "" : "s"} from this browser to the shared list.`);
   }
 
   async function shareList() {

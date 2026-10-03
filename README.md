@@ -11,7 +11,7 @@ A shared, ranked list for two: films to watch, dishes to cook, and things to do 
 
 Once Firebase is connected (step 2 below), the plain address, https://ultramegaultimatedateplanner.github.io, is one shared list. Anyone who opens it sees and edits the same lists, live. **Share the list** on the page copies that link.
 
-Items added before Firebase was connected are saved only in the browser they were added in. The first time each browser opens the shared list, it copies its own items in automatically, skipping any title the list already has, and it never imports them again after that.
+Items added before Firebase was connected are saved only in the browser they were added in. When that browser opens the shared list, it copies those items in automatically. It skips anything the list already has (same title, both to-do or both done) and copies each item only once. Separate `?club=` lists never receive them.
 
 Want a separate list for something else? Add `?club=` and 8–40 letters or digits to the address, e.g. `https://ultramegaultimatedateplanner.github.io/?club=ourtrip2027`.
 
