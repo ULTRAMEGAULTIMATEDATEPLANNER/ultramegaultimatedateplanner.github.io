@@ -14,9 +14,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#E3E4DE" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#111014" media="(prefers-color-scheme: dark)">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Dela+Gothic+One&family=Special+Elite&display=swap">
+<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Dela+Gothic+One&family=Special+Elite&display=swap">
 <style>
 /* Layout: a riso-printed zine for two. Poster masthead, three tabs (one spot ink per list), one taped-down sheet holding the ranked list, a stamped "done" pile underneath. */
 :root{
@@ -98,6 +98,7 @@ button,input{font:inherit;color:inherit}
 .sync[data-state="shared"]::before{background:var(--green);box-shadow:0 0 0 2px color-mix(in srgb,var(--green) 30%,transparent)}
 .sync[data-state="connecting"]::before{animation:blink 1s steps(2) infinite}
 .sync[data-state="offline"]::before{background:transparent;box-shadow:inset 0 0 0 2px var(--ink-soft)}
+.notch{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:#19181D;z-index:70;pointer-events:none}
 .install{position:fixed;inset:auto 0 0 0;margin:0 auto;max-width:28rem;width:calc(100% - 32px);max-height:none;bottom:calc(16px + env(safe-area-inset-bottom,0px));
   border:2px solid var(--ink);background:var(--sheet);color:var(--ink);padding:1.2rem 1.2rem 1rem;box-shadow:6px 6px 0 var(--acc)}
 .install::backdrop{background:rgba(0,0,0,.45)}
@@ -283,6 +284,7 @@ button,input{font:inherit;color:inherit}
     <feDisplacementMap in="d" in2="f" scale="3" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </svg>
+<div class="notch" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
 <div class="specks" aria-hidden="true"></div>
 
@@ -1359,7 +1361,8 @@ button,input{font:inherit;color:inherit}
   const runningAsApp = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   function updateInstall() {
-    $("#install").hidden = !!window.claude || runningAsApp() || !(installPrompt || isIOS());
+    const separateList = new URLSearchParams(location.search).has("club");
+    $("#install").hidden = !!window.claude || separateList || runningAsApp() || !(installPrompt || isIOS());
   }
   async function installApp() {
     if (installPrompt) {
@@ -1378,6 +1381,17 @@ button,input{font:inherit;color:inherit}
 
   if ("serviceWorker" in navigator && !window.claude && window.isSecureContext) {
     addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+    // On the first visit the page loads the Firebase code and fonts before the service worker is in
+    // charge, so request them once more through it; that saves them for the first offline launch.
+    const warm = () => {
+      const base = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/`;
+      const fonts = document.querySelector('link[rel="stylesheet"][href*="fonts.googleapis.com"]');
+      for (const u of [base + "firebase-app.js", base + "firebase-firestore.js", fonts && fonts.href].filter(Boolean)) {
+        fetch(u, { mode: "cors" }).catch(() => {});
+      }
+    };
+    if (navigator.serviceWorker.controller) warm();
+    else navigator.serviceWorker.addEventListener("controllerchange", warm, { once: true });
   }
 
   boot();
