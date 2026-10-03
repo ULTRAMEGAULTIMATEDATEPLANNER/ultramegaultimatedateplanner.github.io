@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "Ultra Mega Ultimate Date Planner",
+  "short_name": "Date Planner",
+  "description": "Films to watch, dishes to cook and things to do together, ranked and shared.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#111014",
+  "theme_color": "#111014",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Films to watch", "short_name": "Films", "url": "./#films", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Dishes to cook", "short_name": "Dishes", "url": "./#dishes", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Things to do together", "short_name": "Together", "url": "./#together", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

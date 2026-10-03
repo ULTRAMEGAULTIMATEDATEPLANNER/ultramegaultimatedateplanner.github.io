@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Ultra Mega Ultimate Date Planner</title>
+<meta name="description" content="Films to watch, dishes to cook and things to do together, ranked and shared.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Date Planner">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#E3E4DE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111014" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Dela+Gothic+One&family=Special+Elite&display=swap">
@@ -60,7 +70,8 @@
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
 html{background:var(--paper);-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;overflow-x:clip}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;overflow-x:clip;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 button,input{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -72,7 +83,7 @@ button,input{font:inherit;color:inherit}
 .specks{background-image:var(--specks);background-size:420px;opacity:var(--speck-op);filter:var(--speck-filter)}
 
 .label{font-family:var(--f-type);font-size:var(--t-sm);letter-spacing:.03em;color:var(--ink-soft)}
-.wrap{max-width:60rem;margin:0 auto;padding-inline:16px;padding-block:clamp(18px,4vw,44px) 40px}
+.wrap{max-width:60rem;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:clamp(18px,4vw,44px) 40px}
 @media (min-width:720px){.wrap{padding-inline:32px}}
 
 /* masthead */
@@ -86,6 +97,14 @@ button,input{font:inherit;color:inherit}
 .sync::before{content:"";width:.55rem;height:.55rem;border-radius:50%;background:var(--ink-soft)}
 .sync[data-state="shared"]::before{background:var(--green);box-shadow:0 0 0 2px color-mix(in srgb,var(--green) 30%,transparent)}
 .sync[data-state="connecting"]::before{animation:blink 1s steps(2) infinite}
+.sync[data-state="offline"]::before{background:transparent;box-shadow:inset 0 0 0 2px var(--ink-soft)}
+.install{position:fixed;inset:auto 0 0 0;margin:0 auto;max-width:28rem;width:calc(100% - 32px);max-height:none;bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  border:2px solid var(--ink);background:var(--sheet);color:var(--ink);padding:1.2rem 1.2rem 1rem;box-shadow:6px 6px 0 var(--acc)}
+.install::backdrop{background:rgba(0,0,0,.45)}
+.install h2{margin:0 0 .6rem;font-family:var(--f-display);font-weight:400;font-size:1.35rem;line-height:1.1}
+.install ol{margin:0 0 1rem;padding-left:1.3rem;display:grid;gap:.45rem}
+.install .ios-share{display:inline-block;vertical-align:-3px;width:16px;height:18px}
+.install .row{display:flex;justify-content:flex-end}
 @keyframes blink{50%{opacity:.15}}
 .logo{--logo-w:min(100vw - 32px,48rem);margin:.2rem 0 0;display:grid;font-family:var(--f-display);font-weight:400;text-transform:uppercase;
   font-size:calc(var(--logo-w) / 8.42);line-height:.88;letter-spacing:-.005em;filter:url(#rough-lg)}
@@ -273,6 +292,7 @@ button,input{font:inherit;color:inherit}
       <span class="label">Vol. 1 · A running list for two</span>
       <span class="mast-tools">
         <span class="sync" id="sync" data-state="connecting" role="status">Connecting…</span>
+        <button class="btn btn-sm" type="button" id="install" hidden>Get the app</button>
         <button class="btn btn-sm btn-acc" type="button" id="share" hidden>Share the list</button>
       </span>
     </div>
@@ -342,6 +362,17 @@ button,input{font:inherit;color:inherit}
   </footer>
 </div>
 
+<dialog class="install" id="install-sheet" aria-labelledby="install-title">
+  <h2 id="install-title">Put it on your Home Screen</h2>
+  <ol>
+    <li>Open this page in <b>Safari</b>.</li>
+    <li>Tap the Share button <svg class="ios-share" viewBox="0 0 16 18" aria-label="Share"><path d="M8 1v10M4.5 4.5 8 1l3.5 3.5M3 8H1.5v8.5h13V8H13" fill="none" stroke="currentColor" stroke-width="1.6"/></svg> at the bottom of the screen.</li>
+    <li>Scroll down and tap <b>Add to Home Screen</b>, then <b>Add</b>.</li>
+  </ol>
+  <p class="label">It opens full screen like any other app and stays in sync with your partner.</p>
+  <div class="row"><button class="btn btn-sm" type="button" id="install-close">Got it</button></div>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-msg"></span><button type="button" id="toast-act" hidden>Undo</button></div>
 
 <script src="firebase-config.js"></script>
@@ -388,7 +419,7 @@ button,input{font:inherit;color:inherit}
 
   const data = { films: [], dishes: [], together: [] };
   const loaded = { films: false, dishes: false, together: false };
-  const fresh = { films: false, dishes: false, together: false };   // has had a snapshot straight from the server
+  const fresh = { films: false, dishes: false, together: false };   // latest snapshot is confirmed by the server
   const unsubs = {};
   const profileCache = Object.create(null);
   const rowEls = new Map();
@@ -490,7 +521,13 @@ button,input{font:inherit;color:inherit}
     const base = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/`;
     const [{ initializeApp }, F] = await Promise.all([import(base + "firebase-app.js"), import(base + "firebase-firestore.js")]);
     const { emulatorHost, emulatorPort, ...appConfig } = cfg;
-    const fs = F.getFirestore(initializeApp(appConfig));
+    const app = initializeApp(appConfig);
+    let fs;
+    try {
+      // Keeps a copy of the lists on this device, so the app opens with them even offline,
+      // and changes made offline are sent once it reconnects.
+      fs = F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) });
+    } catch { fs = F.getFirestore(app); }
     if (emulatorHost) F.connectFirestoreEmulator(fs, emulatorHost, emulatorPort || 8080);
     const col = l => F.collection(fs, "clubs", clubId, l);
     const docs = s => s.docs.map(d => ({ id: d.id, data: d.data() || {} }));
@@ -516,7 +553,10 @@ button,input{font:inherit;color:inherit}
         const fill = snap.exists() && emptyFill(snap.data(), b);
         if (fill) tx.update(ref, fill);
       })),
-      subscribe: (l, next, fail) => F.onSnapshot(col(l), s => next(docs(s), s.metadata.fromCache),
+      // includeMetadataChanges: with the on-device copy, the first snapshot comes from that copy, and the
+      // server's confirmation of unchanged data is only a metadata change. Without it the page would
+      // never learn the list is up to date.
+      subscribe: (l, next, fail) => F.onSnapshot(col(l), { includeMetadataChanges: true }, s => next(docs(s), s.metadata.fromCache),
         e => fail({ code: String((e && e.code) || "unknown").replace(/-/g, "_"), message: e && e.message }))
     };
   }
@@ -549,11 +589,11 @@ button,input{font:inherit;color:inherit}
   }
 
   // Items added while the site ran without the shared list live only in this browser. Whenever this
-  // browser opens the main shared list, copy over each one it hasn't copied before. Each item is
-  // recorded just before its copy is sent and un-recorded only if the copy is refused, so an item is
-  // never copied twice and a copy cut off mid-way can't bring back something deleted since. Items
-  // added later (an old tab, a visit where the database didn't load) are picked up on the next visit.
-  // Separate ?club= lists never receive them.
+  // browser opens the main shared list, copy over each one it hasn't copied before. An item is marked
+  // as copied only once the database confirms it, so closing the app mid-copy never loses anything:
+  // the next visit simply tries again, and createOnce can't duplicate or overwrite a copy that did
+  // land. Items added later (an old tab, a visit where the database didn't load) are picked up on the
+  // next visit. Separate ?club= lists never receive them.
   let merging = false;
   const triedThisVisit = new Set();   // a refused copy waits for the next visit instead of looping
   async function mergeLocalItems() {
@@ -582,7 +622,6 @@ button,input{font:inherit;color:inherit}
         const { tag, ...body } = it;
         body.link = fitLink(body.link);
         triedThisVisit.add(tag);
-        imported.add(tag);
         const same = existing.get(key(body));
         let job;
         if (same) {
@@ -596,11 +635,10 @@ button,input{font:inherit;color:inherit}
           existing.set(key(body), { id, ...body });
           job = backend.createOnce(l, id, body).then(created => { if (created) added++; });
         }
-        jobs.push(job.catch(() => { imported.delete(tag); saveImported(); }));
+        jobs.push(job.then(() => { imported.add(tag); saveImported(); }, () => {}));
       }
     }
     if (!jobs.length) return;
-    saveImported();
     merging = true;
     await Promise.all(jobs);
     merging = false;
@@ -655,7 +693,7 @@ button,input{font:inherit;color:inherit}
   function applyDocs(l, docs, fromCache) {
     data[l] = docs.map(d => ({ id: d.id, ...clean(d.data) }));
     loaded[l] = true;
-    if (!fromCache) fresh[l] = true;
+    fresh[l] = !fromCache;
     render();
     if (backend && club) mergeLocalItems();
   }
@@ -1052,6 +1090,7 @@ button,input{font:inherit;color:inherit}
     const s = $("#sync"), foot = $("#foot-mode");
     let state = mode, text, tip = "";
     if (mode === "connecting") text = "Connecting…";
+    else if (mode === "shared" && club && !navigator.onLine) { state = "offline"; text = "Offline · saved copy"; tip = "You're offline. Changes you make now sync when you reconnect."; }
     else if (mode === "shared" && writable) { text = "Shared · live"; tip = club ? "Anyone with this page's link sees and edits these lists." : "Changes show up for both of you right away."; }
     else if (mode === "shared") { state = "readonly"; text = "View only"; tip = "You can look but not change things. Ask the owner for edit access."; }
     else if (mode === "fallback") { text = "This device only"; tip = fallbackTip; }
@@ -1227,6 +1266,10 @@ button,input{font:inherit;color:inherit}
 
     $("#pick").addEventListener("click", pick);
     $("#share").addEventListener("click", shareList);
+    $("#install").addEventListener("click", installApp);
+    $("#install-close").addEventListener("click", () => $("#install-sheet").close());
+    addEventListener("online", setSync);
+    addEventListener("offline", setSync);
 
     $("#list").addEventListener("pointerdown", startDrag);
     $("#list").addEventListener("click", e => {
@@ -1310,7 +1353,35 @@ button,input{font:inherit;color:inherit}
     });
   }
 
+  /* ---------- installable app ---------- */
+
+  let installPrompt = null;
+  const runningAsApp = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  function updateInstall() {
+    $("#install").hidden = !!window.claude || runningAsApp() || !(installPrompt || isIOS());
+  }
+  async function installApp() {
+    if (installPrompt) {
+      const p = installPrompt;
+      installPrompt = null;
+      p.prompt();
+      try { await p.userChoice; } catch {}
+      updateInstall();
+      return;
+    }
+    const sheet = $("#install-sheet");
+    if (typeof sheet.showModal === "function") sheet.showModal(); else sheet.setAttribute("open", "");
+  }
+  addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; updateInstall(); });
+  addEventListener("appinstalled", () => { installPrompt = null; updateInstall(); toast("Installed. Open it from your home screen."); });
+
+  if ("serviceWorker" in navigator && !window.claude && window.isSecureContext) {
+    addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+  }
+
   boot();
+  updateInstall();
 })();
 </script>
 </body>
