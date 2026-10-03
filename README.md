@@ -9,9 +9,11 @@ A shared, ranked list for two: films to watch, dishes to cook, and things to do 
 
 ## How sharing works
 
-The first time you open the site, it creates your list and adds a private code to the address, like `https://ultramegaultimatedateplanner.github.io/?club=k7m2x9qp4hra`. Send that link (or use **Share the list** on the page) and whoever opens it sees and edits the same lists, live. It works like a Google Doc set to "anyone with the link".
+Once Firebase is connected (step 2 below), the plain address, https://ultramegaultimatedateplanner.github.io, is one shared list. Anyone who opens it sees and edits the same lists, live. **Share the list** on the page copies that link.
 
-Someone who opens the plain site address without your code gets their own empty list, not yours. Your browser remembers your code, so the plain address takes you back to your lists.
+Items added before Firebase was connected are saved only in the browser they were added in. The first time each browser opens the shared list, it copies its own items in automatically, skipping any title the list already has, and it never imports them again after that.
+
+Want a separate list for something else? Add `?club=` and 8–40 letters or digits to the address, e.g. `https://ultramegaultimatedateplanner.github.io/?club=ourtrip2027`.
 
 ## Setup (one time, about 10 minutes)
 
@@ -42,4 +44,4 @@ Commit the change to `main`. GitHub Pages republishes on its own. These values a
 
 ## Privacy
 
-Anyone who has your link can read and change your lists, so share it only with people you'd hand a shared notebook to. The rules block everything else: nobody can list other people's codes, and items must have the expected shape (a title of up to 140 characters, a note of up to 400, and an optional web link).
+Anyone who opens the site can read and change the shared lists, so share the address only with people you'd hand a shared notebook to. The rules block everything else: nobody can list other `?club=` codes, and items must have the expected shape (a title of up to 140 characters, a note of up to 400, and an optional web link).

@@ -372,9 +372,10 @@ button,input{font:inherit;color:inherit}
   const ORDER = ["films", "dishes", "together"];
   const LS_DATA = "someday-club:lists:v1";
   const LS_TAB = "someday-club:tab";
-  const LS_CLUB = "someday-club:club";
+  const LS_MERGED = "someday-club:merged:";
   const FIREBASE_VERSION = "12.19.0";
   const CLUB_CODE = /^[a-z0-9]{8,40}$/i;
+  const MAIN_LIST = "ultramegamainlist";   // the list behind the plain address
 
   const ICON = {
     grip: '<svg viewBox="0 0 12 20" width="12" height="20" aria-hidden="true"><g fill="currentColor"><rect x="1" y="2" width="3.4" height="3.4"/><rect x="7.6" y="2" width="3.4" height="3.4"/><rect x="1" y="8.3" width="3.4" height="3.4"/><rect x="7.6" y="8.3" width="3.4" height="3.4"/><rect x="1" y="14.6" width="3.4" height="3.4"/><rect x="7.6" y="14.6" width="3.4" height="3.4"/></g></svg>',
@@ -387,6 +388,7 @@ button,input{font:inherit;color:inherit}
 
   const data = { films: [], dishes: [], together: [] };
   const loaded = { films: false, dishes: false, together: false };
+  const fresh = { films: false, dishes: false, together: false };   // has had a snapshot straight from the server
   const unsubs = {};
   const profileCache = Object.create(null);
   const rowEls = new Map();
@@ -417,7 +419,8 @@ button,input{font:inherit;color:inherit}
     if (!/^[a-z][a-z0-9+.-]*:/i.test(s)) s = "https://" + s;
     try {
       const u = new URL(s);
-      return (u.protocol === "http:" || u.protocol === "https:") && u.hostname.includes(".") ? u.href : "";
+      const ok = (u.protocol === "http:" || u.protocol === "https:") && u.hostname.includes(".") && u.href.length <= 500;
+      return ok ? u.href : "";
     } catch { return ""; }
   }
   const host = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return "link"; } };
@@ -470,7 +473,7 @@ button,input{font:inherit;color:inherit}
       update: (l, id, p) => db.collection(l).doc(id).update(p),
       remove: (l, id) => db.collection(l).doc(id).delete(),
       fetch: l => db.collection(l).get().then(docs),
-      subscribe: (l, next, fail) => db.collection(l).onSnapshot(s => next(docs(s)), fail)
+      subscribe: (l, next, fail) => db.collection(l).onSnapshot(s => next(docs(s), s.metadata.fromCache), fail)
     };
   }
 
@@ -490,29 +493,58 @@ button,input{font:inherit;color:inherit}
       update: (l, id, p) => wrap(F.updateDoc(F.doc(col(l), id), p)),
       remove: (l, id) => wrap(F.deleteDoc(F.doc(col(l), id))),
       fetch: l => wrap(F.getDocs(col(l)).then(docs)),
-      subscribe: (l, next, fail) => F.onSnapshot(col(l), s => next(docs(s)),
+      subscribe: (l, next, fail) => F.onSnapshot(col(l), s => next(docs(s), s.metadata.fromCache),
         e => fail({ code: String((e && e.code) || "unknown").replace(/-/g, "_"), message: e && e.message }))
     };
   }
 
-  // Each list lives behind a private code in the link (?club=…), like "anyone with the link" sharing.
+  // The plain address is the shared list everyone sees. ?club=… opens a separate list instead.
   function resolveClub() {
-    let fromUrl = null, saved = null;
+    let fromUrl = null;
     try { fromUrl = new URLSearchParams(location.search).get("club"); } catch {}
-    try { saved = localStorage.getItem(LS_CLUB); } catch {}
-    let code = fromUrl && CLUB_CODE.test(fromUrl) ? fromUrl : saved && CLUB_CODE.test(saved) ? saved : null;
-    if (!code) {
-      const abc = "abcdefghjkmnpqrstuvwxyz23456789", bytes = new Uint8Array(12);
-      crypto.getRandomValues(bytes);
-      code = Array.from(bytes, b => abc[b % abc.length]).join("");
-    }
-    try { localStorage.setItem(LS_CLUB, code); } catch {}
-    if (fromUrl !== code) {
-      try { const u = new URL(location.href); u.searchParams.set("club", code); history.replaceState(null, "", u.href); } catch {}
-    }
-    return code;
+    return fromUrl && CLUB_CODE.test(fromUrl) ? fromUrl : MAIN_LIST;
   }
-  const clubLink = () => location.origin + location.pathname + "?club=" + club;
+  const clubLink = () => location.origin + location.pathname + (club === MAIN_LIST ? "" : "?club=" + club);
+
+  // Items added before the shared list was switched on live only in this browser. The first time
+  // this browser sees the shared list, copy them in (skipping titles already there) and remember it.
+  let mergeStarted = false;
+  async function mergeLocalItems() {
+    if (mergeStarted || mode !== "shared" || !club || !ORDER.every(l => fresh[l])) return;
+    mergeStarted = true;
+    const flag = LS_MERGED + club;
+    let local = null;
+    try {
+      if (localStorage.getItem(flag)) return;
+      local = JSON.parse(localStorage.getItem(LS_DATA) || "null");
+    } catch { return; }
+    const writes = [];
+    if (local && typeof local === "object") {
+      for (const l of ORDER) {
+        if (!Array.isArray(local[l])) continue;
+        const have = new Set(data[l].map(i => i.title.trim().toLowerCase()));
+        let next = data[l].reduce((m, i) => Math.max(m, i.rank), -1) + 1;
+        const items = local[l].filter(x => x && typeof x === "object")
+          .map(x => ({ id: typeof x.id === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(x.id) ? x.id : backend.newId(l), ...clean(x) }))
+          .sort((a, b) => a.rank - b.rank || a.createdAt - b.createdAt);
+        for (const it of items) {
+          const key = it.title.trim().toLowerCase();
+          if (have.has(key) || find(l, it.id)) continue;
+          have.add(key);
+          const { id, ...body } = it;
+          body.rank = next++;
+          // Reusing the local id makes a retried merge overwrite its own copy instead of duplicating it.
+          writes.push(backend.set(l, id, body));
+        }
+      }
+    }
+    const results = await Promise.allSettled(writes);
+    if (results.every(r => r.status === "fulfilled")) {
+      try { localStorage.setItem(flag, String(Date.now())); } catch {}
+      if (writes.length) toast(`Added ${writes.length} item${writes.length === 1 ? "" : "s"} from this browser to the shared list.`);
+    }
+    // On a failed write the flag stays unset, so the next page load finishes the job.
+  }
 
   async function shareList() {
     const url = clubLink();
@@ -559,10 +591,12 @@ button,input{font:inherit;color:inherit}
     }
   }
 
-  function applyDocs(l, docs) {
+  function applyDocs(l, docs, fromCache) {
     data[l] = docs.map(d => ({ id: d.id, ...clean(d.data) }));
     loaded[l] = true;
+    if (!fromCache) fresh[l] = true;
     render();
+    if (backend && club) mergeLocalItems();
   }
   function resync(l) {
     if (mode === "shared" && backend) backend.fetch(l).then(docs => applyDocs(l, docs)).catch(() => {});
@@ -571,7 +605,7 @@ button,input{font:inherit;color:inherit}
   let loadErrorShown = false;
   function subscribeOne(l, retried) {
     if (unsubs[l]) unsubs[l]();
-    unsubs[l] = backend.subscribe(l, docs => applyDocs(l, docs), e => {
+    unsubs[l] = backend.subscribe(l, (docs, fromCache) => applyDocs(l, docs, fromCache), e => {
       unsubs[l] = null;
       if (e && e.code === "unavailable" && !retried) { setTimeout(() => subscribeOne(l, true), 2000); return; }
       if (e && e.code === "revoked") { writable = false; editing = null; }
