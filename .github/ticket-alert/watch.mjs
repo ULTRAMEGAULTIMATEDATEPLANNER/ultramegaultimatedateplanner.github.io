@@ -21,6 +21,8 @@ export const SHOW = {
 
 const CHECKS = num(env.CHECKS, 5);
 const INTERVAL_MS = num(env.INTERVAL_SECONDS, 55) * 1000;
+const RUN_MS = num(env.RUN_SECONDS, 270) * 1000;            // no new check after this, so runs don't pile up
+const RETRY_MS = num(env.RETRY_SECONDS, 4) * 1000;          // LAB111's shop is sometimes slow: one more try
 const REALERT_MS = num(env.REALERT_MINUTES, 10) * 60000;    // reminders while tickets stay on sale
 const WARN_AFTER_MS = num(env.WARN_AFTER_MINUTES, 15) * 60000; // pages unreadable this long: say so once
 const HEARTBEAT_HOUR = num(env.HEARTBEAT_HOUR, 10);          // daily "still watching", Amsterdam time
@@ -30,6 +32,7 @@ const TOKEN = env.TELEGRAM_BOT_TOKEN || "";
 const CHAT_ID = String(env.TELEGRAM_CHAT_ID || "").trim();
 const STATE_BRANCH = "ticket-alert-state";
 const UA = "Mozilla/5.0 (compatible; personal ticket alert; one check a minute)";
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* ---------- reading the pages ---------- */
 
@@ -64,19 +67,26 @@ async function getPage(url) {
     const res = await fetch(url, { headers: { "user-agent": UA, "accept-language": "nl,en;q=0.8" }, signal: ctrl.signal, redirect: "follow" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.text();
+  } catch (e) {
+    throw ctrl.signal.aborted ? new Error("no answer within 20 seconds") : e;
   } finally { clearTimeout(t); }
 }
 
-// The shop decides whenever it gives a clear answer; the festival page only fills in when it can't.
+async function readShopNow() {
+  try { return readShop(await getPage(SHOW.shopUrl)); }
+  catch (e) { return { status: "unknown", why: `LAB111's ticket page didn't load (${e.message})` }; }
+}
+
+// The shop decides whenever it gives a clear answer (after a second try); the festival page only
+// fills in when it can't.
 export async function check() {
-  let shop;
-  try { shop = readShop(await getPage(SHOW.shopUrl)); }
-  catch (e) { shop = { status: "unknown", why: `LAB111's ticket page didn't load (${e.message})` }; }
+  let shop = await readShopNow();
+  if (shop.status === "unknown") { await sleep(RETRY_MS); shop = await readShopNow(); }
   if (shop.status !== "unknown") return { ...shop, link: SHOW.shopUrl, source: "LAB111" };
   let fest;
   try { fest = readFestival(await getPage(SHOW.festivalUrl)); }
   catch (e) { fest = { status: "unknown", why: `the festival page didn't load (${e.message})` }; }
-  if (fest.status !== "unknown") return { link: SHOW.shopUrl, ...fest, source: "festival page" };
+  if (fest.status !== "unknown") return { link: SHOW.shopUrl, ...fest, source: "festival page", note: shop.why };
   return { status: "unknown", why: `${shop.why}; ${fest.why}` };
 }
 
@@ -179,7 +189,7 @@ async function step(st, now) {
     return "done";
   }
   const r = await check();
-  console.log(`${clock(now)} ${r.status}${r.source ? " (" + r.source + ")" : ""}${r.why ? ": " + r.why : ""}`);
+  console.log(`${clock(now)} ${r.status}${r.source ? " (" + r.source + ")" : ""}${r.why ? ": " + r.why : ""}${r.note ? " – shop: " + r.note : ""}`);
 
   const welcome = !st.welcomed;
   if (welcome) {
@@ -223,9 +233,11 @@ async function step(st, now) {
 
 async function main() {
   if (!TOKEN || !CHAT_ID) { console.log("Waiting for the TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID secrets."); return; }
+  const startedAt = Date.now();
   let { state: st, sha } = await loadState();
   for (let i = 0; i < CHECKS; i++) {
-    if (i) await new Promise(r => setTimeout(r, INTERVAL_MS));
+    if (i && Date.now() - startedAt + INTERVAL_MS > RUN_MS) break;
+    if (i) await sleep(INTERVAL_MS);
     const before = JSON.stringify(st);
     let res;
     try { res = await step(st, Date.now()); }

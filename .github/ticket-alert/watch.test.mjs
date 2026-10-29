@@ -51,7 +51,11 @@ const server = http.createServer((req, res) => {
   req.on("end", () => {
     const url = new URL(req.url, "http://x");
     const json = (code, obj) => { res.writeHead(code, { "content-type": "application/json" }); res.end(JSON.stringify(obj)); };
-    if (url.pathname === "/shop") { res.writeHead(fake.shop.code); return res.end(fake.shop.body); }
+    if (url.pathname === "/shop") {
+      fake.shopHits = (fake.shopHits || 0) + 1;
+      if (fake.shop.flaky && fake.shopHits % 2 === 1) { res.writeHead(502); return res.end("bad gateway"); }
+      res.writeHead(fake.shop.code); return res.end(fake.shop.body);
+    }
     if (url.pathname === "/fest") { res.writeHead(fake.fest.code); return res.end(fake.fest.body); }
     const tgm = /^\/tg\/bot(.+)\/(\w+)$/.exec(url.pathname);
     if (tgm) {
@@ -99,7 +103,7 @@ const run = (extra = {}) => new Promise(resolve => {
     PATH: process.env.PATH, TZ: "UTC",
     TELEGRAM_BOT_TOKEN: "TEST:TOKEN", TELEGRAM_CHAT_ID: String(OUR_CHAT), TELEGRAM_API: `${BASE}/tg`,
     SHOP_URL: `${BASE}/shop`, FESTIVAL_URL: `${BASE}/fest`, STATE_FILE: STATE,
-    CHECKS: "1", INTERVAL_SECONDS: "0.05", HEARTBEAT_HOUR: "99", STARTS_AT: "2099-01-01T00:00:00Z", ...extra
+    CHECKS: "1", INTERVAL_SECONDS: "0.05", RETRY_SECONDS: "0", HEARTBEAT_HOUR: "99", STARTS_AT: "2099-01-01T00:00:00Z", ...extra
   };
   for (const k of Object.keys(env)) if (env[k] === null) delete env[k];
   execFile(process.execPath, [join(HERE, "watch.mjs")], { env, timeout: 30000 }, (err, stdout, stderr) => resolve({ err, out: stdout + stderr }));
@@ -147,9 +151,12 @@ check("Sold out again: says so once", r.msgs.length === 1 && /Sold out again/.te
 r = await newSent();
 check("…and not again", r.msgs.length === 0);
 
+fake.shop = { code: 200, body: SHOP_SOLDOUT, flaky: true };
+r = await newSent({ RETRY_SECONDS: "0.05" });
+check("Shop fails once then answers: it tries again and uses the shop", r.msgs.length === 0 && /soldout \(LAB111\)/.test(r.out) && fake.shopHits >= 2, r.out);
 fake.shop = { code: 503, body: "busy" };
 r = await newSent();
-check("Shop down, festival page says sold out: quiet", r.msgs.length === 0 && state().last === "soldout" && /soldout \(festival page\)/.test(r.out), r.out);
+check("Shop down, festival page says sold out: quiet, and the log says why the shop wasn't used", r.msgs.length === 0 && state().last === "soldout" && /soldout \(festival page\) – shop: LAB111's ticket page didn't load \(HTTP 503\)/.test(r.out), r.out);
 fake.fest = { code: 200, body: FEST_ON_SALE };
 r = await newSent();
 check("Shop down, festival page on sale: alert with the festival's ticket link", r.msgs.length === 1 && /TICKETS AVAILABLE/.test(r.msgs[0]) && r.msgs[0].includes("/show/1312105"), r.msgs.join(" | "));
@@ -187,6 +194,10 @@ r = await newSent({ STARTS_AT: "2020-01-01T00:00:00Z" });
 check("After the screening starts: goodbye, and no checking", r.msgs.length === 1 && /stopped watching/.test(r.msgs[0]) && state().done === true && !/soldout/.test(r.out), r.msgs.join(" | "));
 r = await newSent({ STARTS_AT: "2020-01-01T00:00:00Z" });
 check("…said only once", r.msgs.length === 0);
+
+const t0 = Date.now();
+r = await newSent({ CHECKS: "50", INTERVAL_SECONDS: "0.3", RUN_SECONDS: "1" });
+check("A run stops starting new checks when its time is up", Date.now() - t0 < 4000 && (r.out.match(/soldout \(LAB111\)/g) || []).length <= 4, `${Date.now() - t0} ms`);
 
 /* ---------- memory kept on GitHub, and switching itself off ---------- */
 
