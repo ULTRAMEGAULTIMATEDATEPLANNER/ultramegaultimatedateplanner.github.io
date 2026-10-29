@@ -33,11 +33,12 @@ service cloud.firestore {
       allow create, update: if validClub(club) && validList(list) && validItem(request.resource.data);
     }
 
-    // Restaurants we've been to, with each person's own review under reviews.a / reviews.b.
+    // Restaurants we've been to, with each person's own review under reviews.a / reviews.b
+    // (½ to 5 stars in half steps).
     function validReview(r) {
       return r is map
         && r.keys().hasOnly(['stars', 'text', 'at']) && r.keys().hasAll(['stars', 'text', 'at'])
-        && r.stars is int && r.stars >= 1 && r.stars <= 5
+        && (r.stars is int || r.stars is float) && r.stars >= 0.5 && r.stars <= 5 && int(r.stars * 2) == r.stars * 2
         && r.text is string && r.text.size() <= 600
         && r.at is number;
     }

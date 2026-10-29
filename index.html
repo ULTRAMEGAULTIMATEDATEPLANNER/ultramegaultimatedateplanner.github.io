@@ -585,7 +585,10 @@ a.btn{text-decoration:none}
 [data-skin="lb"] .rcard.is-editing{grid-template-columns:minmax(0,1fr);margin-block:.6rem;padding:1rem;border-radius:6px;background:var(--lb-bg2)}
 [data-skin="lb"] .rev-form{margin-top:.4rem;padding:1rem;border-radius:6px;background:var(--lb-bg2)}
 [data-skin="lb"] .star-row{gap:0}
-[data-skin="lb"] .star-row label{width:46px;height:46px;border:0;background:none;color:#4A3D68;font-size:2.1rem;transition:color .1s ease}
+[data-skin="lb"] .star-row label{width:23px;height:46px;overflow:hidden;border:0;background:none;color:#4A3D68;transition:color .1s ease}
+[data-skin="lb"] .star-row label span{position:absolute;top:0;left:0;display:grid;place-items:center;width:46px;height:46px;font-size:2.1rem;line-height:1}
+[data-skin="lb"] .star-row label.half-r span{left:-23px}
+[data-skin="lb"] .star-row label:has(input:focus-visible){outline:2px solid var(--lb-purple);outline-offset:-2px}
 [data-skin="lb"] .star-row label.is-on{background:none;color:var(--lb-green)}
 @media (hover:hover){
   [data-skin="lb"] .star-row:hover label{color:var(--lb-green)}
@@ -627,7 +630,7 @@ a.btn{text-decoration:none}
 .poster-btn{position:relative;display:block;width:100%;padding:0;border:0;border-radius:4px;background:none;color:inherit;cursor:pointer}
 .poster-btn:hover .poster,.poster-btn:focus-visible .poster{box-shadow:inset 0 0 0 2px var(--lb-green),0 3px 9px rgba(0,0,0,.5)}
 .poster-btn:focus-visible{outline-offset:3px}
-.poster-add{position:absolute;right:5px;bottom:5px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(10,6,18,.72);color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.poster-add{position:absolute;right:5px;top:5px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(10,6,18,.72);color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
 .poster-credit{margin:.3rem 0 0;font-size:.6rem;line-height:1.3;color:var(--lb-dim);overflow-wrap:anywhere}
 .poster-credit a{color:var(--lb-text)}
 .rcard-art{display:grid;align-content:start;min-width:0}
@@ -1892,6 +1895,10 @@ a.btn{text-decoration:none}
   const round6 = n => Math.round(n * 1e6) / 1e6;
   const intIn = (v, lo, hi, dflt) => Number.isInteger(v) && v >= lo && v <= hi ? v : dflt;
 
+  // Stars go from ½ to 5 in half steps, like Letterboxd.
+  const okStars = v => typeof v === "number" && v >= .5 && v <= 5 && Number.isInteger(v * 2);
+  const starWords = v => v === .5 ? "half a star" : v === 1 ? "1 star" : `${Math.floor(v)}${v % 1 ? " and a half" : ""} stars`;
+
   // Shared data is untrusted: coerce every field to the shape the page and the rules expect.
   function cleanPlace(raw) {
     raw = raw && typeof raw === "object" ? raw : {};
@@ -1900,7 +1907,7 @@ a.btn{text-decoration:none}
     const reviews = {};
     for (const k of ["a", "b"]) {
       const r = raw.reviews && typeof raw.reviews === "object" ? raw.reviews[k] : null;
-      if (r && Number.isInteger(r.stars) && r.stars >= 1 && r.stars <= 5) reviews[k] = { stars: r.stars, text: str(r.text, 600), at: num(r.at) };
+      if (r && okStars(r.stars)) reviews[k] = { stars: r.stars, text: str(r.text, 600), at: num(r.at) };
     }
     const pinned = lat !== null && lng !== null;
     return {
@@ -1971,11 +1978,12 @@ a.btn{text-decoration:none}
     } catch {}
     rest.loaded = true;
   }
-  async function rRemote(fn) {
+  async function rRemote(fn, onDenied) {
     if (mode !== "shared") { saveRestLocal(); return true; }
     try { await fn(); return true; }
     catch (e) {
-      if (e && e.code === "permission_denied") { rest.blocked = true; render(); toast("Couldn't save that. The database needs its updated rules first."); }
+      if (e && e.code === "permission_denied" && onDenied) onDenied();
+      else if (e && e.code === "permission_denied") { rest.blocked = true; render(); toast("Couldn't save that. The database needs its updated rules first."); }
       else writeFailed(e);
       return false;
     }
@@ -2050,7 +2058,10 @@ a.btn{text-decoration:none}
     if (review) reviews[who] = review; else delete reviews[who];
     p.reviews = reviews;
     render();
-    const ok = await rRemote(() => backend.review ? backend.review("restaurants", id, who, review) : backend.set("restaurants", id, placeBody(p)));
+    // Rules from before half stars refuse them: say so, keep everything else working.
+    const half = review && !Number.isInteger(review.stars);
+    const ok = await rRemote(() => backend.review ? backend.review("restaurants", id, who, review) : backend.set("restaurants", id, placeBody(p)),
+      half ? () => toast("Half stars need the updated database rules first: a two-minute step in Firebase.") : null);
     if (!ok) resyncRest();
   }
   async function wentAgain(id) {
@@ -2221,17 +2232,19 @@ a.btn{text-decoration:none}
     fs.append(el("legend", "field-label", `${personName(who)}'s stars`));
     const row = el("div", "star-row");
     const labels = [];
-    const paint = v => labels.forEach((lb, i) => lb.classList.toggle("is-on", i < v));
-    for (let i = 1; i <= 5; i++) {
-      const lb = el("label");
-      lb.htmlFor = `star-${i}`;
+    // Ten radios, ½ to 5: each star is two halves (ids star-N-half for N−½, star-N for N), like Letterboxd.
+    const paint = v => labels.forEach(([lb, x]) => lb.classList.toggle("is-on", x <= v));
+    for (let i = 1; i <= 10; i++) {
+      const v = i / 2, whole = i % 2 === 0;
+      const lb = el("label", whole ? "half-r" : "half-l");
+      lb.htmlFor = whole ? `star-${v}` : `star-${Math.ceil(v)}-half`;
       const inp = el("input");
-      inp.type = "radio"; inp.name = "review-stars"; inp.id = `star-${i}`; inp.value = String(i);
-      inp.setAttribute("aria-label", i === 1 ? "1 star" : `${i} stars`);
-      if (cur && cur.stars === i) inp.checked = true;
-      inp.addEventListener("change", () => paint(i));
+      inp.type = "radio"; inp.name = "review-stars"; inp.id = lb.htmlFor; inp.value = String(v);
+      inp.setAttribute("aria-label", starWords(v));
+      if (cur && cur.stars === v) inp.checked = true;
+      inp.addEventListener("change", () => paint(v));
       lb.append(inp, el("span", null, "★"));
-      labels.push(lb);
+      labels.push([lb, v]);
       row.append(lb);
     }
     fs.append(row);
@@ -2258,12 +2271,12 @@ a.btn{text-decoration:none}
     f.addEventListener("submit", e => {
       e.preventDefault();
       const picked = f.querySelector('input[name="review-stars"]:checked');
-      if (!picked) { toast("Pick 1 to 5 stars first."); f.querySelector("#star-1").focus(); return; }
+      if (!picked) { toast("Pick ½ to 5 stars first."); f.querySelector("#star-1-half").focus(); return; }
       rest.reviewing = null;
       focusAfter = { id: p.id, act: "review" };
       saveReview(p.id, who, { stars: Number(picked.value), text: ta.value.trim().slice(0, 600), at: Date.now() });
     });
-    requestAnimationFrame(() => { const first = f.querySelector("input:checked") || f.querySelector("#star-1"); if (first && document.contains(first)) first.focus(); });
+    requestAnimationFrame(() => { const first = f.querySelector("input:checked") || f.querySelector("#star-1-half"); if (first && document.contains(first)) first.focus(); });
     return f;
   }
 
