@@ -4,6 +4,7 @@ A shared, ranked list for two: films to watch, dishes to cook, things to do toge
 
 - `index.html` — the whole site (no build step).
 - `firebase-config.js` — the Firebase settings that turn on the shared lists.
+- `google-config.js` — optional Google Maps key for restaurant photos (off until a key is added).
 - `firestore.rules` — the database rules: who can read and write, and what an item may contain.
 - `PROMPT.md` — the prompt the site was built from.
 - `tests/parse-maps-link.test.mjs` — checks the Google Maps link reader (`node tests/parse-maps-link.test.mjs`).
@@ -28,7 +29,26 @@ The fourth tab is a log of places you two have eaten, not a ranked list. It has 
 - **The map:** scroll down for a map of the Netherlands with a pin per place, coloured by medal. Tap a pin for its ticket, with **Open in Google Maps** and **Show in the list**. On a phone one finger scrolls the page and two fingers move the map. The map is OpenStreetMap's (free, credited on the map; CARTO's tiles now require an API key). Offline, the list and reviews still work and the map says it needs a connection.
 - Nothing here uses a Google API or key: "Google Maps" means each place links to its own Google Maps page (for a place picked from the search, a Google Maps search for its name and address).
 
-Where it's stored: `clubs/{club}/restaurants/{place}` and your names in `clubs/{club}/meta/people`. Without Firebase, they stay in the browser (`someday-club:restaurants:v1`, `someday-club:people:v1`).
+### Restaurant photos
+
+Tap any poster for its photo sheet: **Take a photo** (opens the camera on a phone), **Choose a photo**, **Remove our photo**, and, on a Google photo, **Not this place's photo**. A photo you add is cropped to the 2:3 poster, shrunk to a 360×540 JPEG (about 100 kB), and shared with your partner. It always replaces Google's photo.
+
+With a Google Maps key in `google-config.js`, posters also show the place's own Google Maps photo:
+
+- When a place is logged (and once for places logged earlier), the app runs one "name, city" search near its pin, asking Google only for the place's ID (its cheapest search), and keeps that ID. Google allows keeping IDs, not photos.
+- Each photo is looked up fresh, only when its poster comes into view, and is credited under the poster ("Photo: author · Google Maps"). Each phone makes at most 150 Google calls a day. If Google picks the wrong place, **Not this place's photo** remembers that.
+- Without a key nothing is sent to Google.
+
+To turn Google photos on (about 15 minutes):
+
+1. Open https://console.cloud.google.com, sign in, and create a new project (project picker at the top → **New project**).
+2. **Billing** → link a billing account and add a card. Google requires one even though light use falls within its free monthly allowance.
+3. Open https://console.cloud.google.com/apis/library/places.googleapis.com and click **Enable** (this is "Places API (New)").
+4. Open https://console.cloud.google.com/apis/credentials → **Create credentials → API key**, then edit the key: under **Application restrictions** choose **Websites** and add `https://ultramegaultimatedateplanner.github.io/*`; under **API restrictions** choose **Restrict key** and tick **Places API (New)**. Save.
+5. Optional but wise: open the API's **Quotas** page and lower the per-day limits (for example 200 a day each), so usage can never grow past them.
+6. Put the key in `google-config.js` (replace `null` with the key in quotes). Like every website key it is visible in the page; the restrictions from step 4 are what protect it.
+
+Where it's stored: `clubs/{club}/restaurants/{place}`, your names in `clubs/{club}/meta/people`, your photos in `clubs/{club}/photos/{place}` and Google matches in `clubs/{club}/gplace/{place}`. Photos are kept apart from the list, so the list stays light; if the database rules haven't been updated yet, only photos are off. Without Firebase, they stay in the browser (`someday-club:restaurants:v1`, `someday-club:people:v1`, `someday-club:photos:v1`, `someday-club:gplace:v1`).
 
 ## Setup (one time, about 10 minutes)
 
@@ -40,7 +60,7 @@ GitHub Pages publishes this repository automatically at https://ultramegaultimat
 
 1. Go to https://console.firebase.google.com and click **Create a project**. Any name works. You can turn Google Analytics off.
 2. In the left menu, open **Build → Firestore Database** and click **Create database**. Pick a location near you, choose **Start in production mode**, and click **Create**.
-3. Open the **Rules** tab, replace everything there with the contents of `firestore.rules`, and click **Publish**. Do this again whenever `firestore.rules` changes (it did when the Restaurants tab was added); until then the tab says it needs the updated rules.
+3. Open the **Rules** tab, replace everything there with the contents of `firestore.rules`, and click **Publish**. Do this again whenever `firestore.rules` changes (it did when the Restaurants tab and its photos were added); until then the tab says it needs the updated rules.
 4. Click the gear icon, then **Project settings**. Under **Your apps**, click the web icon (`</>`), give it any nickname, and click **Register app**. Leave Firebase Hosting unticked.
 5. Copy the `firebaseConfig = { … }` values it shows into `firebase-config.js`, like this:
 
@@ -59,4 +79,4 @@ Commit the change to `main`. GitHub Pages republishes on its own. These values a
 
 ## Privacy
 
-Anyone who opens the site can read and change the shared lists, so share the address only with people you'd hand a shared notebook to. What you type in the Restaurants name box (from the third letter on) is sent to Photon to search; nothing else is. The rules block everything else: nobody can list other `?club=` codes, and every record must have the expected shape: list items (a title of up to 140 characters, a note of up to 400, an optional web link), restaurants (a name of up to 120 characters, a city of up to 60, only Google Maps links, coordinates in range, 1–999 visits, and reviews of 1–5 whole stars with up to 600 characters each, for just the two of you) and your two names (up to 24 characters each).
+Anyone who opens the site can read and change the shared lists, so share the address only with people you'd hand a shared notebook to. What you type in the Restaurants name box (from the third letter on) is sent to Photon to search; nothing else is. The rules block everything else: nobody can list other `?club=` codes, and every record must have the expected shape: list items (a title of up to 140 characters, a note of up to 400, an optional web link), restaurants (a name of up to 120 characters, a city of up to 60, only Google Maps links, coordinates in range, 1–999 visits, and reviews of 1–5 whole stars with up to 600 characters each, for just the two of you), photos (one JPEG of up to 200 kB per place, nothing else), Google matches (a place ID or "-") and your two names (up to 24 characters each). With a Google key, the restaurant's name and city (and, for posters on screen, its Google place ID) are sent to Google to find its photo.

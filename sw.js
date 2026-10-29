@@ -10,7 +10,7 @@ const SHELL = "shell-v2";
 const RUNTIME = "runtime-v2";
 const PAGE = new URL("./index.html", self.registration.scope).href;
 const SHELL_FILES = [
-  "./index.html", "./firebase-config.js", "./manifest.webmanifest",
+  "./index.html", "./firebase-config.js", "./google-config.js", "./manifest.webmanifest",
   "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png"
 ];
 

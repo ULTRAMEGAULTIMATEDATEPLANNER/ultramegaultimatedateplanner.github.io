@@ -1,7 +1,8 @@
 rules_version = '2';
 
 // Ultra Mega Ultimate Date Planner: each list set lives at clubs/{club}/{films|dishes|together}/{item},
-// the restaurants log at clubs/{club}/restaurants/{place} and the two names at clubs/{club}/meta/people.
+// the restaurants log at clubs/{club}/restaurants/{place}, its photos at clubs/{club}/photos/{place},
+// Google Maps matches at clubs/{club}/gplace/{place} and the two names at clubs/{club}/meta/people.
 // The club code is the private part of the share link (?club=...), so anyone with
 // the link can read and edit that club, and nobody can list other clubs.
 service cloud.firestore {
@@ -81,6 +82,32 @@ service cloud.firestore {
     match /clubs/{club}/meta/people {
       allow read: if validClub(club);
       allow create, update: if validClub(club) && validPeople(request.resource.data);
+    }
+
+    // Our own photo of a restaurant: one small JPEG as text (the app makes it 360×540, under 200 kB).
+    function validPhoto(d) {
+      return d.keys().hasOnly(['data', 'at', 'by']) && d.keys().hasAll(['data', 'at'])
+        && d.data is string && d.data.size() <= 200000
+        && d.data.split(',').size() == 2 && d.data.split(',')[0] == 'data:image/jpeg;base64'
+        && d.at is number
+        && (!('by' in d) || d.by == null || d.by in ['a', 'b']);
+    }
+
+    match /clubs/{club}/photos/{place} {
+      allow read, delete: if validClub(club);
+      allow create, update: if validClub(club) && validPhoto(request.resource.data);
+    }
+
+    // Which Google Maps place a restaurant is (Google allows keeping place IDs), or "-" for none.
+    function validGplace(d) {
+      return d.keys().hasOnly(['id', 'at']) && d.keys().hasAll(['id', 'at'])
+        && d.id is string && d.id.size() <= 300 && d.id.matches('^(-|[A-Za-z0-9_-]{8,300})$')
+        && d.at is number;
+    }
+
+    match /clubs/{club}/gplace/{place} {
+      allow read, delete: if validClub(club);
+      allow create, update: if validClub(club) && validGplace(request.resource.data);
     }
   }
 }

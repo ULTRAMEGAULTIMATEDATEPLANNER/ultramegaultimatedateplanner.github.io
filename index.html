@@ -620,6 +620,25 @@ a.btn{text-decoration:none}
 [data-skin="lb"] .ticket-acts{border-top:1px solid var(--lb-line)}
 [data-skin="lb"] .map .ticket a.btn{color:var(--lb-strong)}
 
+/* photos on posters: our own, or Google Maps' with its credit */
+.poster-img{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover}
+.poster.has-photo::before{opacity:1;background:linear-gradient(180deg,rgba(10,6,18,.6) 0,rgba(10,6,18,0) 30%,rgba(10,6,18,0) 50%,rgba(10,6,18,.85) 100%)}
+.poster.has-photo .poster-mark{display:none}
+.poster-btn{position:relative;display:block;width:100%;padding:0;border:0;border-radius:4px;background:none;color:inherit;cursor:pointer}
+.poster-btn:hover .poster,.poster-btn:focus-visible .poster{box-shadow:inset 0 0 0 2px var(--lb-green),0 3px 9px rgba(0,0,0,.5)}
+.poster-btn:focus-visible{outline-offset:3px}
+.poster-add{position:absolute;right:5px;bottom:5px;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(10,6,18,.72);color:#fff;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
+.poster-credit{margin:.3rem 0 0;font-size:.6rem;line-height:1.3;color:var(--lb-dim);overflow-wrap:anywhere}
+.poster-credit a{color:var(--lb-text)}
+.rcard-art{display:grid;align-content:start;min-width:0}
+.photo-dlg{max-width:30rem}
+.photo-sheet{display:grid;grid-template-columns:minmax(0,9rem) minmax(0,1fr);gap:1rem;align-items:start;margin-bottom:1rem}
+.photo-preview .poster{font-size:.9rem}
+.photo-side{display:grid;gap:.7rem}
+.photo-acts{display:grid;gap:.45rem}
+.photo-acts .btn{width:100%}
+@media (max-width:380px){.photo-sheet{grid-template-columns:minmax(0,1fr)}.photo-preview{width:9rem}}
+
 /* the pixel shuffle between the zine and the log */
 .shuffle{position:fixed;left:0;top:0;z-index:95;pointer-events:none}
 
@@ -863,9 +882,30 @@ a.btn{text-decoration:none}
   </form>
 </dialog>
 
+<dialog class="dlg photo-dlg" id="photo-sheet" aria-labelledby="photo-title">
+  <h2 id="photo-title">Photo</h2>
+  <div class="photo-sheet">
+    <div class="photo-preview" id="photo-preview"></div>
+    <div class="photo-side">
+      <p class="label" id="photo-note"></p>
+      <div class="photo-acts">
+        <button class="btn btn-acc" type="button" id="photo-camera">Take a photo</button>
+        <button class="btn" type="button" id="photo-pick">Choose a photo</button>
+        <button class="btn" type="button" id="photo-remove">Remove our photo</button>
+        <button class="btn" type="button" id="photo-google-off">Not this place's photo</button>
+        <button class="btn" type="button" id="photo-goto">Go to the review</button>
+      </div>
+      <input type="file" id="photo-camera-in" accept="image/*" capture="environment" hidden>
+      <input type="file" id="photo-pick-in" accept="image/*" hidden>
+    </div>
+  </div>
+  <div class="row"><button class="btn btn-sm" type="button" id="photo-close">Close</button></div>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-msg"></span><button type="button" id="toast-act" hidden>Undo</button></div>
 
 <script src="firebase-config.js"></script>
+<script src="google-config.js"></script>
 <script>
 (() => {
   "use strict";
@@ -905,6 +945,9 @@ a.btn{text-decoration:none}
   const LS_PEOPLE = "someday-club:people:v1";
   const LS_ME = "someday-club:me";            // which of the two this device belongs to: "a" or "b"
   const LS_RSORT = "someday-club:rsort";
+  const LS_PHOTOS = "someday-club:photos:v1";     // our own poster photos, when there's no shared list
+  const LS_GPLACE = "someday-club:gplace:v1";     // which Google Maps place each restaurant is
+  const LS_GBUDGET = "someday-club:gbudget";      // Google lookups made on this device today
   const NL_BOUNDS = [[50.75, 3.35], [53.55, 7.23]];
   const LEAFLET = {
     js: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js",
@@ -946,6 +989,7 @@ a.btn{text-decoration:none}
     up: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 15.5l7-7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg>',
     down: '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 8.5l7 7 7-7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg>',
     check: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="square"/></svg>',
+    camera: '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M3 8h4l2-3h6l2 3h4v11H3z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.4" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>',
     edit: '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16z" fill="none" stroke="currentColor" stroke-width="2.6"/></svg>',
     x: '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></svg>'
   };
@@ -1832,7 +1876,7 @@ a.btn{text-decoration:none}
   };
   const restEls = new Map();
   const rform = { coords: null, source: null, found: null };   // where the add form's pin came from: search, link, map or paste
-  let restKey = LS_REST, peopleKey = LS_PEOPLE;
+  let restKey = LS_REST, peopleKey = LS_PEOPLE, photosKey = LS_PHOTOS, gplaceKey = LS_GPLACE;
   const RULES_NOTICE = "Restaurants can't be saved to the shared list yet: the database needs its updated rules. That's a one-time, two-minute step in Firebase.";
 
   const isMapsHost = h => /^((www|maps)\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/.test(h) || h === "goo.gl" || h === "maps.app.goo.gl";
@@ -1956,6 +2000,7 @@ a.btn{text-decoration:none}
       render();
     });
     if (backend.docSub) backend.docSub(["meta", "people"], d => { if (d) { rest.people = cleanPeople(d); render(); } }, () => {});
+    subscribePhotos();
   }
 
   async function addPlace(body) {
@@ -1984,11 +2029,18 @@ a.btn{text-decoration:none}
     if (rest.reviewing === id) rest.reviewing = null;
     render();
     if (!(await rRemote(() => backend.remove("restaurants", id)))) { resyncRest(); return; }
+    const own = photos.own.get(id), gid = photos.gplace.get(id);
+    if (own) { photos.own.delete(id); photoRemote(() => backend.remove("photos", id)); }
+    if (gid) { photos.gplace.delete(id); photoRemote(() => backend.remove("gplace", id)); }
     toast(`Removed “${p.name}”.`, "Undo", async () => {
       if (findPlace(id)) return;
       rest.items.push({ id, ...body });
+      if (own) photos.own.set(id, own);
+      if (gid) photos.gplace.set(id, gid);
       render();
-      if (!(await rRemote(() => backend.set("restaurants", id, body)))) resyncRest();
+      if (!(await rRemote(() => backend.set("restaurants", id, body)))) { resyncRest(); return; }
+      if (own) photoRemote(() => backend.set("photos", id, { data: own, at: Date.now(), by: getMe() }));
+      if (gid) photoRemote(() => backend.set("gplace", id, { id: gid, at: Date.now() }));
     });
   }
   async function saveReview(id, who, review) {
@@ -2068,6 +2120,14 @@ a.btn{text-decoration:none}
     po.dataset.pattern = String((h >>> 16) % 3);
     po.setAttribute("aria-hidden", "true");
     po.append(el("span", "poster-mark", ([...p.name.trim()][0] || "?").toUpperCase()), el("span", "poster-city", p.city || "\u00a0"), el("span", "poster-name", p.name));
+    const ph = posterPhoto(p);
+    if (ph && ph.src) {
+      const img = el("img", "poster-img");
+      img.alt = ""; img.decoding = "async"; img.loading = "lazy"; img.src = ph.src;
+      img.addEventListener("error", () => { img.remove(); po.classList.remove("has-photo"); }, { once: true });
+      po.prepend(img);
+      po.classList.add("has-photo");
+    } else if (ph && ph.want && gObserver) { po.dataset.gid = ph.want; gObserver.observe(po); }
     return po;
   }
   function buildLegend() {
@@ -2089,8 +2149,16 @@ a.btn{text-decoration:none}
     const li = el("li", "rcard" + (rest.justAdded === p.id ? " is-new" : ""));
     li.dataset.id = p.id;
     const score = scoreOf(p), tier = tierOf(score);
-    const body = el("div", "rcard-body");
-    li.append(posterEl(p), body);
+    const body = el("div", "rcard-body"), art = el("div", "rcard-art"), pb = el("button", "poster-btn");
+    pb.type = "button";
+    pb.dataset.act = "photo";
+    pb.setAttribute("aria-label", `Photo of ${p.name}`);
+    pb.append(posterEl(p));
+    if (writable && !rest.blocked && !photos.blocked && !photos.own.has(p.id)) { const add = el("span", "poster-add"); add.innerHTML = ICON.camera; pb.append(add); }
+    art.append(pb);
+    const credit = photoCredit(p);
+    if (credit) art.append(credit);
+    li.append(art, body);
     const top = el("div", "rcard-top");
     top.append(el("h3", "rcard-name", p.name));
     if (p.city) top.append(el("span", "rcard-city", p.city));
@@ -2290,7 +2358,7 @@ a.btn{text-decoration:none}
     items.forEach((p, i) => {
       keep.add(p.id);
       const view = rest.editing === p.id ? "edit" : rest.reviewing === p.id ? "review" : "view";
-      const sig = JSON.stringify([p, rest.people, me, writable, rest.blocked]);
+      const sig = JSON.stringify([p, rest.people, me, writable, rest.blocked, photos.blocked, photoSig(p.id)]);
       let rec = restEls.get(p.id);
       // An open editor or review form is never rebuilt under the person typing in it.
       if (!rec || rec.view !== view || (view === "view" && rec.sig !== sig)) {
@@ -2321,7 +2389,7 @@ a.btn{text-decoration:none}
     $("#lb-top").hidden = !items.length;
 
     const recent = items.slice().sort((x, y) => (y.visitedAt || 0) - (x.visitedAt || 0) || y.createdAt - x.createdAt).slice(0, 4);
-    const sig = JSON.stringify([recent.map(p => [p.id, p.name, p.city, scoreOf(p)]), scores]);
+    const sig = JSON.stringify([recent.map(p => [p.id, p.name, p.city, scoreOf(p), photoSig(p.id)]), scores]);
     if (sig === topSig) return;   // rebuilt only when something on it changed, so focus isn't lost
     topSig = sig;
     const ol = $("#lb-posters");
@@ -2331,9 +2399,12 @@ a.btn{text-decoration:none}
       const li = el("li"), btn = el("button");
       btn.type = "button";
       btn.dataset.show = p.id;
-      btn.setAttribute("aria-label", `${p.name}${sc != null ? ", " + scoreText(sc) + " stars" : ""}: show its review`);
+      btn.className = "poster-btn";
+      btn.setAttribute("aria-label", `${p.name}${sc != null ? ", " + scoreText(sc) + " stars" : ""}: photo and review`);
       btn.append(posterEl(p));
       li.append(btn);
+      const credit = photoCredit(p);
+      if (credit) li.append(credit);
       if (sc != null) li.append(starsEl(Math.round(sc * 2) / 2));
       ol.append(li);
     }
@@ -2374,6 +2445,8 @@ a.btn{text-decoration:none}
     $("#rempty-title").textContent = waiting ? "Fetching the list…" : "No tables yet";
     $("#rempty-body").textContent = waiting ? "Pulling in everywhere you've been." : "Add the first place you two ate at. Type its name, pick it from the list, and it pins itself on the map below.";
     ensureMap().then(() => { if (mapState.status === "ready") { mapState.map.invalidateSize(); syncMarkers(); } });
+    if (photos.sheet) paintPhotoSheet();
+    googleBackfill();
   }
 
   /* ---------- restaurants: the add form ---------- */
@@ -2431,6 +2504,7 @@ a.btn{text-decoration:none}
     resetAddForm();
     $("#r-name").focus();
     const id = await addPlace(body);
+    if (id) googleMatch(findPlace(id));
     if (id && !c) toast(`Added “${name}”. It has no pin yet: tap “Place on map” on its card.`);
   }
 
@@ -2572,6 +2646,259 @@ a.btn{text-decoration:none}
     rform.found = null;
     if (rform.source === "search") { rform.coords = null; rform.source = null; }
     refreshAddForm();
+  }
+
+  /* ---------- restaurants: photos on the posters ---------- */
+
+  // Our own photo of a place: a 360×540 JPEG (about 100 kB as text) in clubs/{club}/photos/{placeId}, kept
+  // apart from the list so the list stays light and a missing rules update can't stop restaurants working.
+  // The place's Google Maps ID lives in clubs/{club}/gplace/{placeId} ("-" for none / "not this one").
+  const photos = { own: new Map(), gplace: new Map(), ownLoaded: false, gplaceLoaded: false, blocked: false, sheet: null };
+  const OWN_PHOTO = /^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/;
+  const okOwn = v => typeof v === "string" && v.length <= 200000 && OWN_PHOTO.test(v);
+  const GID = /^[A-Za-z0-9_-]{8,300}$/;
+  const okGid = v => v === "-" || (typeof v === "string" && GID.test(v));
+
+  function savePhotosLocal() {
+    if (mode !== "local" && mode !== "fallback") return true;
+    try {
+      localStorage.setItem(photosKey, JSON.stringify(Object.fromEntries(photos.own)));
+      localStorage.setItem(gplaceKey, JSON.stringify(Object.fromEntries(photos.gplace)));
+      return true;
+    } catch { return false; }
+  }
+  function loadPhotosLocal() {
+    photos.own.clear();
+    photos.gplace.clear();
+    try { for (const [k, v] of Object.entries(JSON.parse(localStorage.getItem(photosKey) || "{}"))) if (okOwn(v)) photos.own.set(k, v); } catch {}
+    try { for (const [k, v] of Object.entries(JSON.parse(localStorage.getItem(gplaceKey) || "{}"))) if (okGid(v)) photos.gplace.set(k, v); } catch {}
+    photos.ownLoaded = photos.gplaceLoaded = true;
+  }
+  // A refused photo write only switches photos off; it never blocks the restaurant list.
+  async function photoRemote(fn) {
+    if (mode !== "shared") return savePhotosLocal();
+    try { await fn(); return true; }
+    catch (e) {
+      if (e && e.code === "permission_denied") { photos.blocked = true; render(); }
+      return false;
+    }
+  }
+  const PHOTO_RULES = "Photos need the updated database rules first: a two-minute step in Firebase.";
+  function subscribePhotos() {
+    backend.subscribe("photos", docs => {
+      photos.own = new Map(docs.filter(d => okOwn(d.data.data)).map(d => [d.id, d.data.data]));
+      photos.ownLoaded = true;
+      photos.blocked = false;
+      render();
+    }, e => { photos.ownLoaded = true; if (e && e.code === "permission_denied") photos.blocked = true; render(); });
+    backend.subscribe("gplace", docs => {
+      photos.gplace = new Map(docs.filter(d => okGid(d.data.id)).map(d => [d.id, d.data.id]));
+      photos.gplaceLoaded = true;
+      render();
+    }, e => { photos.gplaceLoaded = true; if (e && e.code === "permission_denied") photos.blocked = true; render(); });
+  }
+
+  async function setOwnPhoto(id, data) {
+    const before = photos.own.get(id);
+    photos.own.set(id, data);
+    render();
+    const ok = await photoRemote(() => backend.set("photos", id, { data, at: Date.now(), by: getMe() }));
+    if (!ok) {
+      if (before) photos.own.set(id, before); else photos.own.delete(id);
+      render();
+      toast(photos.blocked ? PHOTO_RULES : mode === "shared" ? "Couldn't save the photo. Check the connection and try again." : "This browser is out of room for more photos.");
+    }
+    return ok;
+  }
+  async function removeOwnPhoto(id) {
+    const before = photos.own.get(id);
+    if (!before) return;
+    photos.own.delete(id);
+    render();
+    if (!(await photoRemote(() => backend.remove("photos", id)))) { photos.own.set(id, before); render(); toast(photos.blocked ? PHOTO_RULES : "Couldn't remove the photo. Try again."); }
+  }
+
+  // A picked or taken photo → a 360×540 JPEG (2:3, centre-cropped, phone rotation applied) under 200 kB.
+  async function photoFromFile(file) {
+    if (!file || (file.type && !/^image\//.test(file.type))) throw new Error("not an image");
+    let src;
+    try { src = await createImageBitmap(file, { imageOrientation: "from-image" }); }
+    catch {
+      src = await new Promise((res, rej) => {
+        const u = URL.createObjectURL(file), im = new Image();
+        im.onload = () => { URL.revokeObjectURL(u); res(im); };
+        im.onerror = () => { URL.revokeObjectURL(u); rej(new Error("unreadable")); };
+        im.src = u;
+      });
+    }
+    const w = src.naturalWidth || src.width, h = src.naturalHeight || src.height;
+    if (!w || !h) throw new Error("unreadable");
+    const W = 360, H = 540, c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const scale = Math.max(W / w, H / h), sw = W / scale, sh = H / scale;
+    c.getContext("2d").drawImage(src, (w - sw) / 2, (h - sh) / 2, sw, sh, 0, 0, W, H);
+    if (src.close) src.close();
+    let q = .82, out = c.toDataURL("image/jpeg", q);
+    while (out.length > 190000 && q > .35) { q -= .12; out = c.toDataURL("image/jpeg", q); }
+    if (!okOwn(out)) throw new Error("too big");
+    return out;
+  }
+
+  /* ---------- restaurants: Google Maps photos (optional) ---------- */
+
+  // Only with a key in google-config.js (restricted in Google Cloud to this site and to Places API (New)).
+  // Google lets us keep a place's ID but not its photos, so a photo is looked up fresh, only for posters
+  // that come into view, with at most GBUDGET calls per device per day, and is shown with its author's
+  // credit and "Google Maps". Our own photo always wins.
+  const GKEY = (k => typeof k === "string" && /^[A-Za-z0-9_-]{20,80}$/.test(k) ? k : "")(window.SOMEDAY_GOOGLE_PLACES_KEY);
+  const GAPI = "https://places.googleapis.com/v1/";
+  const PHOTO_NAME = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
+  const GBUDGET = 150;
+  const gphoto = new Map();   // Google place ID → { url, author, authorUri }, null (none), or "pending"
+  const gmatching = new Set(), gGaveUp = new Set();
+  let gQueue = false;
+  function gSpend() {
+    const day = todayISO();
+    let b = { day, n: 0 };
+    try { const v = JSON.parse(localStorage.getItem(LS_GBUDGET) || "null"); if (v && v.day === day && Number.isInteger(v.n)) b = v; } catch {}
+    if (b.n >= GBUDGET) return false;
+    b.n++;
+    try { localStorage.setItem(LS_GBUDGET, JSON.stringify(b)); } catch {}
+    return true;
+  }
+  // The answer as JSON, or undefined when there was none (offline, over today's budget, Google refused).
+  async function gCall(path, mask, body) {
+    if (!GKEY || navigator.onLine === false || !gSpend()) return undefined;
+    const ctrl = new AbortController(), t = setTimeout(() => ctrl.abort(), 10000);
+    try {
+      const headers = { "X-Goog-Api-Key": GKEY, "X-Goog-FieldMask": mask };
+      if (body) headers["Content-Type"] = "application/json";
+      const res = await fetch(GAPI + path, { method: body ? "POST" : "GET", headers, body: body ? JSON.stringify(body) : undefined, credentials: "omit", signal: ctrl.signal });
+      return res.ok ? await res.json() : undefined;
+    } catch { return undefined; }
+    finally { clearTimeout(t); }
+  }
+  // Which Google Maps place a restaurant is: one search for "name, city" near its pin, asking only for
+  // the ID (Google's cheapest search). Saved, so each place is only ever searched once.
+  async function googleMatch(p) {
+    if (!GKEY || !p || !writable || photos.blocked || photos.gplace.has(p.id) || gmatching.has(p.id)) return;
+    gmatching.add(p.id);
+    try {
+      const q = { textQuery: [p.name, p.city].filter(Boolean).join(", "), maxResultCount: 1 };
+      if (p.lat != null) q.locationBias = { circle: { center: { latitude: p.lat, longitude: p.lng }, radius: p.approx ? 5000 : 300 } };
+      const j = await gCall("places:searchText", "places.id", q);
+      if (j === undefined) { gGaveUp.add(p.id); return; }
+      const first = j && Array.isArray(j.places) ? j.places[0] : null;
+      const gid = first && typeof first.id === "string" && GID.test(first.id) ? first.id : "-";
+      photos.gplace.set(p.id, gid);
+      render();
+      await photoRemote(() => backend.set("gplace", p.id, { id: gid, at: Date.now() }));
+    } finally { gmatching.delete(p.id); }
+  }
+  // Places added before Google was switched on get matched one at a time, a moment apart.
+  async function googleBackfill() {
+    if (gQueue || !GKEY || !writable || photos.blocked || !rest.loaded || !photos.gplaceLoaded || !photos.ownLoaded) return;
+    gQueue = true;
+    try {
+      for (let p; (p = rest.items.find(x => !photos.gplace.has(x.id) && !photos.own.has(x.id) && !gmatching.has(x.id) && !gGaveUp.has(x.id))); ) {
+        await googleMatch(p);
+        if (!photos.gplace.has(p.id)) gGaveUp.add(p.id);
+        await new Promise(r => setTimeout(r, 1200));
+      }
+    } finally { gQueue = false; }
+  }
+  function googleNotThis(id) {
+    photos.gplace.set(id, "-");
+    render();
+    photoRemote(() => backend.set("gplace", id, { id: "-", at: Date.now() }));
+  }
+  function authorLink(u) {
+    if (typeof u !== "string") return "";
+    try { const x = new URL(u.startsWith("//") ? "https:" + u : u); return x.protocol === "https:" && /(^|\.)google\.com$/.test(x.hostname) ? x.href : ""; } catch { return ""; }
+  }
+  async function loadGooglePhoto(gid) {
+    if (!gid || gphoto.has(gid)) return;
+    gphoto.set(gid, "pending");
+    const j = await gCall("places/" + encodeURIComponent(gid), "photos");
+    const ph = j && Array.isArray(j.photos) ? j.photos.find(x => x && typeof x.name === "string" && PHOTO_NAME.test(x.name)) : null;
+    if (!ph) { gphoto.set(gid, null); render(); return; }
+    const a = (Array.isArray(ph.authorAttributions) && ph.authorAttributions[0]) || {};
+    gphoto.set(gid, { url: `${GAPI}${ph.name}/media?maxWidthPx=480&key=${GKEY}`, author: str(a.displayName, 60).trim(), authorUri: authorLink(a.uri) });
+    render();
+  }
+  const gObserver = "IntersectionObserver" in window ? new IntersectionObserver(entries => {
+    for (const e of entries) if (e.isIntersecting) { gObserver.unobserve(e.target); loadGooglePhoto(e.target.dataset.gid); }
+  }, { rootMargin: "200px" }) : null;
+
+  // What a poster shows: our photo, else Google's (looked up when the poster comes into view), else art.
+  function posterPhoto(p) {
+    const own = photos.own.get(p.id);
+    if (own) return { src: own };
+    const gid = photos.gplace.get(p.id);
+    if (!GKEY || !gid || gid === "-") return null;
+    const g = gphoto.get(gid);
+    return g && g !== "pending" ? { src: g.url, google: g } : { want: gid };
+  }
+  const photoSig = id => { const p = findPlace(id), ph = p && posterPhoto(p); return ph ? (ph.src ? ph.src.length + ph.src.slice(-16) : "w") : ""; };
+  function photoCredit(p) {
+    const ph = posterPhoto(p);
+    if (!ph || !ph.google) return null;
+    const c = el("p", "poster-credit");
+    if (ph.google.author) {
+      c.append("Photo: ");
+      if (ph.google.authorUri) { const a = el("a", null, ph.google.author); a.href = ph.google.authorUri; a.target = "_blank"; a.rel = "noopener noreferrer"; c.append(a); }
+      else c.append(ph.google.author);
+      c.append(" · ");
+    }
+    c.append("Google Maps");
+    return c;
+  }
+
+  function openPhotoSheet(id, fromStrip) {
+    if (!findPlace(id)) return;
+    photos.sheet = { id, fromStrip };
+    paintPhotoSheet();
+    const d = $("#photo-sheet");
+    if (!d.open) d.showModal();
+  }
+  function paintPhotoSheet() {
+    const sh = photos.sheet, p = sh && findPlace(sh.id), d = $("#photo-sheet");
+    if (!p) { if (d.open) d.close(); return; }
+    const ph = posterPhoto(p), own = photos.own.has(p.id), can = writable && !rest.blocked && !photos.blocked;
+    $("#photo-title").textContent = p.name;
+    const prev = $("#photo-preview");
+    prev.textContent = "";
+    prev.append(posterEl(p));
+    const credit = photoCredit(p);
+    if (credit) prev.append(credit);
+    $("#photo-note").textContent = own ? "Your photo is on the poster." : ph && ph.google ? "This photo is from Google Maps. Add your own to replace it."
+      : photos.blocked ? PHOTO_RULES : !writable ? "This list is view-only." : "Add a photo of the place, or of what you ate.";
+    $("#photo-camera").hidden = !can || !matchMedia("(pointer: coarse)").matches;
+    $("#photo-pick").hidden = !can;
+    $("#photo-pick").textContent = own ? "Choose a different photo" : "Choose a photo";
+    $("#photo-pick").classList.toggle("btn-acc", $("#photo-camera").hidden);
+    $("#photo-remove").hidden = !can || !own;
+    $("#photo-google-off").hidden = !can || own || !(ph && ph.google);
+    $("#photo-goto").hidden = !sh.fromStrip;
+  }
+  function wirePhotos() {
+    $("#photo-camera").addEventListener("click", () => $("#photo-camera-in").click());
+    $("#photo-pick").addEventListener("click", () => $("#photo-pick-in").click());
+    for (const inp of [$("#photo-camera-in"), $("#photo-pick-in")]) inp.addEventListener("change", async () => {
+      const f = inp.files && inp.files[0], sh = photos.sheet;
+      inp.value = "";
+      if (!f || !sh) return;
+      let data;
+      try { data = await photoFromFile(f); }
+      catch { toast("That photo couldn't be read. Try another one."); return; }
+      if (await setOwnPhoto(sh.id, data)) { if ($("#photo-sheet").open) $("#photo-sheet").close(); toast("Photo added to the poster."); }
+      else paintPhotoSheet();
+    });
+    $("#photo-remove").addEventListener("click", async () => { const sh = photos.sheet; if (sh) { await removeOwnPhoto(sh.id); paintPhotoSheet(); } });
+    $("#photo-google-off").addEventListener("click", () => { const sh = photos.sheet; if (sh) { googleNotThis(sh.id); paintPhotoSheet(); } });
+    $("#photo-goto").addEventListener("click", () => { const sh = photos.sheet; $("#photo-sheet").close(); if (sh) showInList(sh.id); });
+    $("#photo-close").addEventListener("click", () => $("#photo-sheet").close());
+    $("#photo-sheet").addEventListener("close", () => { photos.sheet = null; });
   }
 
   /* ---------- restaurants: who's who ---------- */
@@ -2868,10 +3195,12 @@ a.btn{text-decoration:none}
       else if (act === "again") wentAgain(id);
       else if (act === "onmap") showOnMap(id);
       else if (act === "place") startPlacing({ kind: "place", id });
+      else if (act === "photo") openPhotoSheet(id, false);
       else if (act === "edit") { rest.editing = id; rest.reviewing = null; render(); }
     });
     $("#us-open").addEventListener("click", () => openUs("us"));
-    $("#lb-posters").addEventListener("click", e => { const b = e.target.closest("button[data-show]"); if (b) showInList(b.dataset.show); });
+    $("#lb-posters").addEventListener("click", e => { const b = e.target.closest("button[data-show]"); if (b) openPhotoSheet(b.dataset.show, true); });
+    wirePhotos();
     $("#us-form").addEventListener("submit", submitUs);
     $("#us-cancel").addEventListener("click", () => { rest.pendingReview = null; closeUs(); });
     $("#us-sheet").addEventListener("close", () => { rest.pendingReview = null; });
@@ -3169,9 +3498,12 @@ a.btn{text-decoration:none}
     localKey = forClub && forClub !== MAIN_LIST ? LS_DATA + ":" + forClub : LS_DATA;
     restKey = forClub && forClub !== MAIN_LIST ? LS_REST + ":" + forClub : LS_REST;
     peopleKey = forClub && forClub !== MAIN_LIST ? LS_PEOPLE + ":" + forClub : LS_PEOPLE;
+    photosKey = forClub && forClub !== MAIN_LIST ? LS_PHOTOS + ":" + forClub : LS_PHOTOS;
+    gplaceKey = forClub && forClub !== MAIN_LIST ? LS_GPLACE + ":" + forClub : LS_GPLACE;
     club = null;
     loadLocal();
     loadRestLocal();
+    loadPhotosLocal();
     ORDER.forEach(l => { loaded[l] = true; });
     render();
   }
