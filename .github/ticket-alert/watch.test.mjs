@@ -41,7 +41,7 @@ check("Festival: a non-https link is ignored", readFestival(FEST_SOLDOUT.replace
 const OUR_CHAT = 4242, STRANGER = 999;
 const fake = {
   shop: { code: 200, body: SHOP_SOLDOUT }, fest: { code: 200, body: FEST_SOLDOUT },
-  sent: [], updates: [], nextUpdate: 1, failSend: false, gh: { files: {}, refs: { main: "abc123" }, disabled: false, puts: 0 }
+  sent: [], updates: [], nextUpdate: 1, failSend: false, gh: { files: {}, refs: { main: "abc123" }, disabled: false, puts: 0, dispatched: [], waitingStatus: null }
 };
 const userSays = (text, chat = OUR_CHAT) => fake.updates.push({ update_id: fake.nextUpdate++, message: { chat: { id: chat }, text } });
 
@@ -91,6 +91,8 @@ const server = http.createServer((req, res) => {
     if ((m = /^\/gh\/repos\/me\/site\/git\/ref\/heads\/(.+)$/.exec(url.pathname))) return m[1] in g.refs ? json(200, { object: { sha: g.refs[m[1]] } }) : json(404, { message: "Not Found" });
     if (url.pathname === "/gh/repos/me/site/git/refs" && req.method === "POST") { const b = JSON.parse(body); g.refs[b.ref.replace("refs/heads/", "")] = b.sha; return json(201, {}); }
     if (url.pathname === "/gh/repos/me/site/actions/workflows/ticket-alert.yml/disable" && req.method === "PUT") { g.disabled = true; res.writeHead(204); return res.end(); }
+    if (url.pathname === "/gh/repos/me/site/actions/workflows/ticket-alert.yml/runs") return json(200, { total_count: url.searchParams.get("status") === g.waitingStatus ? 1 : 0, workflow_runs: [] });
+    if (url.pathname === "/gh/repos/me/site/actions/workflows/ticket-alert.yml/dispatches" && req.method === "POST") { g.dispatched.push(JSON.parse(body).ref); res.writeHead(204); return res.end(); }
     json(404, { message: "Not Found" });
   });
 });
@@ -211,8 +213,16 @@ check("GitHub: welcome sent", r.msgs.length === 1 && /Ticket alert is on/.test(r
 userSays("/stop");
 r = await newSent({ ...ghEnv });
 check("GitHub: the next run reads it back and updates it", g.puts === 2 && JSON.parse(g.files["ticket-alert-state"].text).paused === true && r.msgs.length === 1, `${g.puts} saves`);
+check("GitHub: each run starts the next one", g.dispatched.length === 2 && g.dispatched.every(x => x === "main") && /Started the next run/.test(r.out), JSON.stringify(g.dispatched));
+g.waitingStatus = "pending";
+r = await newSent({ ...ghEnv });
+check("GitHub: …but not when one is already waiting", g.dispatched.length === 2 && /already pending/.test(r.out), r.out);
+g.waitingStatus = null;
+r = await newSent({ ...ghEnv, TELEGRAM_API: "http://127.0.0.1:9/tg" });
+check("GitHub: …even when a run goes wrong (Telegram unreachable)", g.dispatched.length === 3, r.out);
 r = await newSent({ ...ghEnv, STARTS_AT: "2020-01-01T00:00:00Z" });
 check("GitHub: after the screening it switches its own workflow off", g.disabled === true && /switched off/.test(r.out), r.out);
+check("GitHub: …and starts no further run", g.dispatched.length === 3, JSON.stringify(g.dispatched));
 
 server.close();
 console.log(`\n${passes} passed, ${fails} failed`);

@@ -1,8 +1,8 @@
 // Ticket alert: messages us on Telegram the moment tickets open up for the sold-out screening of
 // Pulse at the Imagine Film Festival (Sun 1 Nov 2026, 18:35, LAB111, with the director's Q&A).
 //
-// GitHub Actions runs this every 5 minutes (.github/workflows/ticket-alert.yml); each run checks
-// about once a minute for 4 minutes. The source of truth is LAB111's own ticket shop; the festival
+// GitHub Actions runs it back to back (each run starts the next; a 5-minute schedule restarts the
+// chain if it ever breaks), checking about once a minute. The source of truth is LAB111's own ticket shop; the festival
 // page is only used when the shop can't be read. Telegram commands: /status, /stop, /start.
 // Its memory (what was last seen, what was already sent) is state.json on the ticket-alert-state
 // branch. After the screening starts it says goodbye and switches its own workflow off.
@@ -142,6 +142,18 @@ async function saveState(state, sha) {
   return (await res.json()).content.sha;
 }
 
+// GitHub's 5-minute schedule can start late or skip runs, so each run starts the next one itself
+// (unless one is already waiting); the schedule stays as a backup that restarts a broken chain.
+async function startNextRun() {
+  if (env.STATE_FILE || !REPO) return;
+  for (const status of ["queued", "pending", "waiting", "requested"]) {
+    const res = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/runs?status=${status}&per_page=1`);
+    if (res.ok && (await res.json()).total_count > 0) { console.log(`The next run is already ${status}.`); return; }
+  }
+  const res = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/dispatches`, { method: "POST", body: JSON.stringify({ ref: env.GITHUB_REF_NAME || "main" }) });
+  console.log(res.ok ? "Started the next run." : `Couldn't start the next run: HTTP ${res.status}`);
+}
+
 async function switchOff() {
   if (env.STATE_FILE || !REPO) return;
   const res = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/disable`, { method: "PUT" });
@@ -234,16 +246,20 @@ async function step(st, now) {
 async function main() {
   if (!TOKEN || !CHAT_ID) { console.log("Waiting for the TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID secrets."); return; }
   const startedAt = Date.now();
-  let { state: st, sha } = await loadState();
-  for (let i = 0; i < CHECKS; i++) {
-    if (i && Date.now() - startedAt + INTERVAL_MS > RUN_MS) break;
-    if (i) await sleep(INTERVAL_MS);
-    const before = JSON.stringify(st);
-    let res;
-    try { res = await step(st, Date.now()); }
-    catch (e) { console.log(`Check failed: ${e.message}`); }
-    if (JSON.stringify(st) !== before) sha = await saveState(st, sha);
-    if (res === "done") { await switchOff(); return; }
+  try {
+    let { state: st, sha } = await loadState();
+    for (let i = 0; i < CHECKS; i++) {
+      if (i && Date.now() - startedAt + INTERVAL_MS > RUN_MS) break;
+      if (i) await sleep(INTERVAL_MS);
+      const before = JSON.stringify(st);
+      let res;
+      try { res = await step(st, Date.now()); }
+      catch (e) { console.log(`Check failed: ${e.message}`); }
+      if (JSON.stringify(st) !== before) sha = await saveState(st, sha);
+      if (res === "done") { await switchOff(); return; }
+    }
+  } finally {
+    if (Date.now() < SHOW.startsAt) await startNextRun().catch(e => console.log(`Couldn't start the next run: ${e.message}`));
   }
 }
 
