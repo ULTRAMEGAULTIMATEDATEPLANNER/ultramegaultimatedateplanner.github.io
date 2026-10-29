@@ -16,7 +16,7 @@
 <meta name="theme-color" content="#111014" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Dela+Gothic+One&family=Source+Serif+4:opsz,wght@8..60,600..700&family=Special+Elite&display=swap">
+<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Dela+Gothic+One&family=Source+Serif+4:opsz,wght@8..60,600..700&family=Special+Elite&display=swap">
 <style>
 /* Layout: a riso-printed zine for two. Poster masthead, four tabs (one spot ink each), one taped-down sheet holding the ranked list (or, on Restaurants, the log of places and a printed map), a stamped "done" pile underneath. */
 :root{
@@ -622,6 +622,221 @@ a.btn{text-decoration:none}
 [data-skin="lb"] .ticket-name{font-family:var(--f-serif);font-weight:700;font-stretch:100%;color:#fff}
 [data-skin="lb"] .ticket-acts{border-top:1px solid var(--lb-line)}
 [data-skin="lb"] .map .ticket a.btn{color:var(--lb-strong)}
+
+/* ===== App looks for Films (MUBI) and Dishes (NYT Cooking) =====
+   Like Restaurants (Letterboxd), each of these tabs reskins the whole page after a famous app of its
+   kind, keeping the zine's grain, specks, tape and halftone as a mixed-media layer. Together keeps the
+   riso zine. The pixel shuffle plays whenever the look changes. Shared header and list structure first. */
+:is([data-skin="mubi"],[data-skin="nyt"]) .mast::before,:is([data-skin="mubi"],[data-skin="nyt"]) .logo .plate-acc,:is([data-skin="mubi"],[data-skin="nyt"]) .reg,:is([data-skin="mubi"],[data-skin="nyt"]) .inks,:is([data-skin="mubi"],[data-skin="nyt"]) .perf,:is([data-skin="mubi"],[data-skin="nyt"]) .sheet::before,:is([data-skin="mubi"],[data-skin="nyt"]) .sheet::after,:is([data-skin="mubi"],[data-skin="nyt"]) .mast-top>.label,:is([data-skin="mubi"],[data-skin="nyt"]) .mast-sub{display:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .wrap{max-width:62rem;padding-block:0 40px}
+:is([data-skin="mubi"],[data-skin="nyt"]) .mast{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;padding-block:16px 10px}
+:is([data-skin="mubi"],[data-skin="nyt"]) .mast-top{display:contents}
+:is([data-skin="mubi"],[data-skin="nyt"]) .logo{order:-1;margin:0;display:flex;align-items:center;gap:.6rem;filter:none;text-transform:none;line-height:1.1}
+:is([data-skin="mubi"],[data-skin="nyt"]) .logo .plate{grid-area:auto;-webkit-mask-image:none;mask-image:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l1,:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l2,:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l3{display:inline;font-size:inherit;white-space:normal}
+:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l1::after,:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l2::after{content:" "}
+:is([data-skin="mubi"],[data-skin="nyt"]) .sync{border:0;background:none;padding:0;font-family:var(--f-body);font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+:is([data-skin="mubi"],[data-skin="nyt"]) .mast-tools{gap:.35rem .5rem}
+:is([data-skin="mubi"],[data-skin="nyt"]) .mast-tools .btn{min-height:32px;padding:.4rem .55rem;font-size:.64rem;letter-spacing:.04em}
+:is([data-skin="mubi"],[data-skin="nyt"]) .tabs{display:flex;flex-wrap:nowrap;gap:0 clamp(.75rem,3.2vw,1.6rem);overflow-x:auto;scrollbar-width:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .tabs::-webkit-scrollbar{display:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .tab{flex:none;display:inline-flex;align-items:center;gap:.35rem;min-height:42px;padding:0;border:0;background:none;box-shadow:none;transform:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .tab:hover,:is([data-skin="mubi"],[data-skin="nyt"]) .tab[aria-selected="true"]{background:none;transform:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .tab[aria-selected="true"]::after{display:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .tab-name{font-family:var(--f-body);font-weight:700;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;-webkit-mask-image:none!important;mask-image:none!important}
+@media (min-width:560px){:is([data-skin="mubi"],[data-skin="nyt"]) .tab-name{font-size:.78rem;letter-spacing:.1em}}
+:is([data-skin="mubi"],[data-skin="nyt"]) .tab-foot{display:contents}
+:is([data-skin="mubi"],[data-skin="nyt"]) .tab-sub{display:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .tab-count,:is([data-skin="mubi"],[data-skin="nyt"]) .tab[aria-selected="true"] .tab-count{min-width:0;padding:0;border:0;background:none;color:inherit;opacity:.6;font-size:.72rem;font-weight:600}
+@media (max-width:420px){:is([data-skin="mubi"],[data-skin="nyt"]) .tab:not([aria-selected="true"]) .tab-count{display:none}}
+:is([data-skin="mubi"],[data-skin="nyt"]) .sheet{margin-top:0;padding:clamp(20px,3vw,30px) 0 0;background:none;border:0;box-shadow:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .btn,:is([data-skin="mubi"],[data-skin="nyt"]) .btn-sm{border-radius:0;box-shadow:none;font-stretch:100%}
+:is([data-skin="mubi"],[data-skin="nyt"]) .btn:active,:is([data-skin="mubi"],[data-skin="nyt"]) .btn-sm:active{transform:translateY(1px);box-shadow:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .rank{text-shadow:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .is-first .rank{width:auto;aspect-ratio:auto;clip-path:none;background:none;color:inherit}
+:is([data-skin="mubi"],[data-skin="nyt"]) .item{grid-template-columns:18px auto minmax(0,1fr) auto;align-items:start;gap:.3rem .8rem;padding:1rem 0;background:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .handle{height:34px}
+:is([data-skin="mubi"],[data-skin="nyt"]) .icon-btn{width:36px;height:36px}
+:is([data-skin="mubi"],[data-skin="nyt"]) .acts{gap:.3rem}
+:is([data-skin="mubi"],[data-skin="nyt"]) .item:hover{background:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .item + .item{border-top:1px solid var(--line)}
+:is([data-skin="mubi"],[data-skin="nyt"]) .body{display:grid;grid-template-columns:clamp(84px,24vw,132px) minmax(0,1fr);column-gap:clamp(.7rem,2.6vw,1.1rem);align-items:start}
+:is([data-skin="mubi"],[data-skin="nyt"]) .body > :not(.art){grid-column:2}
+:is([data-skin="mubi"],[data-skin="nyt"]) .body > .art{grid-row:1 / span 4}
+:is([data-skin="mubi"],[data-skin="nyt"]) .is-first .body{grid-template-columns:minmax(0,1fr)}
+:is([data-skin="mubi"],[data-skin="nyt"]) .is-first .body > *{grid-column:1}
+:is([data-skin="mubi"],[data-skin="nyt"]) .is-first .body > .art{grid-row:auto;margin-bottom:.8rem}
+:is([data-skin="mubi"],[data-skin="nyt"]) .is-editing{grid-template-columns:minmax(0,1fr)!important}
+:is([data-skin="mubi"],[data-skin="nyt"]) .empty::before{display:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .empty-title{filter:none;text-transform:none;max-width:none}
+@media (max-width:640px){:is([data-skin="mubi"],[data-skin="nyt"]) .item{grid-template-columns:16px auto minmax(0,1fr)} :is([data-skin="mubi"],[data-skin="nyt"]) .acts{grid-column:3}}
+.art{display:none}
+:is([data-skin="mubi"],[data-skin="nyt"]) .art{display:block;position:relative;overflow:hidden}
+
+/* ----- Films: MUBI. Black, white, one cobalt blue, square corners, film stills as the only colour ----- */
+:root[data-skin="mubi"]{
+  --paper:#000; --sheet:#000; --ink:#FFF; --ink-soft:#A3A3A3; --on-ink:#000; --on-acc:#FFF; --line:#262626;
+  --mubi-blue:#1F3BFF; --grain-blend:screen; --grain-op:.09; --speck-op:.32; --speck-filter:invert(1);
+  --tile-filter:none; color-scheme:dark;
+}
+[data-skin="mubi"] body{--acc:var(--mubi-blue);background:#000;color:#FFF}
+[data-skin="mubi"] :focus-visible{outline:2px solid #FFF;outline-offset:2px}
+[data-skin="mubi"] .logo{font-family:var(--f-body);font-weight:500;font-stretch:100%;font-size:clamp(.82rem,3vw,1rem);letter-spacing:.14em;text-transform:uppercase;color:#FFF}
+[data-skin="mubi"] .logo::before{content:"";flex:none;width:22px;height:15px;
+  background:radial-gradient(circle,#FFF 2.6px,transparent 3px) 0 0/7.5px 7.5px}
+[data-skin="mubi"] .sync{color:#A3A3A3}
+[data-skin="mubi"] .tabs{border-bottom:1px solid #262626}
+[data-skin="mubi"] .tab{color:#8A8A8A}
+[data-skin="mubi"] .tab:hover,[data-skin="mubi"] .tab[aria-selected="true"]{color:#FFF}
+[data-skin="mubi"] .tab[aria-selected="true"]{box-shadow:inset 0 -2px 0 var(--mubi-blue)}
+[data-skin="mubi"] .tab-name{font-weight:500}
+[data-skin="mubi"] .btn{border:1px solid #FFF;background:transparent;color:#FFF;font-family:var(--f-body);font-weight:500;font-size:.7rem;letter-spacing:.14em}
+[data-skin="mubi"] .btn:hover{background:#FFF;color:#000}
+[data-skin="mubi"] .btn-acc,[data-skin="mubi"] .btn-acc:hover{border-color:var(--mubi-blue);background:var(--mubi-blue);color:#FFF;filter:none}
+[data-skin="mubi"] .icon-btn{border:1px solid #333;color:#CFCFCF}
+[data-skin="mubi"] .icon-btn:hover{background:#FFF;color:#000}
+[data-skin="mubi"] .linkish{color:#FFF;text-decoration-color:var(--mubi-blue)}
+[data-skin="mubi"] .input{border:0;border-bottom:1px solid #555;background:transparent;color:#FFF;padding-inline:0}
+[data-skin="mubi"] .input:focus{border-bottom-color:#FFF;outline:none}
+[data-skin="mubi"] .input::placeholder{color:#6E6E6E}
+[data-skin="mubi"] #add-title{font-weight:300;font-size:clamp(1.15rem,4vw,1.5rem);letter-spacing:.02em}
+[data-skin="mubi"] .field-label,[data-skin="mubi"] .chk{font-family:var(--f-body);font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#A3A3A3}
+[data-skin="mubi"] .chk input{accent-color:var(--mubi-blue)}
+[data-skin="mubi"] .sheet-head{align-items:center;margin-bottom:1.4rem;padding-bottom:1rem;border-bottom:1px solid #262626}
+[data-skin="mubi"] .sheet-title{font-family:var(--f-body);font-weight:300;font-stretch:100%;font-size:clamp(2.2rem,9vw,4.2rem);letter-spacing:.04em;text-transform:uppercase;text-shadow:.03em .025em 0 var(--mubi-blue)}
+[data-skin="mubi"] .sheet-sub{font-family:var(--f-body);font-weight:500;font-size:.24em;letter-spacing:.2em;color:#A3A3A3;vertical-align:.6em}
+[data-skin="mubi"] .rank{font-family:var(--f-body);font-weight:300;font-size:clamp(1.4rem,5vw,2rem);color:#FFF;font-variant-numeric:tabular-nums}
+[data-skin="mubi"] .title{font-family:var(--f-body);font-weight:500;font-stretch:100%;font-size:clamp(.95rem,3.4vw,1.15rem);letter-spacing:.06em;text-transform:uppercase}
+[data-skin="mubi"] .is-first .title{font-weight:300;font-size:clamp(1.5rem,5.6vw,2.4rem);letter-spacing:.03em;line-height:1.05}
+[data-skin="mubi"] .note{color:#A3A3A3}
+[data-skin="mubi"] .meta{font-family:var(--f-body);color:#8A8A8A}
+[data-skin="mubi"] .link{color:#FFF;text-decoration-color:var(--mubi-blue)}
+[data-skin="mubi"] .handle{color:#555}
+[data-skin="mubi"] .handle:hover{color:#FFF}
+[data-skin="mubi"] .sticker{margin:0 0 .45rem;transform:none;border:0;background:var(--mubi-blue);color:#FFF;font-family:var(--f-body);font-weight:500;font-size:.62rem;letter-spacing:.18em}
+[data-skin="mubi"] .is-first .sticker{position:absolute;z-index:2;top:.75rem;left:.75rem}
+[data-skin="mubi"] .is-first .body{position:relative}
+[data-skin="mubi"] .is-picking,[data-skin="mubi"] .is-picked{background:#101a66!important;outline:0}
+[data-skin="mubi"] .is-dragging{border:1px solid #FFF!important;box-shadow:0 10px 30px rgba(0,0,0,.8);background:#0A0A0A}
+/* generated film stills: a duotone frame (palette and composition from the title), grain, vignette;
+   the hero sits in a strip of film with sprocket holes */
+[data-skin="mubi"] .art{background:#000}
+[data-skin="mubi"] .art > i{display:block;position:relative;overflow:hidden;aspect-ratio:16/9;
+  background:radial-gradient(ellipse 60% 70% at var(--ax) var(--ay),color-mix(in srgb,var(--a2) 70%,#FFF),var(--a2) 22%,transparent 62%),linear-gradient(170deg,color-mix(in srgb,var(--a1) 80%,var(--a2)),color-mix(in srgb,var(--a1) 45%,#000) 92%)}
+[data-skin="mubi"] .art > i::before{content:"";position:absolute;inset:0;mix-blend-mode:soft-light}
+[data-skin="mubi"] .art[data-k="0"] > i::before{background:linear-gradient(180deg,transparent 0 58%,rgba(0,0,0,.5) 58.5% 100%)}
+[data-skin="mubi"] .art[data-k="1"] > i::before{background:linear-gradient(90deg,transparent 0 30%,rgba(255,255,255,.75) 30% 46%,transparent 46%),linear-gradient(180deg,transparent 0 22%,rgba(0,0,0,.4) 22% 26%,transparent 26%)}
+[data-skin="mubi"] .art[data-k="2"] > i::before{background:radial-gradient(circle at 68% 34%,rgba(255,255,255,.95) 0 9%,transparent 9.5%),linear-gradient(180deg,transparent 0 72%,rgba(0,0,0,.45) 72%)}
+[data-skin="mubi"] .art[data-k="3"] > i::before{background:repeating-linear-gradient(180deg,rgba(255,255,255,.55) 0 3px,transparent 3px 11px);-webkit-mask-image:linear-gradient(90deg,transparent 0 40%,#000 55%);mask-image:linear-gradient(90deg,transparent 0 40%,#000 55%)}
+[data-skin="mubi"] .art > i::after{content:"";position:absolute;inset:0;background:var(--grain) 0 0/180px,radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(0,0,0,.7) 100%);mix-blend-mode:overlay;opacity:.75}
+[data-skin="mubi"] .is-first .art{padding:13px 0;
+  background:radial-gradient(circle,#D4D4D4 0 2.4px,transparent 2.9px) 0 3px/15px 7px repeat-x,radial-gradient(circle,#D4D4D4 0 2.4px,transparent 2.9px) 0 calc(100% - 3px)/15px 7px repeat-x,#000}
+[data-skin="mubi"] .is-first .art > i{aspect-ratio:2.2/1}
+[data-skin="mubi"] .is-first .sticker{top:1.6rem}
+[data-skin="mubi"] .empty-title{font-family:var(--f-body);font-weight:300;letter-spacing:.06em;text-transform:uppercase;color:#FFF}
+[data-skin="mubi"] .empty-body{color:#A3A3A3}
+/* watched: ticket stubs */
+[data-skin="mubi"] .pile{border-top:1px solid #262626}
+[data-skin="mubi"] .pile summary{font-family:var(--f-body);font-weight:500;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase}
+[data-skin="mubi"] .pile summary::before{border:1px solid #FFF}
+[data-skin="mubi"] .pile-count{border:1px solid #555}
+[data-skin="mubi"] .pile-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,16rem),1fr));gap:.7rem}
+[data-skin="mubi"] .done-item{position:relative;padding:.8rem 1rem .8rem 1.4rem;background:#EDEAE0;color:#111;border:0!important;
+  -webkit-mask:radial-gradient(circle at 0 50%,transparent 9px,#000 9.5px) left/51% 100% no-repeat,radial-gradient(circle at 100% 50%,transparent 9px,#000 9.5px) right/51% 100% no-repeat;
+  mask:radial-gradient(circle at 0 50%,transparent 9px,#000 9.5px) left/51% 100% no-repeat,radial-gradient(circle at 100% 50%,transparent 9px,#000 9.5px) right/51% 100% no-repeat}
+[data-skin="mubi"] .done-item::before{content:"ADMIT TWO";position:absolute;top:.55rem;right:1rem;font-family:var(--f-body);font-size:.55rem;font-weight:500;letter-spacing:.2em;color:#777}
+[data-skin="mubi"] .done-item .title{font-size:.95rem;text-decoration:none;color:#111}
+[data-skin="mubi"] .done-item .stamp{color:var(--mubi-blue);filter:none}
+[data-skin="mubi"] .done-item .label{color:#555}
+[data-skin="mubi"] .done-item .btn{border-color:#111;color:#111}
+[data-skin="mubi"] .done-item .btn:hover{background:#111;color:#FFF}
+[data-skin="mubi"] .done-item .icon-btn{border-color:#BBB;color:#333}
+[data-skin="mubi"] .toast{border-radius:0;background:#FFF;color:#000;box-shadow:none}
+[data-skin="mubi"] .toast button{text-decoration-color:var(--mubi-blue)}
+[data-skin="mubi"] .foot .label{font-family:var(--f-body);font-size:.72rem;letter-spacing:.06em;color:#6E6E6E}
+[data-skin="mubi"] .foot{border-top:1px solid #262626;padding-top:1rem}
+[data-skin="mubi"] .dlg,[data-skin="mubi"] .install{border:1px solid #333;border-radius:0;background:#0A0A0A;color:#FFF;box-shadow:none}
+
+/* ----- Dishes: NYT Cooking. Newsprint, a nameplate masthead, serif headlines, red for the important bits ----- */
+:root[data-skin="nyt"]{
+  --paper:#FAF8F3; --sheet:#FAF8F3; --ink:#121212; --ink-soft:#5E5E5E; --on-ink:#FFF; --on-acc:#FFF; --line:#DCD7CC;
+  --nyt-red:#D0321E; --grain-blend:multiply; --grain-op:.16; --speck-op:.35; --speck-filter:none;
+  --f-news:"Source Serif 4",Georgia,"Times New Roman",serif; color-scheme:light;
+}
+[data-skin="nyt"] body{--acc:var(--nyt-red);background:#FAF8F3;color:#121212}
+[data-skin="nyt"] :focus-visible{outline:2px solid #121212;outline-offset:2px}
+[data-skin="nyt"] .mast{flex-direction:column;align-items:center;text-align:center;gap:.45rem;padding-block:18px 0}
+[data-skin="nyt"] .logo{order:0;flex-direction:column;gap:.25rem;font-family:var(--f-news);font-weight:700;font-size:clamp(1.5rem,6.4vw,2.7rem);letter-spacing:-.01em;line-height:1;color:#121212}
+[data-skin="nyt"] .logo::before{content:"Cooking section";font-family:var(--f-body);font-weight:700;font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:var(--nyt-red)}
+[data-skin="nyt"] .logo::after{content:attr(data-date);display:block;width:min(100%,40rem);margin-top:.5rem;padding:.35rem 0;border-block:1px solid #121212;box-shadow:0 3px 0 -2px #121212;
+  font-family:var(--f-body);font-weight:600;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase}
+[data-skin="nyt"] .mast-tools{order:1}
+[data-skin="nyt"] .sync{color:#5E5E5E}
+[data-skin="nyt"] .tabs{justify-content:safe center;border-bottom:1px solid #121212}
+[data-skin="nyt"] .tab{color:#5E5E5E}
+[data-skin="nyt"] .tab:hover,[data-skin="nyt"] .tab[aria-selected="true"]{color:#121212}
+[data-skin="nyt"] .tab[aria-selected="true"]{box-shadow:inset 0 -3px 0 #121212}
+[data-skin="nyt"] .btn{border:1px solid #121212;background:#FFF;color:#121212;font-family:var(--f-body);font-weight:700;font-size:.7rem;letter-spacing:.1em}
+[data-skin="nyt"] .btn:hover{background:#121212;color:#FFF}
+[data-skin="nyt"] .btn-acc,[data-skin="nyt"] .btn-acc:hover{border-color:var(--nyt-red);background:var(--nyt-red);color:#FFF;filter:none}
+[data-skin="nyt"] .icon-btn{border:1px solid #CFC9BD;color:#333;background:#FFF}
+[data-skin="nyt"] .icon-btn:hover{background:#121212;color:#FFF}
+[data-skin="nyt"] .linkish{color:#121212;text-decoration-color:var(--nyt-red)}
+[data-skin="nyt"] .input{border:1px solid #BDB6A8;background:#FFF;color:#121212}
+[data-skin="nyt"] .input:focus{border-color:#121212;outline:none}
+[data-skin="nyt"] #add-title{font-family:var(--f-news);font-weight:600;font-size:clamp(1.1rem,4vw,1.35rem)}
+[data-skin="nyt"] .field-label,[data-skin="nyt"] .chk{font-family:var(--f-body);font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5E5E5E}
+[data-skin="nyt"] .chk input{accent-color:var(--nyt-red)}
+[data-skin="nyt"] .sheet-head{align-items:end;margin-bottom:1.2rem;padding-bottom:.9rem;border-bottom:3px double #121212}
+[data-skin="nyt"] .sheet-title{font-family:var(--f-news);font-weight:700;font-size:clamp(2.1rem,8vw,3.6rem);letter-spacing:-.015em;text-shadow:none}
+[data-skin="nyt"] .sheet-sub{font-family:var(--f-news);font-style:italic;font-weight:600;font-size:.42em;letter-spacing:0;color:#5E5E5E}
+[data-skin="nyt"] .rank{font-family:var(--f-news);font-weight:700;font-size:clamp(1.3rem,4.6vw,1.8rem);color:#121212}
+[data-skin="nyt"] .is-first .rank{position:relative;color:var(--nyt-red)}
+[data-skin="nyt"] .is-first .rank::after{content:"";position:absolute;inset:-.28em -.42em;border:2.5px solid var(--nyt-red);border-radius:52% 46% 55% 44% / 48% 56% 42% 52%;transform:rotate(-8deg);opacity:.85}
+[data-skin="nyt"] .title{font-family:var(--f-news);font-weight:700;font-stretch:100%;font-size:clamp(1.15rem,4vw,1.45rem);line-height:1.15}
+[data-skin="nyt"] .is-first .title{font-size:clamp(1.6rem,6vw,2.4rem);line-height:1.05}
+[data-skin="nyt"] .note{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:#4A4A4A}
+[data-skin="nyt"] .meta{font-family:var(--f-body);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:#5E5E5E}
+[data-skin="nyt"] .link{color:#121212;text-decoration-color:var(--nyt-red)}
+[data-skin="nyt"] .handle{color:#A8A194}
+[data-skin="nyt"] .handle:hover{color:#121212}
+[data-skin="nyt"] .sticker{transform:rotate(-2deg);border:0;background:var(--nyt-red);color:#FFF;font-family:var(--f-body);font-weight:700;font-size:.6rem;letter-spacing:.14em}
+[data-skin="nyt"] .is-picking,[data-skin="nyt"] .is-picked{background:#FBE3DE!important;outline:0}
+[data-skin="nyt"] .is-dragging{border:1px solid #121212!important;box-shadow:6px 6px 0 rgba(0,0,0,.15);background:#FFF}
+[data-skin="nyt"] .item + .item{border-top:1px solid #DCD7CC}
+/* generated plates: an overhead shot of a dish on linen (colours and plating from the title), printed in halftone */
+[data-skin="nyt"] .art{background:#D8CBB2 repeating-linear-gradient(45deg,rgba(255,255,255,.18) 0 2px,transparent 2px 7px)}
+[data-skin="nyt"] .art > i{display:block;position:relative;aspect-ratio:1}
+[data-skin="nyt"] .art > i::before{content:"";position:absolute;inset:7%;border-radius:50%;box-shadow:3px 5px 8px rgba(0,0,0,.25);
+  background:radial-gradient(circle at var(--ax) var(--ay),var(--f2) 0 12%,transparent 12.5%),radial-gradient(circle at 50% 50%,var(--f1) 0 30%,var(--f3) 31% 36%,#FFF 37% 56%,#ECE6DA 57% 64%,transparent 65%)}
+[data-skin="nyt"] .art[data-k="1"] > i::before{background:radial-gradient(circle at 38% 40%,var(--f2) 0 8%,transparent 8.5%),radial-gradient(circle at 60% 58%,var(--f3) 0 9%,transparent 9.5%),radial-gradient(circle at 55% 35%,var(--f1) 0 7%,transparent 7.5%),radial-gradient(circle,var(--f3) 0 30%,#FFF 31% 56%,#ECE6DA 57% 64%,transparent 65%)}
+[data-skin="nyt"] .art[data-k="2"] > i::before{background:radial-gradient(circle,var(--f1) 0 24%,color-mix(in srgb,var(--f1) 70%,#000) 25% 33%,#F3EEE3 34% 50%,#D9D1C1 51% 58%,transparent 59%)}
+[data-skin="nyt"] .art[data-k="3"] > i::before{background:radial-gradient(circle,transparent 0 29%,#FFF 29.5% 56%,#ECE6DA 57% 64%,transparent 65%),conic-gradient(from 20deg,var(--f1) 0 50%,var(--f2) 0 100%)}
+[data-skin="nyt"] .art > i::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,rgba(0,0,0,.28) .9px,transparent 1.3px) 0 0/4px 4px;mix-blend-mode:multiply}
+[data-skin="nyt"] .is-first .art > i{aspect-ratio:16/10}
+[data-skin="nyt"] .is-first .art > i::before{inset:8% auto;left:50%;height:84%;aspect-ratio:1;translate:-50% 0}
+[data-skin="nyt"] .is-first .body{position:relative}
+[data-skin="nyt"] .is-first .body::before{content:"";position:absolute;z-index:2;top:-.15rem;left:50%;width:84px;height:22px;translate:-50% 0;rotate:-3deg;background:rgba(240,228,180,.75);
+  clip-path:polygon(3% 0,97% 0,100% 18%,96% 36%,100% 54%,96% 72%,100% 90%,97% 100%,3% 100%,0 82%,4% 64%,0 46%,4% 28%,0 10%)}
+@media (min-width:760px){
+  [data-skin="nyt"] .is-first .body{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:1.5rem}
+  [data-skin="nyt"] .is-first .body > *{grid-column:2}
+  [data-skin="nyt"] .is-first .body > .art{grid-column:1;grid-row:1 / span 4;margin:0}
+  [data-skin="nyt"] .is-first .body::before{left:26%}
+}
+[data-skin="nyt"] .empty-title{font-family:var(--f-news);font-weight:700;color:#121212}
+[data-skin="nyt"] .empty-body{font-family:Georgia,serif;font-style:italic;color:#4A4A4A}
+[data-skin="nyt"] .pile{border-top:3px double #121212}
+[data-skin="nyt"] .pile summary{font-family:var(--f-news);font-weight:700}
+[data-skin="nyt"] .pile summary::before{border:1px solid #121212}
+[data-skin="nyt"] .pile-count{border:1px solid #121212}
+[data-skin="nyt"] .done-item .title{font-family:var(--f-news);text-decoration-color:var(--nyt-red)}
+[data-skin="nyt"] .done-item .stamp{color:var(--nyt-red);font-family:var(--f-body);font-weight:800}
+[data-skin="nyt"] .toast{border-radius:0;background:#121212;color:#FFF;box-shadow:none}
+[data-skin="nyt"] .toast button{text-decoration-color:var(--nyt-red)}
+[data-skin="nyt"] .foot{border-top:1px solid #121212;padding-top:1rem}
+[data-skin="nyt"] .foot .label{font-family:Georgia,serif;font-style:italic;color:#5E5E5E}
+[data-skin="nyt"] .dlg,[data-skin="nyt"] .install{border:1px solid #121212;border-radius:0;background:#FFF;color:#121212;box-shadow:6px 6px 0 rgba(0,0,0,.12)}
 
 /* photos on posters: our own, or Google Maps' with its credit */
 .poster-img{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover}
@@ -1553,6 +1768,7 @@ a.btn{text-decoration:none}
     li.append(rank);
 
     const body = el("div", "body");
+    body.append(artEl(it));
     const title = el("div", "title");
     title.append(el("span", "title-text", it.title));
     if (pickedId === it.id) title.append(el("span", "sticker", cfg.picked));
@@ -1583,6 +1799,23 @@ a.btn{text-decoration:none}
       li.append(acts);
     }
     return li;
+  }
+
+  // Generated art for the app looks (hidden in the zine): a film still for Films (MUBI) and an overhead
+  // plate for Dishes (NYT Cooking), palette and composition picked from the title. Decorative only.
+  const STILL_INKS = [["#0C2A3A", "#E08A3C"], ["#1B1B1B", "#C9C2B0"], ["#2A0B0B", "#D6452B"], ["#06202A", "#4FB3A5"],
+    ["#1A1430", "#8F7BE8"], ["#2B2010", "#E7C36A"], ["#0D1B14", "#7DBB86"], ["#301018", "#F0A3B5"]];
+  const PLATE_INKS = [["#C2512F", "#F2C14E", "#6A8F3C"], ["#8C2F39", "#F4A259", "#5B8E7D"], ["#D97D2B", "#FFF1D0", "#3A5A40"],
+    ["#B5442E", "#E9D8A6", "#94A35B"], ["#7A3B2E", "#E3B23C", "#386641"], ["#C75146", "#F4E285", "#5C7A3A"]];
+  function artEl(it) {
+    const h = hashStr(it.title.toLowerCase());
+    const [a1, a2] = STILL_INKS[h % STILL_INKS.length], [f1, f2, f3] = PLATE_INKS[(h >>> 4) % PLATE_INKS.length];
+    const a = el("span", "art");
+    a.setAttribute("aria-hidden", "true");
+    for (const [k, v] of [["--a1", a1], ["--a2", a2], ["--f1", f1], ["--f2", f2], ["--f3", f3], ["--ax", 20 + (h >>> 8) % 60 + "%"], ["--ay", 25 + (h >>> 14) % 50 + "%"]]) a.style.setProperty(k, v);
+    a.dataset.k = String((h >>> 20) % 4);
+    a.append(el("i"));
+    return a;
   }
 
   function buildEditor(it) {
@@ -3233,21 +3466,25 @@ a.btn{text-decoration:none}
 
   /* ---------- the pixel shuffle between the zine and the restaurant log ---------- */
 
-  // Restaurants wears its own Letterboxd-style skin; the browser's bar colour follows along.
+  // Each tab wears the look of a famous app of its kind: Films MUBI, Dishes NYT Cooking, Restaurants
+  // Letterboxd; Together keeps the riso zine. The browser's bar colour follows along.
+  const SKIN = { films: "mubi", dishes: "nyt", together: "zine", restaurants: "lb" };
+  const SKIN_BAR = { mubi: "#000000", nyt: "#FAF8F3", lb: "#14101C" };
   const THEME_METAS = [...document.querySelectorAll('meta[name="theme-color"]')].map(m => [m, m.content]);
   function applySkin() {
-    const lb = current === "restaurants", skin = lb ? "lb" : "zine";
+    const skin = SKIN[current] || "zine", app = skin !== "zine";
     if (document.documentElement.dataset.skin !== skin) {
       document.documentElement.dataset.skin = skin;
-      for (const [m, c] of THEME_METAS) m.content = lb ? "#14101C" : c;
+      for (const [m, c] of THEME_METAS) m.content = SKIN_BAR[skin] || c;
+      if (skin === "nyt") $(".logo").dataset.date = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(new Date());
     }
-    if (lb) {   // on a narrow phone the nav scrolls sideways: keep Restaurants in view
+    if (app) {   // on a narrow phone the nav scrolls sideways: keep the open tab in view
       const nav = $(".tabs"), over = $("#tab-" + current).getBoundingClientRect().right - nav.getBoundingClientRect().right;
       if (over > 0) nav.scrollLeft += over;
     }
   }
 
-  // Going to or from Restaurants, the page breaks into blocks of its own colours (read from whatever is
+  // Switching between tabs with different looks, the page breaks into blocks of its own colours (read from whatever is
   // under each block), the blocks fly in a wave from the tapped tab to wherever the new page needs that
   // shade, take on its colours, and dissolve into it. About 1.5 s; skipped with reduced motion.
   const SHUFFLE = { pixelate: 180, dissolve: 250, total: 1500 };
@@ -3420,7 +3657,7 @@ a.btn{text-decoration:none}
     if (!isTab(l)) return;
     if (shuffle) shuffle.finish();   // a second tap lands on the page the first one was heading to
     if (l !== current) {
-      const crossing = (l === "restaurants") !== (current === "restaurants");
+      const crossing = SKIN[l] !== SKIN[current];
       const go = () => {
         current = l;
         editing = null;

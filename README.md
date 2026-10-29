@@ -9,6 +9,17 @@ A shared, ranked list for two: films to watch, dishes to cook, things to do toge
 - `PROMPT.md` — the prompt the site was built from.
 - `tests/parse-maps-link.test.mjs` — checks the Google Maps link reader (`node tests/parse-maps-link.test.mjs`).
 
+## The four looks
+
+Each tab dresses like a famous app of its kind, with the zine's grain, specks, tape and halftone kept as a mixed-media layer:
+
+- **Films → MUBI.** Black and white, uppercase type in two weights, one cobalt-blue accent, square corners. Every film gets a generated "still" (a duotone frame with grain and vignette, picked from its title); #1 is the hero, in a strip of film with sprocket holes and "Up next" on it. Watched films become ticket stubs.
+- **Dishes → NYT Cooking.** Newsprint, a nameplate masthead with today's date, serif headlines, red for the important bits. Every dish gets a generated overhead plate printed in halftone; #1 is the feature, with a red-pen circle and a strip of tape. Cooked dishes get a red stamp.
+- **Together → the riso zine** (the original look).
+- **Restaurants → Letterboxd** (below).
+
+Switching between looks plays the pixel shuffle (about 1.5 s; skipped with reduced motion). The phone's bar colour follows each look.
+
 ## How sharing works
 
 Once Firebase is connected (step 2 below), the plain address, https://ultramegaultimatedateplanner.github.io, is one shared list. Anyone who opens it sees and edits the same lists, live. **Share the list** on the page copies that link.
@@ -24,7 +35,7 @@ The fourth tab is a log of places you two have eaten, not a ranked list. It has 
 - **Adding a place:** start typing its name and pick it from the list of restaurants that appears. That fills in the name and city, pins it on its exact spot and links it to that place in Google Maps; a line under the box confirms the address, and **Not this one** brings the list back. Pressing Enter without picking adds it by name only.
 - **Other ways to pin it:** pasting the place's Google Maps link fills in the name and pins it on the exact spot; a "Pinned ✓" chip confirms it. Short share links (`maps.app.goo.gl/…`) can't be read in a browser, so for those tap **Tap the map to place it**, paste coordinates like `51.92031, 4.48712`, or pick a city (that pins it to the city centre, marked approximate).
 - **The restaurant search** looks in OpenStreetMap's list of restaurants, cafés, bars and snack places, through Photon (photon.komoot.io), a free search with no account or key. Dutch places come first, but places abroad turn up too. A place that isn't in OpenStreetMap yet can still be added by name or link.
-- **Reviews:** each of you gives 1–5 stars and a few words, shown under your own name. The first review on a phone asks who you are once; **Us** changes your names. The score is the average of your stars, and two people reviewing at the same moment never overwrite each other.
+- **Reviews:** each of you gives ½ to 5 stars (tap the left half of a star for a half, like Letterboxd) and a few words, shown under your own name. The first review on a phone asks who you are once; **Us** changes your names. The score is the average of your stars, and two people reviewing at the same moment never overwrite each other.
 - **Medals:** Gold 4.5–5.0 (Go back. Bring people.), Silver 3.75–4.49, Bronze 3.0–3.74, Ash 2.0–2.99, Black below 2.0 (Never again), or Unrated. Cards and map pins use the same colours and always show the score as text.
 - **The map:** scroll down for a map of the Netherlands with a pin per place, coloured by medal. Tap a pin for its ticket, with **Open in Google Maps** and **Show in the list**. On a phone one finger scrolls the page and two fingers move the map. The map is OpenStreetMap's (free, credited on the map; CARTO's tiles now require an API key). Offline, the list and reviews still work and the map says it needs a connection.
 - Nothing here uses a Google API or key: "Google Maps" means each place links to its own Google Maps page (for a place picked from the search, a Google Maps search for its name and address).
@@ -79,4 +90,4 @@ Commit the change to `main`. GitHub Pages republishes on its own. These values a
 
 ## Privacy
 
-Anyone who opens the site can read and change the shared lists, so share the address only with people you'd hand a shared notebook to. What you type in the Restaurants name box (from the third letter on) is sent to Photon to search; nothing else is. The rules block everything else: nobody can list other `?club=` codes, and every record must have the expected shape: list items (a title of up to 140 characters, a note of up to 400, an optional web link), restaurants (a name of up to 120 characters, a city of up to 60, only Google Maps links, coordinates in range, 1–999 visits, and reviews of 1–5 whole stars with up to 600 characters each, for just the two of you), photos (one JPEG of up to 200 kB per place, nothing else), Google matches (a place ID or "-") and your two names (up to 24 characters each). With a Google key, the restaurant's name and city (and, for posters on screen, its Google place ID) are sent to Google to find its photo.
+Anyone who opens the site can read and change the shared lists, so share the address only with people you'd hand a shared notebook to. What you type in the Restaurants name box (from the third letter on) is sent to Photon to search; nothing else is. The rules block everything else: nobody can list other `?club=` codes, and every record must have the expected shape: list items (a title of up to 140 characters, a note of up to 400, an optional web link), restaurants (a name of up to 120 characters, a city of up to 60, only Google Maps links, coordinates in range, 1–999 visits, and reviews of ½ to 5 stars in half steps with up to 600 characters each, for just the two of you), photos (one JPEG of up to 200 kB per place, nothing else), Google matches (a place ID or "-") and your two names (up to 24 characters each). With a Google key, the restaurant's name and city (and, for posters on screen, its Google place ID) are sent to Google to find its photo.
