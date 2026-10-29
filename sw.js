@@ -3,7 +3,7 @@
 //   you're online; the saved copy is used when offline. Each file is stored once, whatever query
 //   string it was opened with, and the page itself is always stored as index.html, so an offline
 //   launch always gets the newest copy and ?club= or tracking links don't pile up old ones.
-// - Firebase SDK files (versioned URLs) and the Google Fonts stylesheet and files: cache first,
+// - Firebase SDK, Leaflet map library (versioned URLs) and Google Fonts: cache first,
 //   and only successful responses are ever stored.
 // - Everything else, including the Firestore connection, goes straight to the network.
 const SHELL = "shell-v2";
@@ -26,8 +26,12 @@ self.addEventListener("activate", event => {
   );
 });
 
+// Versioned library files never change: the Firebase SDK, Leaflet and its gesture plugin (pinned
+// versions), and Google Fonts. Map tiles are not kept; offline, the map says it needs a connection.
 const immutable = url =>
   (url.hostname === "www.gstatic.com" && url.pathname.startsWith("/firebasejs/")) ||
+  (url.hostname === "cdnjs.cloudflare.com" && url.pathname.startsWith("/ajax/libs/leaflet/")) ||
+  (url.hostname === "cdn.jsdelivr.net" && url.pathname.startsWith("/npm/leaflet-gesture-handling@")) ||
   url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
 
 // One cache entry per file: the page under index.html, everything else under its path alone.

@@ -79,3 +79,21 @@ The concept is a **risograph-printed zine for two**. Draw the textures from real
 - [ ] Partner A's change appears on partner B's screen without a reload.
 - [ ] Done items leave the ranked list but are never lost. Delete can be undone.
 - [ ] Looks deliberate and gritty in both light and dark, at 400px and 1280px.
+
+---
+
+## Restaurants tab
+
+The request, in the owner's words:
+
+> Add one more tab where you put all the restaurants we have been to (we can add them manually, also connected to Google Maps, we can add the Google Maps link) and then we can leave a review on the app. If you scroll down that new tab, I want to see a map of the Netherlands where we see pinpointed all the restaurants we have been to; depending on the stars we gave the restaurant the pins have different colours: gold is the best, black is bad, everything in between is up to you.
+
+What was built from it:
+
+- **A fourth tab, Restaurants ("we've been to")**, deep-linkable as `#restaurants`, in its own riso spot ink, blue `#5AA9F5`, the complement of the gold and bronze pins. Tabs sit 2×2 below 560 px and in one row above. It reuses the sheet, buttons, toasts, stamps and textures; it is a log, not a ranked list.
+- **Fast manual adding:** name, an optional Google Maps link, the date (today by default) and an optional city. `parseMapsLink()` reads coordinates from the place's own pin (`!3d…!4d…`), the map centre (`@lat,lng`), query parameters or plain `lat, lng` text, and the name from `/maps/place/<Name>/`. It never calls Google. Short links can't be resolved in a browser, so the tab offers tapping the map, pasting coordinates, or a city centre (marked approximate). It is covered by `tests/parse-maps-link.test.mjs`.
+- **Reviews in the app, never on Google:** two people, named once in "Us"; each device remembers which one it is. Each gives 1–5 whole stars (a radio group) and up to 600 characters, saved by field path (`reviews.a` / `reviews.b`) so simultaneous reviews never overwrite each other. The score is the mean to one decimal. "We went again" counts visits.
+- **Medal scale:** Gold 4.5–5.0 "Go back. Bring people.", Silver 3.75–4.49 "Would go again", Bronze 3.0–3.74 "Fine. Genuinely fine.", Ash 2.0–2.99 "Only if it's raining", Black below 2.0 "Never again", and Unrated as a hollow blue ring. Colour is never the only signal: pins and chips carry the score.
+- **The map:** Leaflet 1.9.4 with leaflet-gesture-handling 1.2.2 (pinned, with SRI), on OpenStreetMap tiles printed as grey ink on paper (inverted in dark mode). CARTO was the original plan, but it now watermarks keyless requests and the brief rules out keys. It opens on the Netherlands, has "Fit our pins", and SVG drop pins with ticket-style popups built from DOM nodes. On phones one finger always scrolls the page and two fingers move the map. With no connection the map says so and the list keeps working.
+- **Data and rules:** `clubs/{club}/restaurants/{place}` and `clubs/{club}/meta/people`, with `validPlace`/`validPeople` in `firestore.rules`. Existing rules are unchanged. Without Firebase, data lives in `someday-club:restaurants:v1` / `someday-club:people:v1`.
+

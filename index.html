@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Dela+Gothic+One&family=Special+Elite&display=swap">
 <style>
-/* Layout: a riso-printed zine for two. Poster masthead, three tabs (one spot ink per list), one taped-down sheet holding the ranked list, a stamped "done" pile underneath. */
+/* Layout: a riso-printed zine for two. Poster masthead, four tabs (one spot ink each), one taped-down sheet holding the ranked list (or, on Restaurants, the log of places and a printed map), a stamped "done" pile underneath. */
 :root{
   --paper:#E3E4DE;        /* newsprint */
   --sheet:#F3F3EF;        /* the taped-down list sheet */
@@ -27,6 +27,9 @@
   --pink:#FF48B0;         /* riso fluorescent pink: films */
   --yellow:#FFE800;       /* riso yellow: dishes */
   --green:#00A95C;        /* riso green: together */
+  --blue:#5AA9F5;         /* riso blue: restaurants (complements the gold and bronze pins) */
+  --tile-filter:grayscale(1) contrast(1.08) brightness(1.04);
+  --tile-blend:multiply;
   --on-ink:#F3F3EF;       /* text on toner-black fills */
   --on-acc:#19181D;       /* text on any spot-ink fill */
   --tape:rgba(255,246,170,.6);
@@ -50,29 +53,32 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     --paper:#111014; --sheet:#1B1A1F; --ink:#EDECE6; --ink-soft:#A4A2AB;
-    --pink:#FF5CBA; --yellow:#FFE631; --green:#1BC47A;
+    --pink:#FF5CBA; --yellow:#FFE631; --green:#1BC47A; --blue:#6BB5FF;
     --on-ink:#111014; --on-acc:#111014; --tape:rgba(255,255,255,.16);
     --plate-blend:screen; --grain-blend:screen; --grain-op:.09; --speck-op:.4; --speck-filter:invert(1);
+    --tile-filter:grayscale(1) invert(1) contrast(.88) brightness(.82); --tile-blend:normal;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --paper:#111014; --sheet:#1B1A1F; --ink:#EDECE6; --ink-soft:#A4A2AB;
-  --pink:#FF5CBA; --yellow:#FFE631; --green:#1BC47A;
+  --pink:#FF5CBA; --yellow:#FFE631; --green:#1BC47A; --blue:#6BB5FF;
   --on-ink:#111014; --on-acc:#111014; --tape:rgba(255,255,255,.16);
   --plate-blend:screen; --grain-blend:screen; --grain-op:.09; --speck-op:.4; --speck-filter:invert(1);
+  --tile-filter:grayscale(1) invert(1) contrast(.88) brightness(.82); --tile-blend:normal;
   color-scheme:dark;
 }
 [data-list="films"]{--acc:var(--pink)}
 [data-list="dishes"]{--acc:var(--yellow)}
 [data-list="together"]{--acc:var(--green)}
+[data-list="restaurants"]{--acc:var(--blue)}
 
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
 html{background:var(--paper);-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;overflow-x:clip;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-button,input{font:inherit;color:inherit}
+button,input,textarea{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 .defs{position:absolute;width:0;height:0;overflow:hidden}
@@ -120,15 +126,17 @@ button,input{font:inherit;color:inherit}
 .mast-sub .label{color:var(--ink)}
 
 /* tabs: one spot ink each */
-.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(6px,1.6vw,14px)}
-.tab{position:relative;display:grid;gap:.35rem;min-width:0;text-align:left;cursor:pointer;
+.tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(6px,1.6vw,14px)}
+@media (min-width:560px){.tabs{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tab{position:relative;display:grid;gap:.35rem;align-content:space-between;min-width:0;text-align:left;cursor:pointer;
   padding:clamp(.6rem,1.8vw,.9rem) clamp(.55rem,1.8vw,1rem);border:2px solid var(--ink);background:var(--sheet);
   transition:transform .12s ease,box-shadow .12s ease}
 .tab:hover{background:color-mix(in srgb,var(--acc) 22%,var(--sheet))}
 .tab[aria-selected="true"]{background:var(--acc);color:var(--on-acc);box-shadow:5px 5px 0 var(--ink);transform:translate(-3px,-3px)}
 .tab[aria-selected="true"]::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(circle,color-mix(in srgb,var(--on-acc) 26%,transparent) 1px,transparent 1.6px) 0 0/6px 6px}
-.tab-name{font-family:var(--f-display);font-size:clamp(.95rem,3.6vw,1.75rem);line-height:1;overflow-wrap:anywhere}
+.tab-name{font-family:var(--f-display);font-size:clamp(.95rem,3.6vw,1.75rem);line-height:1;white-space:nowrap}
+@media (min-width:560px){.tab-name{font-size:clamp(.8rem,2.25vw,1.4rem)}}
 .tab[aria-selected="true"] .tab-name{-webkit-mask-image:var(--wear);mask-image:var(--wear);-webkit-mask-size:260px;mask-size:260px}
 .tab-foot{display:flex;justify-content:space-between;align-items:center;gap:.4rem;flex-wrap:wrap}
 .tab-sub{font-family:var(--f-type);font-size:var(--t-xs);letter-spacing:.03em}
@@ -257,6 +265,124 @@ button,input{font:inherit;color:inherit}
   text-decoration:underline;text-decoration-thickness:3px;text-decoration-color:var(--acc);text-underline-offset:4px}
 .toast button:focus-visible{outline-color:var(--on-ink)}
 
+/* restaurants: the log */
+textarea.input{min-height:5.5rem;resize:vertical;line-height:1.4}
+.rest-notice{margin:0 0 1rem;padding:.6rem .8rem;border:2px dashed var(--ink);font-size:var(--t-sm);font-weight:600;color:var(--ink)}
+.radd fieldset{border:0;margin:0;padding:0;min-width:0;display:grid;gap:.6rem}
+.r-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));gap:.6rem}
+.pin-row{display:flex;gap:.5rem;align-items:center}
+.pin-chip{flex:none;font-family:var(--f-type);font-size:var(--t-xs);letter-spacing:.04em;padding:.25rem .5rem;border:1.5px solid var(--ink);background:var(--acc);color:var(--on-acc);white-space:nowrap}
+.pin-chip[data-approx="true"]{background:transparent;color:var(--ink);border-style:dashed}
+.field-error{margin:0;font-size:var(--t-sm);font-weight:700;color:var(--ink)}
+.nopin{display:grid;gap:.55rem;padding:.7rem .8rem;border:2px dashed var(--ink);background:color-mix(in srgb,var(--acc) 10%,var(--sheet))}
+.nopin p{margin:0;font-size:var(--t-sm)}
+.nopin-acts{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center}
+.rest-tools{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.6rem 1rem;margin:.2rem 0 .4rem}
+.seg{display:inline-flex;border:2px solid var(--ink);background:var(--sheet)}
+.seg label{position:relative;display:inline-grid;place-items:center;min-height:40px;padding:0 .7rem;cursor:pointer;
+  font-family:var(--f-body);font-weight:800;font-stretch:112%;font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.06em}
+.seg label + label{border-left:2px solid var(--ink)}
+.seg input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.seg label.is-on{background:var(--acc);color:var(--on-acc)}
+.seg input:focus-visible + span{outline:3px solid var(--ink);outline-offset:4px}
+.rlist{list-style:none;margin:0;padding:0}
+.rcard{position:relative;display:grid;gap:.5rem;padding:1rem .35rem;background:var(--sheet)}
+.rcard + .rcard{border-top:2px dotted color-mix(in srgb,var(--ink) 38%,transparent)}
+.rcard.is-editing{background:color-mix(in srgb,var(--acc) 12%,var(--sheet));padding-inline:.6rem}
+.rcard.is-flash{animation:slap .9s ease-out}
+.rcard-top{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .7rem}
+.rcard-name{margin:0;font-weight:750;font-stretch:88%;font-size:var(--t-xl);line-height:1.15;overflow-wrap:anywhere}
+.rmeta{margin:0}
+.medal{display:inline-flex;align-items:center;gap:.3rem;padding:.14rem .5rem;font-family:var(--f-type);font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;
+  border:1.5px solid var(--ink);white-space:nowrap;transform:rotate(-2deg)}
+.medal b{font-family:var(--f-body);font-weight:800;font-variant-numeric:tabular-nums}
+.medal[data-tier="gold"]{background:#E8B931;color:#19181D;box-shadow:inset 0 0 0 2px #FFE08A}
+.medal[data-tier="silver"]{background:#C9CED6;color:#19181D}
+.medal[data-tier="bronze"]{background:#B87333;color:#19181D}
+.medal[data-tier="ash"]{background:#6B6460;color:#F3F3EF}
+.medal[data-tier="black"]{background:#121116;color:#F3F3EF;box-shadow:inset 0 0 0 1.5px #EDECE6}
+.medal[data-tier="unrated"]{background:transparent;color:var(--ink);border-style:dashed}
+.revs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr));gap:.5rem}
+.rev{display:grid;gap:.2rem;align-content:start;padding:.5rem .65rem;border:1.5px solid color-mix(in srgb,var(--ink) 30%,transparent);background:var(--paper)}
+.rev.is-empty{border-style:dashed;color:var(--ink-soft)}
+.rev-head{display:flex;flex-wrap:wrap;align-items:center;gap:.2rem .6rem}
+.rev-who{font-family:var(--f-type);font-size:var(--t-xs);letter-spacing:.05em;text-transform:uppercase}
+.stars{font-size:1rem;line-height:1;letter-spacing:.06em;color:var(--ink)}
+.stars .off{opacity:.22}
+.rev-text{margin:0;font-size:var(--t-sm);overflow-wrap:anywhere;white-space:pre-line}
+.racts{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center}
+.racts .btn-sm{min-height:40px}
+a.btn{text-decoration:none}
+.star-input{border:0;margin:0;padding:0;display:grid;gap:.35rem;min-width:0}
+.star-input legend{padding:0;margin-bottom:.15rem}
+.star-row{display:flex;flex-wrap:wrap;gap:.3rem}
+.star-row label{position:relative;display:grid;place-items:center;width:44px;height:44px;cursor:pointer;font-size:1.6rem;line-height:1;
+  border:2px solid var(--ink);background:var(--paper);color:var(--ink)}
+.star-row label.is-on{background:var(--acc);color:var(--on-acc)}
+.star-row input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+.star-row input:focus-visible + span{outline:3px solid var(--ink);outline-offset:6px}
+.dlg{position:fixed;margin:auto;max-width:28rem;width:calc(100% - 32px);border:2px solid var(--ink);background:var(--sheet);color:var(--ink);
+  padding:1.2rem;box-shadow:6px 6px 0 var(--acc)}
+.dlg::backdrop{background:rgba(0,0,0,.45)}
+.dlg h2{margin:0 0 .5rem;font-family:var(--f-display);font-weight:400;font-size:1.35rem;line-height:1.1}
+.dlg form{display:grid;gap:.75rem}
+.dlg p{margin:0}
+.dlg fieldset{border:0;margin:0;padding:0;display:grid;gap:.4rem}
+.dlg .row{display:flex;justify-content:flex-end;gap:.5rem}
+
+/* restaurants: the printed map */
+.mapsheet{position:relative;margin-top:2.2rem;padding:clamp(12px,2.6vw,20px);border:2px solid var(--ink);background:var(--paper);box-shadow:8px 8px 0 var(--acc)}
+.mapsheet::before,.mapsheet::after{content:"";position:absolute;top:-13px;width:clamp(60px,12vw,90px);height:24px;background:var(--tape);z-index:2;
+  clip-path:polygon(3% 0,97% 0,100% 18%,96% 36%,100% 54%,96% 72%,100% 90%,97% 100%,3% 100%,0 82%,4% 64%,0 46%,4% 28%,0 10%)}
+.mapsheet::before{left:-10px;transform:rotate(-38deg)}
+.mapsheet::after{right:-10px;transform:rotate(38deg)}
+.map-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:.6rem 1rem;margin-bottom:.8rem}
+.map-title{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(1.3rem,4vw,1.9rem);line-height:1;text-shadow:.05em .045em 0 var(--acc)}
+.map-frame{position:relative;border:2px solid var(--ink)}
+.map{height:min(60vh,520px);background:var(--paper);isolation:isolate;z-index:0;font-family:var(--f-body)}
+.map.leaflet-container{background:var(--paper);font-family:var(--f-body)}
+.map .leaflet-tile-pane{filter:var(--tile-filter);mix-blend-mode:var(--tile-blend)}
+.map-frame::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;mix-blend-mode:var(--plate-blend);
+  background:radial-gradient(circle,color-mix(in srgb,var(--acc) 18%,transparent) 1px,transparent 1.5px) 0 0/7px 7px}
+/* One finger always scrolls the page, even after a tap turns the plugin's mouse mode on; two fingers move the map. */
+.map.leaflet-container{touch-action:pan-x pan-y!important}
+.map.is-placing{cursor:crosshair}
+.map.is-placing .leaflet-marker-pane,.map.is-placing .leaflet-popup-pane,.map.is-placing .leaflet-overlay-pane{pointer-events:none}
+.map.is-placing .leaflet-marker-icon,.map.is-placing .leaflet-interactive{pointer-events:none!important}
+.map-msg{position:absolute;inset:0;z-index:3;display:grid;place-content:center;justify-items:center;gap:.7rem;padding:1rem;text-align:center;
+  background:color-mix(in srgb,var(--paper) 94%,transparent);font-weight:700}
+.placing{position:absolute;left:50%;top:.6rem;translate:-50% 0;z-index:4;display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem .9rem;align-items:center;
+  width:max-content;max-width:calc(100% - 20px);padding:.5rem .8rem;background:var(--ink);color:var(--on-ink);font-weight:700;box-shadow:4px 4px 0 var(--acc)}
+.placing button{background:none;border:0;color:inherit;cursor:pointer;font-weight:800;text-transform:uppercase;letter-spacing:.06em;min-height:32px;
+  text-decoration:underline;text-decoration-thickness:3px;text-decoration-color:var(--acc);text-underline-offset:4px}
+.legend{list-style:none;margin:.9rem 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15.5rem),1fr));gap:.4rem 1rem}
+.legend li{display:flex;align-items:center;gap:.55rem;font-family:var(--f-type);font-size:var(--t-xs);color:var(--ink-soft)}
+.legend b{color:var(--ink);font-family:var(--f-body);font-weight:800;font-stretch:112%;text-transform:uppercase;letter-spacing:.05em}
+.legend svg{flex:none}
+.pin{background:none;border:0}
+.pin svg,.legend svg{display:block;overflow:visible}
+.pin svg{filter:drop-shadow(2px 2px 0 rgba(0,0,0,.35))}
+.pin-body{stroke:var(--ink);stroke-width:2}
+.pin--black .pin-body{stroke:#EDECE6}
+.pin-label{font-family:var(--f-body);font-weight:800;font-size:11px;font-variant-numeric:tabular-nums}
+.map.leaflet-container .leaflet-bar{border:2px solid var(--ink);border-radius:0;box-shadow:3px 3px 0 var(--ink)}
+.map.leaflet-container .leaflet-bar a{border-radius:0;background:var(--sheet);color:var(--ink);border-bottom:2px solid var(--ink);width:36px;height:36px;line-height:34px}
+.map.leaflet-container .leaflet-bar a:last-child{border-bottom:0}
+.map.leaflet-container .leaflet-control-attribution{background:color-mix(in srgb,var(--sheet) 90%,transparent);color:var(--ink-soft);font-family:var(--f-type);font-size:10px}
+.map.leaflet-container .leaflet-control-attribution a{color:var(--ink)}
+.map.leaflet-container .leaflet-popup-content-wrapper{border-radius:0;background:var(--sheet);color:var(--ink);border:2px solid var(--ink);box-shadow:5px 5px 0 var(--acc)}
+.map.leaflet-container .leaflet-popup-tip{background:var(--sheet);border:2px solid var(--ink);box-shadow:none}
+.map.leaflet-container .leaflet-popup-content{margin:.8rem .9rem;font-family:var(--f-body);font-size:var(--t-sm);line-height:1.35;min-width:210px}
+.map.leaflet-container .leaflet-popup-content p{margin:0}
+.map.leaflet-container a.leaflet-popup-close-button{color:var(--ink)}
+.map.leaflet-gesture-handling-touch-warning::after,.map.leaflet-gesture-handling-scroll-warning::after{font-family:var(--f-body);font-weight:800;letter-spacing:.02em}
+.ticket{display:grid;gap:.4rem}
+.ticket p{margin:0}
+.ticket-name{font-weight:800;font-stretch:90%;font-size:1.05rem;overflow-wrap:anywhere}
+.ticket-rev{font-size:.8rem;overflow-wrap:anywhere}
+.ticket-acts{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.15rem;padding-top:.55rem;border-top:2px dotted color-mix(in srgb,var(--ink) 40%,transparent)}
+.map .ticket a.btn{color:var(--ink)}
+
 @media (max-width:640px){
   .item{grid-template-columns:20px 2.6rem minmax(0,1fr);padding-inline:0}
   .acts{grid-column:3;flex-wrap:wrap}
@@ -315,10 +441,15 @@ button,input{font:inherit;color:inherit}
       <span class="tab-name">Together</span>
       <span class="tab-foot"><span class="tab-sub">to do</span><span class="tab-count" id="count-together" aria-label="plans to do">0</span></span>
     </button>
+    <button class="tab" type="button" role="tab" id="tab-restaurants" data-list="restaurants" aria-controls="panel" aria-selected="false" tabindex="-1">
+      <span class="tab-name">Restaurants</span>
+      <span class="tab-foot"><span class="tab-sub">we've been to</span><span class="tab-count" id="count-restaurants" aria-label="restaurants we've been to">0</span></span>
+    </button>
   </div>
 
   <main class="sheet" id="panel" role="tabpanel" aria-labelledby="tab-films">
     <svg class="reg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 0v24M0 12h24" stroke="currentColor" stroke-width="1.5"/></svg>
+    <div id="ranked">
     <div class="sheet-head">
       <h2 class="sheet-title"><span id="sheet-name">Films</span> <span class="sheet-sub" id="sheet-sub">to watch</span></h2>
       <button class="btn" type="button" id="pick">Pick tonight's film</button>
@@ -351,15 +482,84 @@ button,input{font:inherit;color:inherit}
       <summary><span id="pile-label">Watched pile</span><span class="pile-count" id="pile-count">0</span></summary>
       <ol class="pile-list" id="pile-list"></ol>
     </details>
+    </div>
+
+    <section id="rest" hidden aria-labelledby="rest-title">
+      <div class="sheet-head">
+        <h2 class="sheet-title" id="rest-title">Restaurants <span class="sheet-sub">we've been to</span></h2>
+        <button class="btn" type="button" id="us-open">Us</button>
+      </div>
+      <p class="rest-notice" id="rest-notice" role="status" hidden></p>
+
+      <form class="add radd" id="radd" autocomplete="off" novalidate>
+        <fieldset id="radd-fields">
+          <label class="sr" for="r-name">Restaurant name</label>
+          <div class="add-row">
+            <input class="input" id="r-name" maxlength="120" placeholder="Where did you eat?" enterkeyhint="done">
+            <button class="btn btn-acc" type="submit">Add</button>
+          </div>
+          <div class="field">
+            <label class="field-label" for="r-url">Google Maps link (optional)</label>
+            <div class="pin-row">
+              <input class="input" id="r-url" type="url" inputmode="url" maxlength="600" placeholder="Paste the place's link from Google Maps">
+              <span class="pin-chip" id="r-pinned" hidden>Pinned ✓</span>
+            </div>
+            <p class="field-error" id="r-url-err" role="alert" hidden></p>
+          </div>
+          <div class="r-grid">
+            <label class="field" for="r-date"><span class="field-label">When</span><input class="input" id="r-date" type="date"></label>
+            <label class="field" for="r-city"><span class="field-label">City (optional)</span><input class="input" id="r-city" list="nl-cities" maxlength="60" placeholder="e.g. Rotterdam"></label>
+          </div>
+          <div class="nopin" id="r-help" hidden>
+            <p id="r-help-text">That link has no location in it. Short links (maps.app.goo.gl) can't be read here, so place it yourself:</p>
+            <div class="nopin-acts">
+              <button class="btn btn-sm" type="button" id="r-tap">Tap the map to place it</button>
+              <button class="linkish" type="button" id="r-coords-toggle" aria-expanded="false" aria-controls="r-coords-field">Paste coordinates</button>
+            </div>
+            <label class="field" for="r-coords" id="r-coords-field" hidden><span class="field-label">Coordinates</span><input class="input" id="r-coords" inputmode="decimal" placeholder="51.92031, 4.48712"></label>
+          </div>
+        </fieldset>
+      </form>
+      <datalist id="nl-cities"></datalist>
+      <div class="perf" aria-hidden="true"></div>
+
+      <div class="rest-tools">
+        <span class="label" id="rest-count">0 places</span>
+        <div class="seg" id="rsort" role="radiogroup" aria-label="Sort restaurants">
+          <label for="rsort-latest"><input type="radio" name="rsort" id="rsort-latest" value="latest"><span>Latest visit</span></label>
+          <label for="rsort-best"><input type="radio" name="rsort" id="rsort-best" value="best"><span>Best first</span></label>
+          <label for="rsort-az"><input type="radio" name="rsort" id="rsort-az" value="az"><span>A–Z</span></label>
+        </div>
+      </div>
+      <ol class="rlist" id="rlist" aria-label="Restaurants we've been to"></ol>
+      <div class="empty" id="rempty">
+        <p class="empty-title" id="rempty-title">No tables yet</p>
+        <p class="empty-body" id="rempty-body">Add the first place you two ate at. Paste its Google Maps link and it pins itself on the map below.</p>
+      </div>
+
+      <section class="mapsheet" id="mapsheet" aria-labelledby="map-title">
+        <div class="map-head">
+          <h3 class="map-title" id="map-title">Our map</h3>
+          <button class="btn btn-sm" type="button" id="fit-pins">Fit our pins</button>
+        </div>
+        <div class="map-frame">
+          <div class="map" id="map" aria-label="Map of the restaurants we've been to"></div>
+          <div class="placing" id="placing" hidden><span id="placing-text">Tap where it is</span><button type="button" id="placing-cancel">Cancel</button></div>
+          <div class="map-msg" id="map-msg" hidden><span>The map needs a connection.</span><button class="btn btn-sm" type="button" id="map-retry">Try again</button></div>
+        </div>
+        <ul class="legend" id="legend" aria-label="What the pin colours mean"></ul>
+      </section>
+    </section>
   </main>
 
   <footer class="foot">
-    <p class="label">Drag the grip or use the arrows to re-rank. Higher up means sooner. “Pick” leans toward the top.</p>
+    <p class="label" id="foot-tip">Drag the grip or use the arrows to re-rank. Higher up means sooner. “Pick” leans toward the top.</p>
     <p class="label" id="foot-mode" hidden></p>
     <div class="inks" aria-hidden="true">
       <span data-list="films"><i></i>Fluorescent pink · films</span>
       <span data-list="dishes"><i></i>Yellow · dishes</span>
       <span data-list="together"><i></i>Green · together</span>
+      <span data-list="restaurants"><i></i>Blue · restaurants</span>
     </div>
   </footer>
 </div>
@@ -373,6 +573,23 @@ button,input{font:inherit;color:inherit}
   </ol>
   <p class="label">It opens full screen like any other app and stays in sync with your partner.</p>
   <div class="row"><button class="btn btn-sm" type="button" id="install-close">Got it</button></div>
+</dialog>
+
+<dialog class="dlg" id="us-sheet" aria-labelledby="us-title">
+  <form id="us-form" novalidate>
+    <h2 id="us-title">Us</h2>
+    <p class="label" id="us-lead">Your two first names, so each review shows who wrote it.</p>
+    <div id="us-names" class="r-grid">
+      <label class="field" for="us-a"><span class="field-label">One of you</span><input class="input" id="us-a" maxlength="24" autocomplete="off"></label>
+      <label class="field" for="us-b"><span class="field-label">The other</span><input class="input" id="us-b" maxlength="24" autocomplete="off"></label>
+    </div>
+    <fieldset>
+      <legend class="field-label">Who's on this phone?</legend>
+      <label class="chk" for="us-me-a"><input type="radio" name="us-me" id="us-me-a" value="a"> <span id="us-me-a-name">The first name</span></label>
+      <label class="chk" for="us-me-b"><input type="radio" name="us-me" id="us-me-b" value="b"> <span id="us-me-b-name">The second name</span></label>
+    </fieldset>
+    <div class="row"><button class="btn btn-sm" type="button" id="us-cancel">Cancel</button><button class="btn btn-sm btn-acc" type="submit">Save</button></div>
+  </form>
 </dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden><span id="toast-msg"></span><button type="button" id="toast-act" hidden>Undo</button></div>
@@ -409,6 +626,49 @@ button,input{font:inherit;color:inherit}
   const FIREBASE_VERSION = "12.19.0";
   const CLUB_CODE = /^[a-z0-9]{8,40}$/i;
   const MAIN_LIST = "ultramegamainlist";   // the list behind the plain address
+
+  // The fourth tab is a log, not a ranked list, so it lives beside LISTS/ORDER rather than in them.
+  const TABS = [...ORDER, "restaurants"];
+  const isTab = l => TABS.includes(l);
+  const LS_REST = "someday-club:restaurants:v1";
+  const LS_PEOPLE = "someday-club:people:v1";
+  const LS_ME = "someday-club:me";            // which of the two this device belongs to: "a" or "b"
+  const LS_RSORT = "someday-club:rsort";
+  const NL_BOUNDS = [[50.75, 3.35], [53.55, 7.23]];
+  const LEAFLET = {
+    js: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js",
+    jsSri: "sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==",
+    css: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css",
+    cssSri: "sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAcSUIUOseddDm0cxnGQzxIR7vJgsLZbdLE3w==",
+    gestureJs: "https://cdn.jsdelivr.net/npm/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js",
+    gestureJsSri: "sha384-TqJpQ0URK8MzCC4s3ekivmwQmVfay3oiXhBt/Vl5nViiMrO7+rdFTc5VKDeUuto8",
+    gestureCss: "https://cdn.jsdelivr.net/npm/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css",
+    gestureCssSri: "sha384-IKK988kZjVpx+y4Iqax/6yU7EVQx/sHewAKb/iqDCb9tCtgy25bGk5ZINDla9rgv"
+  };
+  // Medal scale for the mean of our stars. Colour is never the only signal: pins and chips carry the score.
+  const TIERS = [
+    { key: "gold", name: "Gold", min: 4.5, fill: "#E8B931", rim: "#FFE08A", text: "#19181D", range: "4.5–5.0", line: "Go back. Bring people." },
+    { key: "silver", name: "Silver", min: 3.75, fill: "#C9CED6", text: "#19181D", range: "3.75–4.49", line: "Would go again" },
+    { key: "bronze", name: "Bronze", min: 3.0, fill: "#B87333", text: "#19181D", range: "3.0–3.74", line: "Fine. Genuinely fine." },
+    { key: "ash", name: "Ash", min: 2.0, fill: "#6B6460", text: "#F3F3EF", range: "2.0–2.99", line: "Only if it's raining" },
+    { key: "black", name: "Black", min: -Infinity, fill: "#121116", text: "#F3F3EF", range: "below 2.0", line: "Never again" }
+  ];
+  const UNRATED = { key: "unrated", name: "Unrated", range: "no stars yet", line: "Not rated yet" };
+  // City centres for a quick approximate pin when a link has no location.
+  const NL_CITIES = {
+    "Amsterdam": [52.3728, 4.8936], "Rotterdam": [51.9225, 4.4792], "Den Haag": [52.0705, 4.3007], "Utrecht": [52.0907, 5.1214],
+    "Eindhoven": [51.4416, 5.4697], "Groningen": [53.2194, 6.5665], "Tilburg": [51.5555, 5.0913], "Almere": [52.3508, 5.2647],
+    "Breda": [51.5719, 4.7683], "Nijmegen": [51.8426, 5.8528], "Apeldoorn": [52.2112, 5.9699], "Haarlem": [52.3874, 4.6462],
+    "Arnhem": [51.9851, 5.8987], "Enschede": [52.2215, 6.8937], "Amersfoort": [52.1561, 5.3878], "Zaandam": [52.442, 4.8292],
+    "'s-Hertogenbosch": [51.6978, 5.3037], "Zwolle": [52.5168, 6.083], "Leiden": [52.1601, 4.497], "Maastricht": [50.8514, 5.691],
+    "Dordrecht": [51.8133, 4.6901], "Zoetermeer": [52.0575, 4.4931], "Ede": [52.0402, 5.6649], "Leeuwarden": [53.2012, 5.7999],
+    "Alkmaar": [52.6324, 4.7534], "Delft": [52.0116, 4.3571], "Deventer": [52.2551, 6.1639], "Venlo": [51.3704, 6.1724],
+    "Hilversum": [52.2292, 5.1669], "Hoorn": [52.6424, 5.0597], "Gouda": [52.0115, 4.7105], "Schiedam": [51.9192, 4.3988],
+    "Middelburg": [51.4988, 3.6136], "Vlissingen": [51.4425, 3.5736], "Helmond": [51.4793, 5.657], "Heerlen": [50.8882, 5.9795],
+    "Assen": [52.9925, 6.5649], "Lelystad": [52.5185, 5.4714], "Amstelveen": [52.3114, 4.8701], "Wageningen": [51.9692, 5.6654],
+    "Scheveningen": [52.108, 4.2728], "Zandvoort": [52.3713, 4.5331]
+  };
+  const CITY_ALIASES = { "the hague": "Den Haag", "'s-gravenhage": "Den Haag", "den bosch": "'s-Hertogenbosch", "s-hertogenbosch": "'s-Hertogenbosch", "zaanstad": "Zaandam" };
 
   const ICON = {
     grip: '<svg viewBox="0 0 12 20" width="12" height="20" aria-hidden="true"><g fill="currentColor"><rect x="1" y="2" width="3.4" height="3.4"/><rect x="7.6" y="2" width="3.4" height="3.4"/><rect x="1" y="8.3" width="3.4" height="3.4"/><rect x="7.6" y="8.3" width="3.4" height="3.4"/><rect x="1" y="14.6" width="3.4" height="3.4"/><rect x="7.6" y="14.6" width="3.4" height="3.4"/></g></svg>',
@@ -464,6 +724,57 @@ button,input{font:inherit;color:inherit}
   }
   const host = u => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return "link"; } };
 
+  /* parseMapsLink:start */
+  // Reads a pasted Google Maps link (or plain "lat, lng" text) without calling any Google service.
+  // Returns { lat, lng, name }, with null for whatever it can't read, plus `error` when the text
+  // isn't a Google Maps link at all. Short links (maps.app.goo.gl, goo.gl/maps) can't be resolved
+  // in a browser, so they come back with no coordinates and the page offers other ways to pin.
+  function parseMapsLink(text) {
+    const out = { lat: null, lng: null, name: null };
+    const NOT_MAPS = "That isn't a Google Maps link.";
+    const PAIR = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/;
+    const inRange = (la, ln) => isFinite(la) && isFinite(ln) && la >= -90 && la <= 90 && ln >= -180 && ln <= 180;
+    const take = (la, ln) => { la = Number(la); ln = Number(ln); if (!inRange(la, ln)) return false; out.lat = la; out.lng = ln; return true; };
+    let s = String(text == null ? "" : text).trim();
+    if (!s) return out;
+
+    const plain = s.match(PAIR);
+    if (plain) {
+      if (!take(plain[1], plain[2])) out.error = "Those coordinates are out of range.";
+      return out;
+    }
+
+    // Be forgiving about a missing "https://" on an obvious Google Maps link.
+    if (/^((www|maps)\.)?google\.[a-z.]+\/|^(maps\.app\.)?goo\.gl\//i.test(s)) s = "https://" + s;
+    let u;
+    try { u = new URL(s); } catch { return { ...out, error: NOT_MAPS }; }
+    const hostname = u.hostname.toLowerCase();
+    const googleHost = /^((www|maps)\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/.test(hostname);
+    const shortHost = hostname === "goo.gl" || hostname === "maps.app.goo.gl";
+    if (u.protocol !== "https:" || !(googleHost || shortHost)) return { ...out, error: NOT_MAPS };
+    if (shortHost) return out;
+    if (!hostname.startsWith("maps.") && !u.pathname.startsWith("/maps")) return { ...out, error: NOT_MAPS };
+
+    const place = u.pathname.match(/\/maps\/place\/([^/]+)/);
+    if (place) {
+      const raw = place[1].replace(/\+/g, " ");
+      let name;
+      try { name = decodeURIComponent(raw); } catch { name = raw; }
+      out.name = name.trim().slice(0, 120) || null;
+    }
+
+    const pin = s.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);            // the place's own pin
+    if (pin && take(pin[1], pin[2])) return out;
+    const centre = u.pathname.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);   // the map centre
+    if (centre && take(centre[1], centre[2])) return out;
+    for (const key of ["q", "query", "ll", "center", "destination"]) {
+      const m = (u.searchParams.get(key) || "").match(PAIR);
+      if (m && take(m[1], m[2])) return out;
+    }
+    return out;
+  }
+  /* parseMapsLink:end */
+
   // Shared data is untrusted: coerce every field to what the page expects.
   function clean(raw) {
     return {
@@ -515,7 +826,9 @@ button,input{font:inherit;color:inherit}
       update: (l, id, p) => db.collection(l).doc(id).update(p),
       remove: (l, id) => db.collection(l).doc(id).delete(),
       fetch: l => db.collection(l).get().then(docs),
-      subscribe: (l, next, fail) => db.collection(l).onSnapshot(s => next(docs(s), s.metadata.fromCache), fail)
+      subscribe: (l, next, fail) => db.collection(l).onSnapshot(s => next(docs(s), s.metadata.fromCache), fail),
+      docSet: (path, b) => db.doc(path.join("/")).set(b),
+      docSub: (path, next, fail) => db.doc(path.join("/")).onSnapshot(s => next(s.exists ? s.data() : null), fail)
     };
   }
 
@@ -559,6 +872,12 @@ button,input{font:inherit;color:inherit}
       // server's confirmation of unchanged data is only a metadata change. Without it the page would
       // never learn the list is up to date.
       subscribe: (l, next, fail) => F.onSnapshot(col(l), { includeMetadataChanges: true }, s => next(docs(s), s.metadata.fromCache),
+        e => fail({ code: String((e && e.code) || "unknown").replace(/-/g, "_"), message: e && e.message })),
+      // One person's review, written by field path so two people reviewing at once never overwrite each other.
+      review: (l, id, who, r) => wrap(F.updateDoc(F.doc(col(l), id), { ["reviews." + who]: r || F.deleteField() })),
+      again: (l, id, at) => wrap(F.updateDoc(F.doc(col(l), id), { visits: F.increment(1), visitedAt: at })),
+      docSet: (path, b) => wrap(F.setDoc(F.doc(fs, "clubs", clubId, ...path), b)),
+      docSub: (path, next, fail) => F.onSnapshot(F.doc(fs, "clubs", clubId, ...path), s => next(s.exists() ? s.data() : null),
         e => fail({ code: String((e && e.code) || "unknown").replace(/-/g, "_"), message: e && e.message }))
     };
   }
@@ -1107,20 +1426,34 @@ button,input{font:inherit;color:inherit}
 
   function render() {
     if (dragging) { renderQueued = true; return; }
-    const cfg = LISTS[current];
     document.body.dataset.list = current;
 
-    for (const l of ORDER) {
+    for (const l of TABS) {
       const t = $("#tab-" + l), on = l === current;
       t.setAttribute("aria-selected", String(on));
       t.tabIndex = on ? 0 : -1;
-      $("#count-" + l).textContent = active(l).length;
+      $("#count-" + l).textContent = l === "restaurants" ? rest.items.length : active(l).length;
     }
     const total = ORDER.reduce((n, l) => n + data[l].length, 0);
     const done = ORDER.reduce((n, l) => n + finished(l).length, 0);
     $("#tally").textContent = `${total - done} on the list · ${done} done`;
 
     $("#panel").setAttribute("aria-labelledby", "tab-" + current);
+    const onRest = current === "restaurants";
+    $("#ranked").hidden = onRest;
+    $("#rest").hidden = !onRest;
+    $("#foot-tip").textContent = onRest
+      ? "Paste a place's Google Maps link and it pins itself. The stars are yours, not Google's."
+      : "Drag the grip or use the arrows to re-rank. Higher up means sooner. “Pick” leans toward the top.";
+    if (onRest) {
+      const f = captureFocus();
+      renderRestaurants();
+      restoreFocus(f);
+      setSync();
+      return;
+    }
+
+    const cfg = LISTS[current];
     $("#sheet-name").textContent = cfg.name;
     $("#sheet-sub").textContent = cfg.sub;
     $("#pick").textContent = cfg.pick;
@@ -1219,13 +1552,839 @@ button,input{font:inherit;color:inherit}
     toastTimer = setTimeout(() => { t.hidden = true; toastFn = null; }, fn ? 6500 : 3400);
   }
 
+  /* ---------- restaurants: data ---------- */
+
+  const rest = {
+    items: [], loaded: false, people: { a: "", b: "" }, sort: "latest",
+    editing: null, reviewing: null, pendingReview: null, placing: null, blocked: false, justAdded: null
+  };
+  const restEls = new Map();
+  const rform = { coords: null, source: null };   // where the add form's pin came from: link, map or paste
+  let restKey = LS_REST, peopleKey = LS_PEOPLE;
+  const RULES_NOTICE = "Restaurants can't be saved to the shared list yet: the database needs its updated rules. That's a one-time, two-minute step in Firebase.";
+
+  const isMapsHost = h => /^((www|maps)\.)?google\.[a-z]{2,3}(\.[a-z]{2})?$/.test(h) || h === "goo.gl" || h === "maps.app.goo.gl";
+  function mapsUrlOk(v) {
+    if (typeof v !== "string" || !v.trim()) return "";
+    let t = v.trim();
+    if (!/^[a-z][a-z0-9+.-]*:/i.test(t)) t = "https://" + t;
+    try {
+      const u = new URL(t);
+      return u.protocol === "https:" && isMapsHost(u.hostname) && u.href.length <= 600 ? u.href : "";
+    } catch { return ""; }
+  }
+  const round6 = n => Math.round(n * 1e6) / 1e6;
+  const intIn = (v, lo, hi, dflt) => Number.isInteger(v) && v >= lo && v <= hi ? v : dflt;
+
+  // Shared data is untrusted: coerce every field to the shape the page and the rules expect.
+  function cleanPlace(raw) {
+    raw = raw && typeof raw === "object" ? raw : {};
+    const lat = typeof raw.lat === "number" && isFinite(raw.lat) && raw.lat >= -90 && raw.lat <= 90 ? raw.lat : null;
+    const lng = typeof raw.lng === "number" && isFinite(raw.lng) && raw.lng >= -180 && raw.lng <= 180 ? raw.lng : null;
+    const reviews = {};
+    for (const k of ["a", "b"]) {
+      const r = raw.reviews && typeof raw.reviews === "object" ? raw.reviews[k] : null;
+      if (r && Number.isInteger(r.stars) && r.stars >= 1 && r.stars <= 5) reviews[k] = { stars: r.stars, text: str(r.text, 600), at: num(r.at) };
+    }
+    const pinned = lat !== null && lng !== null;
+    return {
+      name: str(raw.name, 120).trim() || "Unnamed place",
+      city: str(raw.city, 60),
+      mapsUrl: mapsUrlOk(raw.mapsUrl),
+      lat: pinned ? lat : null,
+      lng: pinned ? lng : null,
+      approx: pinned && raw.approx === true,
+      visitedAt: num(raw.visitedAt) || null,
+      visits: intIn(raw.visits, 1, 999, 1),
+      note: str(raw.note, 400),
+      reviews,
+      addedBy: raw.addedBy === "a" || raw.addedBy === "b" ? raw.addedBy : null,
+      createdAt: num(raw.createdAt)
+    };
+  }
+  const cleanPeople = d => ({ a: str(d && d.a, 24).trim(), b: str(d && d.b, 24).trim() });
+  const findPlace = id => rest.items.find(p => p.id === id);
+  const placeBody = p => { const { id, ...b } = p; return b; };
+
+  function scoreOf(p) {
+    const stars = ["a", "b"].map(k => p.reviews[k]).filter(Boolean).map(r => r.stars);
+    return stars.length ? Math.round(stars.reduce((t, x) => t + x, 0) / stars.length * 10) / 10 : null;
+  }
+  const tierOf = score => score == null ? UNRATED : TIERS.find(t => score >= t.min);
+  const scoreText = score => score == null ? "–" : score.toFixed(1);
+  const personName = k => rest.people[k] || (k === "a" ? "Person 1" : "Person 2");
+  const getMe = () => { try { const v = localStorage.getItem(LS_ME); return v === "a" || v === "b" ? v : null; } catch { return null; } };
+  const setMe = v => { try { localStorage.setItem(LS_ME, v); } catch {} };
+
+  function cityCoords(name) {
+    const q = String(name || "").trim().toLowerCase();
+    if (!q) return null;
+    const key = Object.keys(NL_CITIES).find(c => c.toLowerCase() === q) || CITY_ALIASES[q];
+    return key ? { lat: NL_CITIES[key][0], lng: NL_CITIES[key][1], city: key } : null;
+  }
+  const pad2 = n => String(n).padStart(2, "0");
+  const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
+  const isoToMs = v => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); return m ? new Date(+m[1], +m[2] - 1, +m[3], 12).getTime() : null; };
+  const msToISO = ms => { if (!ms) return ""; const d = new Date(ms); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
+  const fmtDate = ms => ms ? new Intl.DateTimeFormat(undefined, { day: "numeric", month: "short", year: "numeric" }).format(new Date(ms)) : "";
+  const mapsLinkFor = p => p.mapsUrl || "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(p.name + (p.city ? ", " + p.city : ""));
+
+  function sortedPlaces() {
+    const list = rest.items.slice();
+    const latest = (a, b) => (b.visitedAt || 0) - (a.visitedAt || 0) || b.createdAt - a.createdAt;
+    if (rest.sort === "az") return list.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+    if (rest.sort === "best") return list.sort((a, b) => { const x = scoreOf(a), y = scoreOf(b); return (y == null ? -1 : y) - (x == null ? -1 : x) || latest(a, b); });
+    return list.sort(latest);
+  }
+
+  /* ---------- restaurants: saving ---------- */
+
+  function saveRestLocal() {
+    if (mode !== "local" && mode !== "fallback") return;
+    try {
+      localStorage.setItem(restKey, JSON.stringify(rest.items));
+      localStorage.setItem(peopleKey, JSON.stringify(rest.people));
+    } catch {}
+  }
+  function loadRestLocal() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(restKey) || "[]");
+      if (Array.isArray(raw)) rest.items = raw.filter(x => x && typeof x.id === "string").map(x => ({ id: x.id, ...cleanPlace(x) }));
+      const pp = JSON.parse(localStorage.getItem(peopleKey) || "null");
+      if (pp) rest.people = cleanPeople(pp);
+    } catch {}
+    rest.loaded = true;
+  }
+  async function rRemote(fn) {
+    if (mode !== "shared") { saveRestLocal(); return true; }
+    try { await fn(); return true; }
+    catch (e) {
+      if (e && e.code === "permission_denied") { rest.blocked = true; render(); toast("Couldn't save that. The database needs its updated rules first."); }
+      else writeFailed(e);
+      return false;
+    }
+  }
+  function resyncRest() {
+    if (mode === "shared" && backend) backend.fetch("restaurants").then(applyRest).catch(() => {});
+    else render();
+  }
+  function applyRest(docs) {
+    rest.items = docs.map(d => ({ id: d.id, ...cleanPlace(d.data) }));
+    rest.loaded = true;
+    rest.blocked = false;
+    render();
+  }
+  let restSubscribed = false;
+  function subscribeRest() {
+    if (restSubscribed || !backend) return;
+    restSubscribed = true;
+    backend.subscribe("restaurants", docs => applyRest(docs), e => {
+      rest.loaded = true;
+      if (e && e.code === "permission_denied") rest.blocked = true;
+      render();
+    });
+    if (backend.docSub) backend.docSub(["meta", "people"], d => { if (d) { rest.people = cleanPeople(d); render(); } }, () => {});
+  }
+
+  async function addPlace(body) {
+    const id = mode === "shared" ? backend.newId("restaurants") : "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    rest.items.push({ id, ...body });
+    rest.justAdded = id;
+    setTimeout(() => { if (rest.justAdded === id) rest.justAdded = null; }, 1200);
+    render();
+    const ok = await rRemote(() => backend.set("restaurants", id, body));
+    if (!ok) { rest.items = rest.items.filter(p => p.id !== id); resyncRest(); }
+    return ok ? id : null;
+  }
+  async function patchPlace(id, changes) {
+    const p = findPlace(id);
+    if (!p) return;
+    Object.assign(p, changes);
+    render();
+    if (!(await rRemote(() => backend.update("restaurants", id, changes)))) resyncRest();
+  }
+  async function removePlace(id) {
+    const p = findPlace(id);
+    if (!p) return;
+    const body = placeBody(p);
+    rest.items = rest.items.filter(x => x.id !== id);
+    if (rest.editing === id) rest.editing = null;
+    if (rest.reviewing === id) rest.reviewing = null;
+    render();
+    if (!(await rRemote(() => backend.remove("restaurants", id)))) { resyncRest(); return; }
+    toast(`Removed “${p.name}”.`, "Undo", async () => {
+      if (findPlace(id)) return;
+      rest.items.push({ id, ...body });
+      render();
+      if (!(await rRemote(() => backend.set("restaurants", id, body)))) resyncRest();
+    });
+  }
+  async function saveReview(id, who, review) {
+    const p = findPlace(id);
+    if (!p) return;
+    const reviews = { ...p.reviews };
+    if (review) reviews[who] = review; else delete reviews[who];
+    p.reviews = reviews;
+    render();
+    const ok = await rRemote(() => backend.review ? backend.review("restaurants", id, who, review) : backend.set("restaurants", id, placeBody(p)));
+    if (!ok) resyncRest();
+  }
+  async function wentAgain(id) {
+    const p = findPlace(id);
+    if (!p || p.visits >= 999) return;
+    const before = { visits: p.visits, visitedAt: p.visitedAt };
+    p.visits += 1;
+    p.visitedAt = isoToMs(todayISO());
+    render();
+    const ok = await rRemote(() => backend.again ? backend.again("restaurants", id, p.visitedAt) : backend.update("restaurants", id, { visits: p.visits, visitedAt: p.visitedAt }));
+    if (!ok) { resyncRest(); return; }
+    toast(`Visit ${p.visits} to “${p.name}” logged.`, "Undo", () => patchPlace(id, before));
+  }
+  async function savePeople(people) {
+    rest.people = people;
+    render();
+    await rRemote(() => backend.docSet(["meta", "people"], people));
+  }
+
+  /* ---------- restaurants: pins, chips, stars ---------- */
+
+  function pinSvg(tier, label, size) {
+    const ns = "http://www.w3.org/2000/svg";
+    const mk = (tag, attrs) => { const n = document.createElementNS(ns, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+    const w = size || 34, h = Math.round(w * 46 / 34);
+    const svg = mk("svg", { viewBox: "0 0 34 46", width: w, height: h, "aria-hidden": "true", focusable: "false" });
+    const body = mk("path", { d: "M17 44C17 44 3 27.5 3 16.5a14 14 0 1 1 28 0C31 27.5 17 44 17 44z", class: "pin-body" });
+    body.style.fill = tier.key === "unrated" ? "var(--sheet)" : tier.fill;
+    svg.append(body);
+    if (tier.rim) { const rim = mk("circle", { cx: 17, cy: 16.5, r: 11.5, fill: "none", "stroke-width": 2 }); rim.style.stroke = tier.rim; svg.append(rim); }
+    if (tier.key === "unrated") { const ring = mk("circle", { cx: 17, cy: 16.5, r: 9.5, fill: "none", "stroke-width": 3.5 }); ring.style.stroke = "var(--blue)"; svg.append(ring); }
+    if (label) {
+      const t = mk("text", { x: 17, y: 20.5, "text-anchor": "middle", class: "pin-label" });
+      t.style.fill = tier.key === "unrated" ? "var(--ink)" : tier.text;
+      t.textContent = label;
+      svg.append(t);
+    }
+    return svg;
+  }
+  function medalChip(tier, score) {
+    const m = el("span", "medal");
+    m.dataset.tier = tier.key;
+    m.append(document.createTextNode(tier.name));
+    if (score != null) { m.append(document.createTextNode(" · ")); m.append(el("b", null, scoreText(score))); }
+    return m;
+  }
+  function starsEl(n) {
+    const s = el("span", "stars");
+    s.setAttribute("role", "img");
+    s.setAttribute("aria-label", `${n} out of 5 stars`);
+    for (let i = 1; i <= 5; i++) s.append(el("span", i <= n ? null : "off", "★"));
+    return s;
+  }
+  function buildLegend() {
+    const ul = $("#legend");
+    ul.textContent = "";
+    for (const t of [...TIERS, UNRATED]) {
+      const li = el("li");
+      li.append(pinSvg(t, "", 22));
+      const txt = el("span");
+      txt.append(el("b", null, t.name), document.createTextNode(` ${t.range} · ${t.line}`));
+      li.append(txt);
+      ul.append(li);
+    }
+  }
+
+  /* ---------- restaurants: the list ---------- */
+
+  function buildPlaceCard(p) {
+    const li = el("li", "rcard" + (rest.justAdded === p.id ? " is-new" : ""));
+    li.dataset.id = p.id;
+    const score = scoreOf(p), tier = tierOf(score);
+    const top = el("div", "rcard-top");
+    top.append(el("h3", "rcard-name", p.name), medalChip(tier, score));
+    li.append(top);
+    const where = [p.city, fmtDate(p.visitedAt), p.visits === 1 ? "1 visit" : `${p.visits} visits`,
+      p.lat == null ? "no pin yet" : p.approx ? "pinned to the city centre" : ""].filter(Boolean).join(" · ");
+    li.append(el("p", "rmeta label", where));
+    if (p.note) li.append(el("p", "note", p.note));
+
+    const revs = el("div", "revs");
+    for (const k of ["a", "b"]) {
+      const r = p.reviews[k];
+      const box = el("div", "rev" + (r ? "" : " is-empty"));
+      const head = el("div", "rev-head");
+      head.append(el("span", "rev-who", personName(k)));
+      if (r) head.append(starsEl(r.stars));
+      box.append(head);
+      box.append(r ? (r.text ? el("p", "rev-text", r.text) : el("p", "rev-text label", "Stars only.")) : el("p", "rev-text", "No review yet."));
+      revs.append(box);
+    }
+    li.append(revs);
+
+    if (rest.reviewing === p.id) { li.append(buildReviewForm(p, getMe())); return li; }
+    const acts = el("div", "racts");
+    if (writable && !rest.blocked) {
+      const mine = getMe() && p.reviews[getMe()];
+      acts.append(actBtn("review", mine ? "Edit my review" : "Review", true));
+      const again = actBtn("again", "We went again");
+      if (p.visits >= 999) again.disabled = true;
+      acts.append(again);
+    }
+    const a = el("a", "btn btn-sm", (p.mapsUrl ? "Open in Google Maps" : "Find on Google Maps") + " ↗");
+    a.href = mapsLinkFor(p); a.target = "_blank"; a.rel = "noopener noreferrer";
+    acts.append(a);
+    if (p.lat != null) acts.append(actBtn("onmap", "On the map"));
+    else if (writable && !rest.blocked) acts.append(actBtn("place", "Place on map"));
+    if (writable && !rest.blocked) {
+      const e = el("button", "icon-btn");
+      e.type = "button"; e.dataset.act = "edit"; e.innerHTML = ICON.edit;
+      e.setAttribute("aria-label", `Edit ${p.name}`); e.title = "Edit";
+      acts.append(e);
+    }
+    li.append(acts);
+    return li;
+  }
+  function actBtn(act, label, primary) {
+    const b = el("button", "btn btn-sm" + (primary ? " btn-acc" : ""), label);
+    b.type = "button"; b.dataset.act = act;
+    return b;
+  }
+
+  function buildReviewForm(p, who) {
+    const cur = p.reviews[who];
+    const f = el("form", "editor rev-form");
+    f.noValidate = true;
+    const fs = el("fieldset", "star-input");
+    fs.append(el("legend", "field-label", `${personName(who)}'s stars`));
+    const row = el("div", "star-row");
+    const labels = [];
+    const paint = v => labels.forEach((lb, i) => lb.classList.toggle("is-on", i < v));
+    for (let i = 1; i <= 5; i++) {
+      const lb = el("label");
+      lb.htmlFor = `star-${i}`;
+      const inp = el("input");
+      inp.type = "radio"; inp.name = "review-stars"; inp.id = `star-${i}`; inp.value = String(i);
+      inp.setAttribute("aria-label", i === 1 ? "1 star" : `${i} stars`);
+      if (cur && cur.stars === i) inp.checked = true;
+      inp.addEventListener("change", () => paint(i));
+      lb.append(inp, el("span", null, "★"));
+      labels.push(lb);
+      row.append(lb);
+    }
+    fs.append(row);
+    f.append(fs);
+    paint(cur ? cur.stars : 0);
+    const tl = el("label", "field");
+    tl.htmlFor = "review-text";
+    tl.append(el("span", "field-label", "A few words (optional)"));
+    const ta = el("textarea", "input");
+    ta.id = "review-text"; ta.maxLength = 600; ta.value = cur ? cur.text : "";
+    ta.placeholder = "What did you have? Would you go back?";
+    tl.append(ta);
+    f.append(tl);
+    const acts = el("div", "editor-acts");
+    const save = el("button", "btn btn-sm btn-acc", "Save review"); save.type = "submit";
+    const cancel = el("button", "btn btn-sm", "Cancel"); cancel.type = "button";
+    acts.append(save, cancel);
+    if (cur) { const del = el("button", "btn btn-sm", "Remove my review"); del.type = "button"; acts.append(el("span", "spacer"), del);
+      del.addEventListener("click", () => { rest.reviewing = null; focusAfter = { id: p.id, act: "review" }; saveReview(p.id, who, null); }); }
+    f.append(acts);
+    const close = () => { rest.reviewing = null; focusAfter = { id: p.id, act: "review" }; render(); };
+    cancel.addEventListener("click", close);
+    f.addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); close(); } });
+    f.addEventListener("submit", e => {
+      e.preventDefault();
+      const picked = f.querySelector('input[name="review-stars"]:checked');
+      if (!picked) { toast("Pick 1 to 5 stars first."); f.querySelector("#star-1").focus(); return; }
+      rest.reviewing = null;
+      focusAfter = { id: p.id, act: "review" };
+      saveReview(p.id, who, { stars: Number(picked.value), text: ta.value.trim().slice(0, 600), at: Date.now() });
+    });
+    requestAnimationFrame(() => { const first = f.querySelector("input:checked") || f.querySelector("#star-1"); if (first && document.contains(first)) first.focus(); });
+    return f;
+  }
+
+  function buildPlaceEditor(p) {
+    const li = el("li", "rcard is-editing");
+    li.dataset.id = p.id;
+    const f = el("form", "editor");
+    f.noValidate = true;
+    const field = (id, label, value, opts = {}) => {
+      const wrap = el("label", "field");
+      wrap.htmlFor = id;
+      wrap.append(el("span", "field-label", label));
+      const inp = el(opts.area ? "textarea" : "input", "input");
+      inp.id = id;
+      if (!opts.area) inp.type = opts.type || "text";
+      if (opts.max) inp.maxLength = opts.max;
+      if (opts.list) inp.setAttribute("list", opts.list);
+      if (opts.ph) inp.placeholder = opts.ph;
+      if (opts.mode) inp.inputMode = opts.mode;
+      if (opts.type === "number") { inp.min = "1"; inp.max = "999"; inp.step = "1"; }
+      inp.value = value;
+      wrap.append(inp);
+      return [wrap, inp];
+    };
+    const coordsText = p.lat != null ? `${p.lat}, ${p.lng}` : "";
+    const [wN, iN] = field("edit-name", "Name", p.name, { max: 120 });
+    const [wU, iU] = field("edit-url", "Google Maps link", p.mapsUrl, { max: 600, type: "url", mode: "url" });
+    const [wD, iD] = field("edit-date", "When", msToISO(p.visitedAt), { type: "date" });
+    const [wC, iC] = field("edit-city", "City", p.city, { max: 60, list: "nl-cities" });
+    const [wP, iP] = field("edit-coords", "Coordinates", coordsText, { ph: "51.92031, 4.48712", mode: "decimal" });
+    const [wV, iV] = field("edit-visits", "Visits", String(p.visits), { type: "number", mode: "numeric" });
+    const [wT, iT] = field("edit-note", "Note", p.note, { max: 400, area: true, ph: "What to order next time" });
+    const grid = el("div", "r-grid");
+    grid.append(wD, wC, wP, wV);
+    f.append(wN, wU, grid, wT);
+    const acts = el("div", "editor-acts");
+    const save = el("button", "btn btn-sm btn-acc", "Save"); save.type = "submit";
+    const cancel = el("button", "btn btn-sm", "Cancel"); cancel.type = "button";
+    const place = el("button", "btn btn-sm", "Place on map"); place.type = "button";
+    const del = el("button", "btn btn-sm", "Delete"); del.type = "button";
+    acts.append(save, cancel, place, el("span", "spacer"), del);
+    f.append(acts);
+    const close = () => { rest.editing = null; focusAfter = { id: p.id, act: "edit" }; render(); };
+    cancel.addEventListener("click", close);
+    del.addEventListener("click", () => { rest.editing = null; removePlace(p.id); });
+    place.addEventListener("click", () => { rest.editing = null; render(); startPlacing({ kind: "place", id: p.id }); });
+    f.addEventListener("keydown", e => { if (e.key === "Escape") { e.preventDefault(); close(); } });
+    f.addEventListener("submit", e => {
+      e.preventDefault();
+      const name = iN.value.trim().slice(0, 120);
+      if (!name) { toast("Give it a name."); iN.focus(); return; }
+      const urlText = iU.value.trim();
+      const parsed = urlText ? parseMapsLink(urlText) : null;
+      if (parsed && parsed.error) { toast(parsed.error); iU.focus(); return; }
+      const mapsUrl = urlText ? mapsUrlOk(urlText) : "";
+      if (urlText && !mapsUrl) { toast("That link is too long. Copy the place's link again from Google Maps."); iU.focus(); return; }
+      let lat = p.lat, lng = p.lng, approx = p.approx;
+      if (mapsUrl !== p.mapsUrl && parsed && parsed.lat != null) { lat = parsed.lat; lng = parsed.lng; approx = false; }
+      if (iP.value.trim() !== coordsText) {
+        if (!iP.value.trim()) { lat = lng = null; approx = false; }
+        else {
+          const pc = parseMapsLink(iP.value);
+          if (pc.lat == null) { toast("Coordinates look like 51.92031, 4.48712."); iP.focus(); return; }
+          lat = pc.lat; lng = pc.lng; approx = false;
+        }
+      }
+      const city = iC.value.trim().slice(0, 60);
+      if ((lat == null || approx) && city !== p.city) {
+        const cc = cityCoords(city);
+        if (cc) { lat = cc.lat; lng = cc.lng; approx = true; }
+      }
+      const visits = Number(iV.value);
+      if (!Number.isInteger(visits) || visits < 1 || visits > 999) { toast("Visits is a whole number from 1 to 999."); iV.focus(); return; }
+      rest.editing = null;
+      focusAfter = { id: p.id, act: "edit" };
+      patchPlace(p.id, {
+        name, mapsUrl, city, visits, note: iT.value.trim().slice(0, 400),
+        visitedAt: isoToMs(iD.value) || p.visitedAt,
+        lat: lat == null ? null : round6(lat), lng: lng == null ? null : round6(lng), approx: lat != null && approx
+      });
+    });
+    li.append(f);
+    requestAnimationFrame(() => { if (document.contains(iN)) iN.focus(); });
+    return li;
+  }
+
+  function renderRestList() {
+    const listEl = $("#rlist");
+    const items = sortedPlaces();
+    const keep = new Set();
+    const me = getMe();
+    items.forEach((p, i) => {
+      keep.add(p.id);
+      const view = rest.editing === p.id ? "edit" : rest.reviewing === p.id ? "review" : "view";
+      const sig = JSON.stringify([p, rest.people, me, writable, rest.blocked]);
+      let rec = restEls.get(p.id);
+      // An open editor or review form is never rebuilt under the person typing in it.
+      if (!rec || rec.view !== view || (view === "view" && rec.sig !== sig)) {
+        const fresh = view === "edit" ? buildPlaceEditor(p) : buildPlaceCard(p);
+        if (rec && rec.el.parentNode) rec.el.replaceWith(fresh);
+        rec = { el: fresh, sig, view };
+        restEls.set(p.id, rec);
+      }
+      if (listEl.children[i] !== rec.el) listEl.insertBefore(rec.el, listEl.children[i] || null);
+    });
+    for (const [id, rec] of restEls) if (!keep.has(id)) { rec.el.remove(); restEls.delete(id); }
+  }
+
+  function renderRestaurants() {
+    const local = mode === "local" || mode === "fallback";
+    const notice = rest.blocked ? RULES_NOTICE
+      : local ? "These are saved on this device only, so your partner won't see them yet." : "";
+    const n = $("#rest-notice");
+    n.hidden = !notice;
+    n.textContent = notice;
+    $("#radd").hidden = !writable;
+    $("#radd-fields").disabled = rest.blocked;
+    const total = rest.items.length, pinned = rest.items.filter(p => p.lat != null).length;
+    $("#rest-count").textContent = `${total} place${total === 1 ? "" : "s"} · ${pinned} on the map`;
+    document.querySelectorAll('#rsort input').forEach(r => { r.checked = r.value === rest.sort; r.parentElement.classList.toggle("is-on", r.checked); });
+    renderRestList();
+    const waiting = !rest.loaded && mode !== "local";
+    $("#rempty").hidden = total > 0;
+    $("#rempty-title").textContent = waiting ? "Fetching the list…" : "No tables yet";
+    $("#rempty-body").textContent = waiting ? "Pulling in everywhere you've been." : "Add the first place you two ate at. Paste its Google Maps link and it pins itself on the map below.";
+    ensureMap().then(() => { if (mapState.status === "ready") { mapState.map.invalidateSize(); syncMarkers(); } });
+  }
+
+  /* ---------- restaurants: the add form ---------- */
+
+  function refreshAddForm() {
+    const urlText = $("#r-url").value.trim();
+    const parsed = urlText ? parseMapsLink(urlText) : null;
+    const err = parsed && parsed.error;
+    $("#r-url-err").hidden = !err;
+    $("#r-url-err").textContent = err || "";
+    if (parsed && parsed.lat != null) { rform.coords = { lat: parsed.lat, lng: parsed.lng, approx: false }; rform.source = "link"; }
+    else if (rform.source === "link") { rform.coords = null; rform.source = null; }
+    if (parsed && parsed.name && !$("#r-name").value.trim()) $("#r-name").value = parsed.name;
+    let shown = rform.coords, cityHit = null;
+    if (!shown) { cityHit = cityCoords($("#r-city").value); if (cityHit) shown = { lat: cityHit.lat, lng: cityHit.lng, approx: true }; }
+    const chip = $("#r-pinned");
+    chip.hidden = !shown;
+    chip.dataset.approx = String(!!(shown && shown.approx));
+    chip.textContent = !shown ? "" : shown.approx ? `Pinned to ${cityHit.city} centre` : "Pinned ✓";
+    $("#r-help").hidden = !(urlText && !err && !rform.coords);
+    setPreview(shown);
+  }
+  function resetAddForm() {
+    $("#r-name").value = ""; $("#r-url").value = ""; $("#r-city").value = ""; $("#r-coords").value = "";
+    $("#r-date").value = todayISO();
+    $("#r-coords-field").hidden = true;
+    $("#r-coords-toggle").setAttribute("aria-expanded", "false");
+    rform.coords = null; rform.source = null;
+    refreshAddForm();
+  }
+  async function submitPlace(e) {
+    e.preventDefault();
+    if (!writable || rest.blocked) return;
+    const name = $("#r-name").value.trim().slice(0, 120);
+    if (!name) { toast("Give it a name first."); $("#r-name").focus(); return; }
+    const urlText = $("#r-url").value.trim();
+    const parsed = urlText ? parseMapsLink(urlText) : null;
+    if (parsed && parsed.error) { toast(parsed.error); $("#r-url").focus(); return; }
+    const mapsUrl = urlText ? mapsUrlOk(urlText) : "";
+    if (urlText && !mapsUrl) { toast("That link is too long. Copy the place's link again from Google Maps."); $("#r-url").focus(); return; }
+    const city = $("#r-city").value.trim().slice(0, 60);
+    let c = rform.coords;
+    if (!c) { const cc = cityCoords(city); if (cc) c = { lat: cc.lat, lng: cc.lng, approx: true }; }
+    const body = {
+      name, city, mapsUrl,
+      lat: c ? round6(c.lat) : null, lng: c ? round6(c.lng) : null, approx: !!(c && c.approx),
+      visitedAt: isoToMs($("#r-date").value) || isoToMs(todayISO()), visits: 1, note: "", reviews: {},
+      addedBy: getMe(), createdAt: Date.now()
+    };
+    resetAddForm();
+    $("#r-name").focus();
+    const id = await addPlace(body);
+    if (id && !c) toast(`Added “${name}”. It has no pin yet: tap “Place on map” on its card.`);
+  }
+
+  /* ---------- restaurants: who's who ---------- */
+
+  function openUs(kind) {
+    const dlg = $("#us-sheet");
+    const needNames = kind === "us" || !rest.people.a || !rest.people.b;
+    $("#us-title").textContent = kind === "who" ? "Who's reviewing?" : "Us";
+    $("#us-lead").textContent = kind === "who" && !needNames ? "Pick which of you is on this phone. It only asks once."
+      : "Your two first names, so each review shows who wrote it.";
+    $("#us-names").hidden = !needNames;
+    $("#us-a").value = rest.people.a; $("#us-b").value = rest.people.b;
+    const me = getMe();
+    $("#us-me-a").checked = me === "a"; $("#us-me-b").checked = me === "b";
+    paintUsNames();
+    dlg.dataset.kind = kind;
+    if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+    (needNames ? $("#us-a") : $("#us-me-a")).focus();
+  }
+  function paintUsNames() {
+    $("#us-me-a-name").textContent = $("#us-a").value.trim() || rest.people.a || "The first name";
+    $("#us-me-b-name").textContent = $("#us-b").value.trim() || rest.people.b || "The second name";
+  }
+  function closeUs() { const d = $("#us-sheet"); if (d.open) d.close(); else d.removeAttribute("open"); }
+  async function submitUs(e) {
+    e.preventDefault();
+    const dlg = $("#us-sheet");
+    const people = cleanPeople({ a: $("#us-a").value, b: $("#us-b").value });
+    if (!$("#us-names").hidden && (!people.a || !people.b)) { toast("Add both first names."); (!people.a ? $("#us-a") : $("#us-b")).focus(); return; }
+    const picked = dlg.querySelector('input[name="us-me"]:checked');
+    if (dlg.dataset.kind === "who" && !picked) { toast("Pick which of you is on this phone."); $("#us-me-a").focus(); return; }
+    if (picked) setMe(picked.value);
+    // Take the review this was opened for before closing: the dialog's close event clears it.
+    const pending = rest.pendingReview;
+    rest.pendingReview = null;
+    closeUs();
+    if (people.a !== rest.people.a || people.b !== rest.people.b) await savePeople(people);
+    else render();
+    if (pending && getMe()) startReview(pending);
+  }
+  function startReview(id) {
+    if (!getMe() || !rest.people.a || !rest.people.b) { rest.pendingReview = id; openUs("who"); return; }
+    rest.reviewing = id;
+    rest.editing = null;
+    render();
+  }
+
+  /* ---------- restaurants: the map ---------- */
+
+  const mapState = { status: "idle", ready: null, map: null, tiles: null, markers: new Map(), preview: null, loads: 0, failTimer: null };
+  function loadAsset(tag, url, sri) {
+    if (document.querySelector(`[data-asset="${url}"]`)) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const n = document.createElement(tag);
+      if (tag === "link") { n.rel = "stylesheet"; n.href = url; } else n.src = url;
+      n.integrity = sri; n.crossOrigin = "anonymous"; n.dataset.asset = url;
+      n.onload = resolve;
+      n.onerror = () => { n.remove(); reject(new Error("couldn't load " + url)); };
+      document.head.append(n);
+    });
+  }
+  function showMapMsg(on) { $("#map-msg").hidden = !on; }
+  function ensureMap() {
+    if (mapState.status === "ready" || mapState.status === "loading") return mapState.ready;
+    mapState.status = "loading";
+    showMapMsg(false);
+    mapState.ready = (async () => {
+      try {
+        if (!window.L) await Promise.all([loadAsset("link", LEAFLET.css, LEAFLET.cssSri), loadAsset("script", LEAFLET.js, LEAFLET.jsSri)]);
+        // Two-finger panning on phones, so scrolling the page never gets stuck in the map.
+        if (!gestureReady()) {
+          await Promise.all([loadAsset("link", LEAFLET.gestureCss, LEAFLET.gestureCssSri), loadAsset("script", LEAFLET.gestureJs, LEAFLET.gestureJsSri)]).catch(() => {});
+        }
+        initMap();
+        mapState.status = "ready";
+      } catch {
+        mapState.status = "failed";
+        showMapMsg(true);
+      }
+    })();
+    return mapState.ready;
+  }
+  // The plugin exports window.leafletGestureHandling and adds its options to every L.Map.
+  const gestureReady = () => !!(window.L && window.leafletGestureHandling && L.Map.prototype.options.gestureHandlingOptions);
+  // OpenStreetMap's own tiles: free with attribution, no key or account. One set for both themes;
+  // the CSS tile filter prints them as grey ink on paper, or inverted on dark paper.
+  const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+  function initMap() {
+    const gestures = gestureReady();
+    const map = L.map($("#map"), {
+      scrollWheelZoom: false,
+      gestureHandling: gestures,
+      gestureHandlingOptions: { text: { touch: "Use two fingers to move the map", scroll: "Use ctrl + scroll to zoom the map", scrollMac: "Use ⌘ + scroll to zoom the map" } },
+      dragging: gestures || !L.Browser.mobile,
+      zoomSnap: 0.5
+    });
+    map.attributionControl.setPrefix(false);
+    map.fitBounds(NL_BOUNDS);
+    const tiles = L.tileLayer(TILE_URL, {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
+    });
+    tiles.on("tileload", () => { mapState.loads++; showMapMsg(false); });
+    tiles.on("tileerror", () => {
+      clearTimeout(mapState.failTimer);
+      mapState.failTimer = setTimeout(() => { if (!navigator.onLine || mapState.loads === 0) showMapMsg(true); }, 2500);
+    });
+    tiles.addTo(map);
+    map.on("click", onMapClick);
+    mapState.map = map;
+    mapState.tiles = tiles;
+    if (!navigator.onLine) showMapMsg(true);
+  }
+  function pinIcon(tier, score) {
+    const wrap = document.createElement("div");
+    wrap.append(pinSvg(tier, scoreText(score)));
+    return L.divIcon({ html: wrap, className: "pin pin--" + tier.key, iconSize: [34, 46], iconAnchor: [17, 44], popupAnchor: [0, -38] });
+  }
+  function popupFor(p) {
+    const box = el("div", "ticket");
+    const score = scoreOf(p), tier = tierOf(score);
+    box.append(el("p", "ticket-name", p.name));
+    const meta = [p.city, fmtDate(p.visitedAt), p.approx ? "pinned to the city centre" : ""].filter(Boolean).join(" · ");
+    if (meta) box.append(el("p", "label", meta));
+    const chipRow = el("p");
+    chipRow.append(medalChip(tier, score));
+    box.append(chipRow);
+    for (const k of ["a", "b"]) {
+      const r = p.reviews[k];
+      if (!r) continue;
+      const line = el("p", "ticket-rev");
+      line.append(el("span", "rev-who", personName(k) + " "), starsEl(r.stars));
+      if (r.text) line.append(document.createTextNode(" " + (r.text.length > 160 ? r.text.slice(0, 157) + "…" : r.text)));
+      box.append(line);
+    }
+    const acts = el("div", "ticket-acts");
+    const a = el("a", "btn btn-sm", "Open in Google Maps ↗");
+    a.href = mapsLinkFor(p); a.target = "_blank"; a.rel = "noopener noreferrer";
+    const show = el("button", "btn btn-sm", "Show in the list");
+    show.type = "button";
+    show.addEventListener("click", () => showInList(p.id));
+    acts.append(a, show);
+    box.append(acts);
+    return box;
+  }
+  function syncMarkers() {
+    if (mapState.status !== "ready") return;
+    const seen = new Set();
+    for (const p of rest.items) {
+      if (p.lat == null) continue;
+      seen.add(p.id);
+      const score = scoreOf(p), tier = tierOf(score);
+      const sig = [p.lat, p.lng, tier.key, scoreText(score)].join("|");
+      let m = mapState.markers.get(p.id);
+      if (!m) {
+        m = L.marker([p.lat, p.lng], { icon: pinIcon(tier, score), keyboard: true, riseOnHover: true });
+        m.bindPopup(() => popupFor(findPlace(p.id) || p), { maxWidth: 280 });
+        m.addTo(mapState.map);
+        mapState.markers.set(p.id, m);
+        m._sig = sig;
+      } else if (m._sig !== sig) {
+        m.setLatLng([p.lat, p.lng]);
+        m.setIcon(pinIcon(tier, score));
+        m._sig = sig;
+      }
+      const node = m.getElement();
+      if (node) { node.setAttribute("aria-label", `${p.name}: ${tier.name}${score != null ? " " + scoreText(score) : ""}`); node.title = p.name; }
+      if (m.isPopupOpen()) m.setPopupContent(popupFor(p));
+    }
+    for (const [id, m] of mapState.markers) if (!seen.has(id)) { m.remove(); mapState.markers.delete(id); }
+  }
+  function setPreview(c) {
+    if (mapState.status !== "ready") return;
+    if (!c) { if (mapState.preview) { mapState.preview.remove(); mapState.preview = null; } return; }
+    if (!mapState.preview) {
+      mapState.preview = L.circleMarker([c.lat, c.lng], { radius: 10, color: getComputedStyle(document.body).getPropertyValue("--ink").trim() || "#19181D", weight: 2, dashArray: "4 3", fillColor: "#5AA9F5", fillOpacity: .6 }).addTo(mapState.map);
+    } else mapState.preview.setLatLng([c.lat, c.lng]);
+  }
+  function fitPins() {
+    if (mapState.status !== "ready") { ensureMap(); return; }
+    const pts = rest.items.filter(p => p.lat != null).map(p => [p.lat, p.lng]);
+    if (!pts.length) { mapState.map.fitBounds(NL_BOUNDS); toast("No pins yet. Add a place with its Google Maps link."); return; }
+    mapState.map.fitBounds(L.latLngBounds(pts).pad(0.15), { maxZoom: 14 });
+  }
+  function scrollToMap() { $("#mapsheet").scrollIntoView({ block: "center", behavior: reducedMotion() ? "auto" : "smooth" }); }
+  async function showOnMap(id) {
+    await ensureMap();
+    const p = findPlace(id);
+    if (mapState.status !== "ready" || !p || p.lat == null) { toast("The map needs a connection."); return; }
+    syncMarkers();
+    scrollToMap();
+    mapState.map.setView([p.lat, p.lng], Math.max(mapState.map.getZoom(), 14));
+    const m = mapState.markers.get(id);
+    if (m) m.openPopup();
+  }
+  function showInList(id) {
+    if (mapState.map) mapState.map.closePopup();
+    const card = $(`#rlist [data-id="${CSS.escape(id)}"]`);
+    if (!card) return;
+    card.scrollIntoView({ block: "center", behavior: reducedMotion() ? "auto" : "smooth" });
+    card.classList.remove("is-flash");
+    void card.offsetWidth;
+    card.classList.add("is-flash");
+    const b = card.querySelector("[data-act], a");
+    if (b) b.focus({ preventScroll: true });
+  }
+  async function startPlacing(target) {
+    await ensureMap();
+    if (mapState.status !== "ready") { toast("The map needs a connection to place a pin."); return; }
+    rest.placing = target;
+    mapState.map.closePopup();
+    const p = target.kind === "place" ? findPlace(target.id) : null;
+    $("#placing-text").textContent = p ? `Tap where “${p.name}” is` : "Tap where you ate";
+    $("#placing").hidden = false;
+    $("#map").classList.add("is-placing");
+    scrollToMap();
+  }
+  function stopPlacing() {
+    rest.placing = null;
+    $("#placing").hidden = true;
+    $("#map").classList.remove("is-placing");
+  }
+  function onMapClick(e) {
+    if (!rest.placing) return;
+    const t = rest.placing;
+    const ll = e.latlng.wrap();
+    stopPlacing();
+    const c = { lat: round6(ll.lat), lng: round6(ll.lng), approx: false };
+    if (t.kind === "form") {
+      rform.coords = c; rform.source = "map";
+      refreshAddForm();
+      toast("Pinned. Now add it at the top.");
+      $("#radd").scrollIntoView({ block: "center", behavior: reducedMotion() ? "auto" : "smooth" });
+      $("#r-name").focus({ preventScroll: true });
+    } else {
+      patchPlace(t.id, c);
+      toast("Pin placed.");
+    }
+  }
+
+  function wireRestaurants() {
+    const dl = $("#nl-cities");
+    for (const c of Object.keys(NL_CITIES)) { const o = document.createElement("option"); o.value = c; dl.append(o); }
+    buildLegend();
+    try { const s = localStorage.getItem(LS_RSORT); if (["latest", "best", "az"].includes(s)) rest.sort = s; } catch {}
+    $("#r-date").value = todayISO();
+    $("#radd").addEventListener("submit", submitPlace);
+    $("#r-url").addEventListener("input", refreshAddForm);
+    $("#r-city").addEventListener("input", refreshAddForm);
+    $("#r-tap").addEventListener("click", () => startPlacing({ kind: "form" }));
+    $("#r-coords-toggle").addEventListener("click", e => {
+      const f = $("#r-coords-field"), open = f.hidden;
+      f.hidden = !open;
+      e.currentTarget.setAttribute("aria-expanded", String(open));
+      if (open) $("#r-coords").focus();
+    });
+    $("#r-coords").addEventListener("input", () => {
+      const pc = parseMapsLink($("#r-coords").value);
+      if (pc.lat != null) { rform.coords = { lat: pc.lat, lng: pc.lng, approx: false }; rform.source = "paste"; }
+      else if (rform.source === "paste") { rform.coords = null; rform.source = null; }
+      refreshAddForm();
+    });
+    $("#rsort").addEventListener("change", e => {
+      rest.sort = e.target.value;
+      try { localStorage.setItem(LS_RSORT, rest.sort); } catch {}
+      render();
+    });
+    $("#rlist").addEventListener("click", e => {
+      const b = e.target.closest("button[data-act]");
+      if (!b || b.disabled) return;
+      const id = b.closest("[data-id]").dataset.id;
+      const act = b.dataset.act;
+      if (act === "review") startReview(id);
+      else if (act === "again") wentAgain(id);
+      else if (act === "onmap") showOnMap(id);
+      else if (act === "place") startPlacing({ kind: "place", id });
+      else if (act === "edit") { rest.editing = id; rest.reviewing = null; render(); }
+    });
+    $("#us-open").addEventListener("click", () => openUs("us"));
+    $("#us-form").addEventListener("submit", submitUs);
+    $("#us-cancel").addEventListener("click", () => { rest.pendingReview = null; closeUs(); });
+    $("#us-sheet").addEventListener("close", () => { rest.pendingReview = null; });
+    $("#us-a").addEventListener("input", paintUsNames);
+    $("#us-b").addEventListener("input", paintUsNames);
+    $("#fit-pins").addEventListener("click", fitPins);
+    $("#placing-cancel").addEventListener("click", stopPlacing);
+    $("#map-retry").addEventListener("click", () => {
+      if (mapState.status === "failed") { mapState.status = "idle"; ensureMap().then(syncMarkers); }
+      else if (mapState.tiles) { mapState.loads = 0; showMapMsg(false); mapState.tiles.redraw(); }
+    });
+    addEventListener("online", () => {
+      if (mapState.status === "failed" && current === "restaurants") { mapState.status = "idle"; ensureMap().then(syncMarkers); }
+      else if (mapState.tiles) { mapState.loads = 0; showMapMsg(false); mapState.tiles.redraw(); }
+    });
+  }
+
   /* ---------- wiring ---------- */
 
   function setTab(l, focus) {
-    if (!LISTS[l]) return;
+    if (!isTab(l)) return;
     if (l !== current) {
       current = l;
       editing = null;
+      rest.editing = null;
+      rest.reviewing = null;
+      if (rest.placing) stopPlacing();
       clearTimeout(pickTimer);
       try { localStorage.setItem(LS_TAB, l); } catch {}
       try { if (location.hash.slice(1) !== l) history.replaceState(null, "", "#" + l); } catch {}
@@ -1237,8 +2396,8 @@ button,input{font:inherit;color:inherit}
   function wire() {
     document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => setTab(t.dataset.list)));
     $(".tabs").addEventListener("keydown", e => {
-      const i = ORDER.indexOf(current);
-      const next = { ArrowRight: ORDER[(i + 1) % 3], ArrowLeft: ORDER[(i + 2) % 3], Home: ORDER[0], End: ORDER[2] }[e.key];
+      const i = TABS.indexOf(current), n = TABS.length;
+      const next = { ArrowRight: TABS[(i + 1) % n], ArrowLeft: TABS[(i + n - 1) % n], Home: TABS[0], End: TABS[n - 1] }[e.key];
       if (next) { e.preventDefault(); setTab(next, true); }
     });
     addEventListener("hashchange", () => setTab(location.hash.slice(1)));
@@ -1304,8 +2463,11 @@ button,input{font:inherit;color:inherit}
     mode = kind;
     fallbackTip = tip || "";
     localKey = forClub && forClub !== MAIN_LIST ? LS_DATA + ":" + forClub : LS_DATA;
+    restKey = forClub && forClub !== MAIN_LIST ? LS_REST + ":" + forClub : LS_REST;
+    peopleKey = forClub && forClub !== MAIN_LIST ? LS_PEOPLE + ":" + forClub : LS_PEOPLE;
     club = null;
     loadLocal();
+    loadRestLocal();
     ORDER.forEach(l => { loaded[l] = true; });
     render();
   }
@@ -1315,14 +2477,16 @@ button,input{font:inherit;color:inherit}
     mode = "shared";
     render();
     ORDER.forEach(l => subscribeOne(l));
+    subscribeRest();
   }
 
   function boot() {
     const h = location.hash.slice(1);
     let saved = null;
     try { saved = localStorage.getItem(LS_TAB); } catch {}
-    current = LISTS[h] ? h : LISTS[saved] ? saved : "films";
+    current = isTab(h) ? h : isTab(saved) ? saved : "films";
     wire();
+    wireRestaurants();
 
     const C = window.claude;
     const fbConfig = window.SOMEDAY_FIREBASE_CONFIG;

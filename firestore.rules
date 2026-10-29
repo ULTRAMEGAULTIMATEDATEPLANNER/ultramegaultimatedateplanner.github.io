@@ -1,6 +1,7 @@
 rules_version = '2';
 
-// Someday Club: each list set lives at clubs/{club}/{films|dishes|together}/{item}.
+// Ultra Mega Ultimate Date Planner: each list set lives at clubs/{club}/{films|dishes|together}/{item},
+// the restaurants log at clubs/{club}/restaurants/{place} and the two names at clubs/{club}/meta/people.
 // The club code is the private part of the share link (?club=...), so anyone with
 // the link can read and edit that club, and nobody can list other clubs.
 service cloud.firestore {
@@ -29,6 +30,57 @@ service cloud.firestore {
     match /clubs/{club}/{list}/{item} {
       allow read, delete: if validClub(club) && validList(list);
       allow create, update: if validClub(club) && validList(list) && validItem(request.resource.data);
+    }
+
+    // Restaurants we've been to, with each person's own review under reviews.a / reviews.b.
+    function validReview(r) {
+      return r is map
+        && r.keys().hasOnly(['stars', 'text', 'at']) && r.keys().hasAll(['stars', 'text', 'at'])
+        && r.stars is int && r.stars >= 1 && r.stars <= 5
+        && r.text is string && r.text.size() <= 600
+        && r.at is number;
+    }
+
+    function validReviews(rv) {
+      return rv is map && rv.keys().hasOnly(['a', 'b'])
+        && (!('a' in rv) || validReview(rv.a))
+        && (!('b' in rv) || validReview(rv.b));
+    }
+
+    function validPlace(d) {
+      return d.keys().hasOnly(['name', 'city', 'mapsUrl', 'lat', 'lng', 'approx', 'visitedAt', 'visits', 'note', 'reviews', 'addedBy', 'createdAt'])
+        && d.keys().hasAll(['name', 'city', 'mapsUrl', 'lat', 'lng', 'approx', 'visitedAt', 'visits', 'note', 'reviews', 'addedBy', 'createdAt'])
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 120
+        && d.city is string && d.city.size() <= 60
+        && d.mapsUrl is string && d.mapsUrl.size() <= 600
+        && (d.mapsUrl == '' || d.mapsUrl.matches('^https://((www|maps)[.])?google[.][a-z]{2,3}([.][a-z]{2})?/.*$')
+            || d.mapsUrl.matches('^https://(maps[.]app[.])?goo[.]gl/.*$'))
+        && ((d.lat == null && d.lng == null)
+            || (d.lat is number && d.lng is number && d.lat >= -90 && d.lat <= 90 && d.lng >= -180 && d.lng <= 180))
+        && d.approx is bool
+        && (d.visitedAt == null || d.visitedAt is number)
+        && d.visits is int && d.visits >= 1 && d.visits <= 999
+        && d.note is string && d.note.size() <= 400
+        && validReviews(d.reviews)
+        && (d.addedBy == null || d.addedBy is string)
+        && d.createdAt is number;
+    }
+
+    match /clubs/{club}/restaurants/{place} {
+      allow read, delete: if validClub(club);
+      allow create, update: if validClub(club) && validPlace(request.resource.data);
+    }
+
+    // Our two first names, so reviews show who wrote them.
+    function validPeople(d) {
+      return d.keys().hasOnly(['a', 'b'])
+        && (!('a' in d) || (d.a is string && d.a.size() <= 24))
+        && (!('b' in d) || (d.b is string && d.b.size() <= 24));
+    }
+
+    match /clubs/{club}/meta/people {
+      allow read: if validClub(club);
+      allow create, update: if validClub(club) && validPeople(request.resource.data);
     }
   }
 }
