@@ -1,0 +1,33 @@
+# Telegram alert for tickets to the sold-out Pulse screening (Sun 1 Nov 18:35, LAB111).
+# Runs every 5 minutes; each run checks about once a minute for 4 minutes. It needs two repository
+# secrets, TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID, and switches itself off once the screening starts.
+# Details: .github/ticket-alert/README.md
+name: Ticket alert
+
+on:
+  schedule:
+    - cron: "2-59/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # its memory, state.json, lives on the ticket-alert-state branch
+  actions: write    # to switch this workflow off after the screening
+
+concurrency:
+  group: ticket-alert
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/ticket-alert
+      - name: Check for tickets
+        run: node .github/ticket-alert/watch.mjs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_TOKEN: ${{ github.token }}
