@@ -2403,9 +2403,9 @@ a.btn{text-decoration:none}
       btn.setAttribute("aria-label", `${p.name}${sc != null ? ", " + scoreText(sc) + " stars" : ""}: photo and review`);
       btn.append(posterEl(p));
       li.append(btn);
+      if (sc != null) li.append(starsEl(Math.round(sc * 2) / 2));
       const credit = photoCredit(p);
       if (credit) li.append(credit);
-      if (sc != null) li.append(starsEl(Math.round(sc * 2) / 2));
       ol.append(li);
     }
     const bins = Array(9).fill(0);   // 1, 1.5, … 5 stars
