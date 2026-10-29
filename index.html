@@ -16,7 +16,7 @@
 <meta name="theme-color" content="#111014" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Dela+Gothic+One&family=Source+Serif+4:opsz,wght@8..60,600..700&family=Special+Elite&display=swap">
+<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Dela+Gothic+One&family=Source+Serif+4:opsz,wght@8..60,600..700&family=Special+Elite&family=UnifrakturMaguntia&display=swap">
 <style>
 /* Layout: a riso-printed zine for two. Poster masthead, four tabs (one spot ink each), one taped-down sheet holding the ranked list (or, on Restaurants, the log of places and a printed map), a stamped "done" pile underneath. */
 :root{
@@ -627,51 +627,52 @@ a.btn{text-decoration:none}
    Like Restaurants (Letterboxd), each of these tabs reskins the whole page after a famous app of its
    kind, keeping the zine's grain, specks, tape and halftone as a mixed-media layer. Together keeps the
    riso zine. The pixel shuffle plays whenever the look changes. Shared header and list structure first. */
-:is([data-skin="mubi"],[data-skin="nyt"]) .mast::before,:is([data-skin="mubi"],[data-skin="nyt"]) .logo .plate-acc,:is([data-skin="mubi"],[data-skin="nyt"]) .reg,:is([data-skin="mubi"],[data-skin="nyt"]) .inks,:is([data-skin="mubi"],[data-skin="nyt"]) .perf,:is([data-skin="mubi"],[data-skin="nyt"]) .sheet::before,:is([data-skin="mubi"],[data-skin="nyt"]) .sheet::after,:is([data-skin="mubi"],[data-skin="nyt"]) .mast-top>.label,:is([data-skin="mubi"],[data-skin="nyt"]) .mast-sub{display:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .wrap{max-width:62rem;padding-block:0 40px}
-:is([data-skin="mubi"],[data-skin="nyt"]) .mast{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;padding-block:16px 10px}
-:is([data-skin="mubi"],[data-skin="nyt"]) .mast-top{display:contents}
-:is([data-skin="mubi"],[data-skin="nyt"]) .logo{order:-1;margin:0;display:flex;align-items:center;gap:.6rem;filter:none;text-transform:none;line-height:1.1}
-:is([data-skin="mubi"],[data-skin="nyt"]) .logo .plate{grid-area:auto;-webkit-mask-image:none;mask-image:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l1,:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l2,:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l3{display:inline;font-size:inherit;white-space:normal}
-:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l1::after,:is([data-skin="mubi"],[data-skin="nyt"]) .logo .l2::after{content:" "}
-:is([data-skin="mubi"],[data-skin="nyt"]) .sync{border:0;background:none;padding:0;font-family:var(--f-body);font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
-:is([data-skin="mubi"],[data-skin="nyt"]) .mast-tools{gap:.35rem .5rem}
-:is([data-skin="mubi"],[data-skin="nyt"]) .mast-tools .btn{min-height:32px;padding:.4rem .55rem;font-size:.64rem;letter-spacing:.04em}
-:is([data-skin="mubi"],[data-skin="nyt"]) .tabs{display:flex;flex-wrap:nowrap;gap:0 clamp(.75rem,3.2vw,1.6rem);overflow-x:auto;scrollbar-width:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .tabs::-webkit-scrollbar{display:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .tab{flex:none;display:inline-flex;align-items:center;gap:.35rem;min-height:42px;padding:0;border:0;background:none;box-shadow:none;transform:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .tab:hover,:is([data-skin="mubi"],[data-skin="nyt"]) .tab[aria-selected="true"]{background:none;transform:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .tab[aria-selected="true"]::after{display:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .tab-name{font-family:var(--f-body);font-weight:700;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;-webkit-mask-image:none!important;mask-image:none!important}
-@media (min-width:560px){:is([data-skin="mubi"],[data-skin="nyt"]) .tab-name{font-size:.78rem;letter-spacing:.1em}}
-:is([data-skin="mubi"],[data-skin="nyt"]) .tab-foot{display:contents}
-:is([data-skin="mubi"],[data-skin="nyt"]) .tab-sub{display:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .tab-count,:is([data-skin="mubi"],[data-skin="nyt"]) .tab[aria-selected="true"] .tab-count{min-width:0;padding:0;border:0;background:none;color:inherit;opacity:.6;font-size:.72rem;font-weight:600}
-@media (max-width:420px){:is([data-skin="mubi"],[data-skin="nyt"]) .tab:not([aria-selected="true"]) .tab-count{display:none}}
-:is([data-skin="mubi"],[data-skin="nyt"]) .sheet{margin-top:0;padding:clamp(20px,3vw,30px) 0 0;background:none;border:0;box-shadow:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .btn,:is([data-skin="mubi"],[data-skin="nyt"]) .btn-sm{border-radius:0;box-shadow:none;font-stretch:100%}
-:is([data-skin="mubi"],[data-skin="nyt"]) .btn:active,:is([data-skin="mubi"],[data-skin="nyt"]) .btn-sm:active{transform:translateY(1px);box-shadow:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .rank{text-shadow:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .is-first .rank{width:auto;aspect-ratio:auto;clip-path:none;background:none;color:inherit}
-:is([data-skin="mubi"],[data-skin="nyt"]) .item{grid-template-columns:18px auto minmax(0,1fr) auto;align-items:start;gap:.3rem .8rem;padding:1rem 0;background:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .handle{height:34px}
-:is([data-skin="mubi"],[data-skin="nyt"]) .icon-btn{width:36px;height:36px}
-:is([data-skin="mubi"],[data-skin="nyt"]) .acts{gap:.3rem}
-:is([data-skin="mubi"],[data-skin="nyt"]) .item:hover{background:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .item + .item{border-top:1px solid var(--line)}
-:is([data-skin="mubi"],[data-skin="nyt"]) .body{display:grid;grid-template-columns:clamp(84px,24vw,132px) minmax(0,1fr);column-gap:clamp(.7rem,2.6vw,1.1rem);align-items:start}
-:is([data-skin="mubi"],[data-skin="nyt"]) .body > :not(.art){grid-column:2}
-:is([data-skin="mubi"],[data-skin="nyt"]) .body > .art{grid-row:1 / span 4}
-:is([data-skin="mubi"],[data-skin="nyt"]) .is-first .body{grid-template-columns:minmax(0,1fr)}
-:is([data-skin="mubi"],[data-skin="nyt"]) .is-first .body > *{grid-column:1}
-:is([data-skin="mubi"],[data-skin="nyt"]) .is-first .body > .art{grid-row:auto;margin-bottom:.8rem}
-:is([data-skin="mubi"],[data-skin="nyt"]) .is-editing{grid-template-columns:minmax(0,1fr)!important}
-:is([data-skin="mubi"],[data-skin="nyt"]) .empty::before{display:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .empty-title{filter:none;text-transform:none;max-width:none}
-@media (max-width:640px){:is([data-skin="mubi"],[data-skin="nyt"]) .item{grid-template-columns:16px auto minmax(0,1fr)} :is([data-skin="mubi"],[data-skin="nyt"]) .acts{grid-column:3}}
+:is([data-skin="mubi"],[data-skin="news"]) .mast::before,:is([data-skin="mubi"],[data-skin="news"]) .logo .plate-acc,:is([data-skin="mubi"],[data-skin="news"]) .reg,:is([data-skin="mubi"],[data-skin="news"]) .inks,:is([data-skin="mubi"],[data-skin="news"]) .perf,:is([data-skin="mubi"],[data-skin="news"]) .sheet::before,:is([data-skin="mubi"],[data-skin="news"]) .sheet::after,:is([data-skin="mubi"],[data-skin="news"]) .mast-top>.label,:is([data-skin="mubi"],[data-skin="news"]) .mast-sub{display:none}
+:is([data-skin="mubi"],[data-skin="news"]) .wrap{max-width:62rem;padding-block:0 40px}
+:is([data-skin="mubi"],[data-skin="news"]) .mast{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;padding-block:16px 10px}
+:is([data-skin="mubi"],[data-skin="news"]) .mast-top{display:contents}
+:is([data-skin="mubi"],[data-skin="news"]) .logo{order:-1;margin:0;display:flex;align-items:center;gap:.6rem;filter:none;text-transform:none;line-height:1.1}
+:is([data-skin="mubi"],[data-skin="news"]) .logo .plate{grid-area:auto;-webkit-mask-image:none;mask-image:none}
+:is([data-skin="mubi"],[data-skin="news"]) .logo .l1,:is([data-skin="mubi"],[data-skin="news"]) .logo .l2,:is([data-skin="mubi"],[data-skin="news"]) .logo .l3{display:inline;font-size:inherit;white-space:normal}
+:is([data-skin="mubi"],[data-skin="news"]) .logo .l1::after,:is([data-skin="mubi"],[data-skin="news"]) .logo .l2::after{content:" "}
+:is([data-skin="mubi"],[data-skin="news"]) .sync{border:0;background:none;padding:0;font-family:var(--f-body);font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+:is([data-skin="mubi"],[data-skin="news"]) .mast-tools{gap:.35rem .5rem}
+:is([data-skin="mubi"],[data-skin="news"]) .mast-tools .btn{min-height:32px;padding:.4rem .55rem;font-size:.64rem;letter-spacing:.04em}
+:is([data-skin="mubi"],[data-skin="news"]) .tabs{display:flex;flex-wrap:nowrap;gap:0 clamp(.75rem,3.2vw,1.6rem);overflow-x:auto;scrollbar-width:none}
+:is([data-skin="mubi"],[data-skin="news"]) .tabs::-webkit-scrollbar{display:none}
+:is([data-skin="mubi"],[data-skin="news"]) .tab{flex:none;display:inline-flex;align-items:center;gap:.35rem;min-height:42px;padding:0;border:0;background:none;box-shadow:none;transform:none}
+:is([data-skin="mubi"],[data-skin="news"]) .tab:hover,:is([data-skin="mubi"],[data-skin="news"]) .tab[aria-selected="true"]{background:none;transform:none}
+:is([data-skin="mubi"],[data-skin="news"]) .tab[aria-selected="true"]::after{display:none}
+:is([data-skin="mubi"],[data-skin="news"]) .tab-name{font-family:var(--f-body);font-weight:700;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;-webkit-mask-image:none!important;mask-image:none!important}
+@media (min-width:560px){:is([data-skin="mubi"],[data-skin="news"]) .tab-name{font-size:.78rem;letter-spacing:.1em}}
+:is([data-skin="mubi"],[data-skin="news"]) .tab-foot{display:contents}
+:is([data-skin="mubi"],[data-skin="news"]) .tab-sub{display:none}
+:is([data-skin="mubi"],[data-skin="news"]) .tab-count,:is([data-skin="mubi"],[data-skin="news"]) .tab[aria-selected="true"] .tab-count{min-width:0;padding:0;border:0;background:none;color:inherit;opacity:.6;font-size:.72rem;font-weight:600}
+@media (max-width:420px){:is([data-skin="mubi"],[data-skin="news"]) .tab:not([aria-selected="true"]) .tab-count{display:none}}
+:is([data-skin="mubi"],[data-skin="news"]) .sheet{margin-top:0;padding:clamp(20px,3vw,30px) 0 0;background:none;border:0;box-shadow:none}
+:is([data-skin="mubi"],[data-skin="news"]) .btn,:is([data-skin="mubi"],[data-skin="news"]) .btn-sm{border-radius:0;box-shadow:none;font-stretch:100%}
+:is([data-skin="mubi"],[data-skin="news"]) .btn:active,:is([data-skin="mubi"],[data-skin="news"]) .btn-sm:active{transform:translateY(1px);box-shadow:none}
+:is([data-skin="mubi"],[data-skin="news"]) .rank{text-shadow:none}
+:is([data-skin="mubi"],[data-skin="news"]) .is-first .rank{width:auto;aspect-ratio:auto;clip-path:none;background:none;color:inherit}
+:is([data-skin="mubi"],[data-skin="news"]) .item{grid-template-columns:18px auto minmax(0,1fr) auto;align-items:start;gap:.3rem .8rem;padding:1rem 0;background:none}
+:is([data-skin="mubi"],[data-skin="news"]) .handle{height:34px}
+:is([data-skin="mubi"],[data-skin="news"]) .icon-btn{width:36px;height:36px}
+:is([data-skin="mubi"],[data-skin="news"]) .acts{gap:.3rem}
+:is([data-skin="mubi"],[data-skin="news"]) .item:hover{background:none}
+:is([data-skin="mubi"],[data-skin="news"]) .item + .item{border-top:1px solid var(--line)}
+:is([data-skin="mubi"],[data-skin="news"]) .body{display:grid;grid-template-columns:clamp(84px,24vw,132px) minmax(0,1fr);column-gap:clamp(.7rem,2.6vw,1.1rem);align-items:start}
+:is([data-skin="mubi"],[data-skin="news"]) .body > :not(.art){grid-column:2}
+:is([data-skin="mubi"],[data-skin="news"]) .body > .art{grid-row:1 / span 4}
+:is([data-skin="mubi"],[data-skin="news"]) .is-first .body{grid-template-columns:minmax(0,1fr)}
+:is([data-skin="mubi"],[data-skin="news"]) .is-first .body > *{grid-column:1}
+:is([data-skin="mubi"],[data-skin="news"]) .is-first .body > .art{grid-row:auto;margin-bottom:.8rem}
+:is([data-skin="mubi"],[data-skin="news"]) .is-editing{grid-template-columns:minmax(0,1fr)!important}
+:is([data-skin="mubi"],[data-skin="news"]) .done-item .body{display:block}
+:is([data-skin="mubi"],[data-skin="news"]) .empty::before{display:none}
+:is([data-skin="mubi"],[data-skin="news"]) .empty-title{filter:none;text-transform:none;max-width:none}
+@media (max-width:640px){:is([data-skin="mubi"],[data-skin="news"]) .item{grid-template-columns:16px auto minmax(0,1fr)} :is([data-skin="mubi"],[data-skin="news"]) .acts{grid-column:3}}
 .art{display:none}
-:is([data-skin="mubi"],[data-skin="nyt"]) .art{display:block;position:relative;overflow:hidden}
+:is([data-skin="mubi"],[data-skin="news"]) .art{display:block;position:relative;overflow:hidden}
 
 /* ----- Films: MUBI. Black, white, one cobalt blue, square corners, film stills as the only colour ----- */
 :root[data-skin="mubi"]{
@@ -757,86 +758,115 @@ a.btn{text-decoration:none}
 [data-skin="mubi"] .foot{border-top:1px solid #262626;padding-top:1rem}
 [data-skin="mubi"] .dlg,[data-skin="mubi"] .install{border:1px solid #333;border-radius:0;background:#0A0A0A;color:#FFF;box-shadow:none}
 
-/* ----- Dishes: NYT Cooking. Newsprint, a nameplate masthead, serif headlines, red for the important bits ----- */
-:root[data-skin="nyt"]{
-  --paper:#FAF8F3; --sheet:#FAF8F3; --ink:#121212; --ink-soft:#5E5E5E; --on-ink:#FFF; --on-acc:#FFF; --line:#DCD7CC;
-  --nyt-red:#D0321E; --grain-blend:multiply; --grain-op:.16; --speck-op:.35; --speck-filter:none;
-  --f-news:"Source Serif 4",Georgia,"Times New Roman",serif; color-scheme:light;
+/* ----- Dishes: a printed newspaper. Yellowed newsprint with grain and a centre fold, a blackletter
+   nameplate, rules between stories, headlines and decks, pictures printed in halftone, red pencil ----- */
+:root[data-skin="news"]{
+  --paper:#ECE4D1; --sheet:#ECE4D1; --ink:#1B1814; --ink-soft:#5B5246; --on-ink:#F3EEE2; --on-acc:#FFF; --line:#B8AC93;
+  --news-red:#B42A1F; --grain-blend:multiply; --grain-op:.24; --speck-op:.5; --speck-filter:none;
+  --f-news:"Source Serif 4",Georgia,"Times New Roman",serif; --f-black:"UnifrakturMaguntia","Old English Text MT",serif;
+  color-scheme:light;
 }
-[data-skin="nyt"] body{--acc:var(--nyt-red);background:#FAF8F3;color:#121212}
-[data-skin="nyt"] :focus-visible{outline:2px solid #121212;outline-offset:2px}
-[data-skin="nyt"] .mast{flex-direction:column;align-items:center;text-align:center;gap:.45rem;padding-block:18px 0}
-[data-skin="nyt"] .logo{order:0;flex-direction:column;gap:.25rem;font-family:var(--f-news);font-weight:700;font-size:clamp(1.5rem,6.4vw,2.7rem);letter-spacing:-.01em;line-height:1;color:#121212}
-[data-skin="nyt"] .logo::before{content:"Cooking section";font-family:var(--f-body);font-weight:700;font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:var(--nyt-red)}
-[data-skin="nyt"] .logo::after{content:attr(data-date);display:block;width:min(100%,40rem);margin-top:.5rem;padding:.35rem 0;border-block:1px solid #121212;box-shadow:0 3px 0 -2px #121212;
-  font-family:var(--f-body);font-weight:600;font-size:.64rem;letter-spacing:.14em;text-transform:uppercase}
-[data-skin="nyt"] .mast-tools{order:1}
-[data-skin="nyt"] .sync{color:#5E5E5E}
-[data-skin="nyt"] .tabs{justify-content:safe center;border-bottom:1px solid #121212}
-[data-skin="nyt"] .tab{color:#5E5E5E}
-[data-skin="nyt"] .tab:hover,[data-skin="nyt"] .tab[aria-selected="true"]{color:#121212}
-[data-skin="nyt"] .tab[aria-selected="true"]{box-shadow:inset 0 -3px 0 #121212}
-[data-skin="nyt"] .btn{border:1px solid #121212;background:#FFF;color:#121212;font-family:var(--f-body);font-weight:700;font-size:.7rem;letter-spacing:.1em}
-[data-skin="nyt"] .btn:hover{background:#121212;color:#FFF}
-[data-skin="nyt"] .btn-acc,[data-skin="nyt"] .btn-acc:hover{border-color:var(--nyt-red);background:var(--nyt-red);color:#FFF;filter:none}
-[data-skin="nyt"] .icon-btn{border:1px solid #CFC9BD;color:#333;background:#FFF}
-[data-skin="nyt"] .icon-btn:hover{background:#121212;color:#FFF}
-[data-skin="nyt"] .linkish{color:#121212;text-decoration-color:var(--nyt-red)}
-[data-skin="nyt"] .input{border:1px solid #BDB6A8;background:#FFF;color:#121212}
-[data-skin="nyt"] .input:focus{border-color:#121212;outline:none}
-[data-skin="nyt"] #add-title{font-family:var(--f-news);font-weight:600;font-size:clamp(1.1rem,4vw,1.35rem)}
-[data-skin="nyt"] .field-label,[data-skin="nyt"] .chk{font-family:var(--f-body);font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5E5E5E}
-[data-skin="nyt"] .chk input{accent-color:var(--nyt-red)}
-[data-skin="nyt"] .sheet-head{align-items:end;margin-bottom:1.2rem;padding-bottom:.9rem;border-bottom:3px double #121212}
-[data-skin="nyt"] .sheet-title{font-family:var(--f-news);font-weight:700;font-size:clamp(2.1rem,8vw,3.6rem);letter-spacing:-.015em;text-shadow:none}
-[data-skin="nyt"] .sheet-sub{font-family:var(--f-news);font-style:italic;font-weight:600;font-size:.42em;letter-spacing:0;color:#5E5E5E}
-[data-skin="nyt"] .rank{font-family:var(--f-news);font-weight:700;font-size:clamp(1.3rem,4.6vw,1.8rem);color:#121212}
-[data-skin="nyt"] .is-first .rank{position:relative;color:var(--nyt-red)}
-[data-skin="nyt"] .is-first .rank::after{content:"";position:absolute;inset:-.28em -.42em;border:2.5px solid var(--nyt-red);border-radius:52% 46% 55% 44% / 48% 56% 42% 52%;transform:rotate(-8deg);opacity:.85}
-[data-skin="nyt"] .title{font-family:var(--f-news);font-weight:700;font-stretch:100%;font-size:clamp(1.15rem,4vw,1.45rem);line-height:1.15}
-[data-skin="nyt"] .is-first .title{font-size:clamp(1.6rem,6vw,2.4rem);line-height:1.05}
-[data-skin="nyt"] .note{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:#4A4A4A}
-[data-skin="nyt"] .meta{font-family:var(--f-body);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:#5E5E5E}
-[data-skin="nyt"] .link{color:#121212;text-decoration-color:var(--nyt-red)}
-[data-skin="nyt"] .handle{color:#A8A194}
-[data-skin="nyt"] .handle:hover{color:#121212}
-[data-skin="nyt"] .sticker{transform:rotate(-2deg);border:0;background:var(--nyt-red);color:#FFF;font-family:var(--f-body);font-weight:700;font-size:.6rem;letter-spacing:.14em}
-[data-skin="nyt"] .is-picking,[data-skin="nyt"] .is-picked{background:#FBE3DE!important;outline:0}
-[data-skin="nyt"] .is-dragging{border:1px solid #121212!important;box-shadow:6px 6px 0 rgba(0,0,0,.15);background:#FFF}
-[data-skin="nyt"] .item + .item{border-top:1px solid #DCD7CC}
-/* generated plates: an overhead shot of a dish on linen (colours and plating from the title), printed in halftone */
-[data-skin="nyt"] .art{background:#D8CBB2 repeating-linear-gradient(45deg,rgba(255,255,255,.18) 0 2px,transparent 2px 7px)}
-[data-skin="nyt"] .art > i{display:block;position:relative;aspect-ratio:1}
-[data-skin="nyt"] .art > i::before{content:"";position:absolute;inset:7%;border-radius:50%;box-shadow:3px 5px 8px rgba(0,0,0,.25);
+[data-skin="news"] body{--acc:var(--news-red);color:#1B1814;background:#ECE4D1;
+  background-image:linear-gradient(90deg,transparent calc(50% - 2px),rgba(60,45,20,.09) 50%,rgba(255,255,255,.4) calc(50% + 1px),transparent calc(50% + 4px)),
+    radial-gradient(ellipse at 50% 30%,transparent 55%,rgba(120,90,40,.16) 100%)}
+[data-skin="news"] :focus-visible{outline:2px solid #1B1814;outline-offset:2px}
+[data-skin="news"] .mast{flex-direction:column;align-items:center;text-align:center;gap:.4rem;padding-block:14px 0}
+[data-skin="news"] .logo{order:0;flex-direction:column;gap:.35rem;font-family:var(--f-black);font-weight:400;font-size:clamp(1.85rem,8.6vw,3.9rem);letter-spacing:0;line-height:1.02;color:#1B1814}
+[data-skin="news"] .logo::before{content:"“All the Dishes That Are Fit to Cook”";font-family:var(--f-news);font-style:italic;font-weight:600;font-size:.72rem;letter-spacing:.01em;color:#5B5246}
+[data-skin="news"] .logo::after{content:"Vol. I \00B7  " attr(data-date) " \00B7  Serves two";display:block;width:min(100%,46rem);margin-top:.45rem;padding:.32rem 0;
+  border-top:3px double #1B1814;border-bottom:1px solid #1B1814;font-family:var(--f-news);font-weight:600;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase}
+[data-skin="news"] .mast-tools{order:1}
+[data-skin="news"] .sync{color:#5B5246}
+[data-skin="news"] .tabs{justify-content:safe center;gap:0;border-bottom:1px solid #1B1814}
+[data-skin="news"] .tab{padding-inline:clamp(.45rem,2vw,1rem);color:#5B5246}
+[data-skin="news"] .tab + .tab{box-shadow:-1px 0 0 0 #B8AC93}
+[data-skin="news"] .tab-name{font-family:var(--f-news);font-weight:700;letter-spacing:.08em}
+[data-skin="news"] .tab:hover,[data-skin="news"] .tab[aria-selected="true"]{color:#1B1814}
+[data-skin="news"] .tab[aria-selected="true"] .tab-name{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
+[data-skin="news"] .btn{border:1px solid #1B1814;background:transparent;color:#1B1814;font-family:var(--f-body);font-weight:700;font-size:.66rem;letter-spacing:.12em}
+[data-skin="news"] .btn:hover{background:#1B1814;color:#F3EEE2}
+[data-skin="news"] .btn-acc,[data-skin="news"] .btn-acc:hover{border-color:#1B1814;background:#1B1814;color:#F3EEE2;filter:none}
+[data-skin="news"] .icon-btn{border:1px solid #B8AC93;color:#3A332B;background:transparent}
+[data-skin="news"] .icon-btn:hover{background:#1B1814;color:#F3EEE2}
+[data-skin="news"] .linkish{color:#1B1814;text-decoration-color:var(--news-red)}
+[data-skin="news"] .input{border:0;border-bottom:1px solid #1B1814;background:transparent;color:#1B1814;padding-inline:.1rem}
+[data-skin="news"] .input:focus{border-bottom-width:2px;outline:none}
+[data-skin="news"] .input::placeholder{color:#7D7262;font-style:italic}
+[data-skin="news"] #add-title{font-family:var(--f-news);font-weight:600;font-size:clamp(1.05rem,4vw,1.3rem)}
+[data-skin="news"] .field-label,[data-skin="news"] .chk{font-family:var(--f-news);font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5B5246}
+[data-skin="news"] .chk input{accent-color:#1B1814}
+[data-skin="news"] .sheet-head{flex-direction:column;align-items:center;text-align:center;gap:.6rem;margin-bottom:1.1rem;padding-bottom:.9rem;border-bottom:1px solid #1B1814}
+[data-skin="news"] .sheet-title{font-family:var(--f-news);font-weight:700;font-size:clamp(2.2rem,9vw,3.9rem);letter-spacing:-.02em;line-height:.95;text-shadow:none}
+[data-skin="news"] .sheet-title::before{content:"Cooking";display:block;margin-bottom:.35rem;font-family:var(--f-body);font-weight:800;font-size:.17em;letter-spacing:.3em;text-transform:uppercase;color:var(--news-red)}
+[data-skin="news"] .sheet-sub{font-family:var(--f-news);font-style:italic;font-weight:600;font-size:.4em;letter-spacing:0;color:#5B5246}
+/* the add form is a clip-out coupon */
+[data-skin="news"] .add{position:relative;padding:1rem 1rem .8rem;border:2px dashed #1B1814;background:rgba(255,253,245,.45)}
+[data-skin="news"] .add::before{content:"\2702  Fill in, clip out: a dish to cook";position:absolute;top:-.62rem;left:.8rem;padding:0 .4rem;background:#ECE4D1;font-family:var(--f-news);font-style:italic;font-size:.74rem;color:#5B5246}
+/* stories */
+[data-skin="news"] .item + .item{border-top:1px solid #B8AC93}
+[data-skin="news"] .item.is-first{padding-bottom:1.2rem;border-bottom:3px double #1B1814}
+[data-skin="news"] .rank{font-family:var(--f-news);font-weight:700;font-size:clamp(1.05rem,3.6vw,1.3rem);color:#1B1814}
+[data-skin="news"] .rank::before{content:"No.";margin-right:.12em;font-size:.6em;letter-spacing:.04em;vertical-align:.25em}
+[data-skin="news"] .is-first .rank{position:relative;color:var(--news-red)}
+[data-skin="news"] .is-first .rank::after{content:"";position:absolute;inset:-.32em -.45em;border:2.5px solid var(--news-red);border-radius:52% 46% 55% 44% / 48% 56% 42% 52%;transform:rotate(-8deg);opacity:.85}
+[data-skin="news"] .title{font-family:var(--f-news);font-weight:700;font-stretch:100%;font-size:clamp(1.15rem,4.2vw,1.45rem);line-height:1.1;letter-spacing:-.01em}
+[data-skin="news"] .is-first .title{font-size:clamp(1.75rem,7vw,2.9rem);line-height:1;letter-spacing:-.02em}
+[data-skin="news"] .note{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:#3F382F;line-height:1.4}
+[data-skin="news"] .is-first .note{font-size:1rem}
+[data-skin="news"] .is-first .note::first-letter{float:left;margin:.05em .08em 0 0;font-family:var(--f-news);font-style:normal;font-weight:700;font-size:2.6em;line-height:.85;color:var(--news-red)}
+[data-skin="news"] .meta{font-family:var(--f-news);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#5B5246}
+[data-skin="news"] .link{color:#1B1814;text-decoration-color:var(--news-red)}
+[data-skin="news"] .handle{color:#9C907A}
+[data-skin="news"] .handle:hover{color:#1B1814}
+[data-skin="news"] .sticker{transform:rotate(-2deg);border:1.5px solid var(--news-red);background:transparent;color:var(--news-red);font-family:var(--f-body);font-weight:800;font-size:.58rem;letter-spacing:.16em}
+[data-skin="news"] .is-picking,[data-skin="news"] .is-picked{background:rgba(180,42,31,.1)!important;outline:0}
+[data-skin="news"] .is-dragging{border:1px solid #1B1814!important;box-shadow:5px 5px 0 rgba(0,0,0,.12);background:#F3ECDB}
+/* pictures: generated plates on linen, or your own photo, printed in halftone */
+[data-skin="news"] .art{background:#CDBFA2 repeating-linear-gradient(45deg,rgba(255,255,255,.16) 0 2px,transparent 2px 7px);filter:sepia(.35) saturate(.75) contrast(1.05);box-shadow:inset 0 0 0 1px rgba(27,24,20,.4)}
+[data-skin="news"] .art > i{display:block;position:relative;aspect-ratio:1}
+[data-skin="news"] .art > i::before{content:"";position:absolute;inset:7%;border-radius:50%;box-shadow:3px 5px 8px rgba(0,0,0,.25);
   background:radial-gradient(circle at var(--ax) var(--ay),var(--f2) 0 12%,transparent 12.5%),radial-gradient(circle at 50% 50%,var(--f1) 0 30%,var(--f3) 31% 36%,#FFF 37% 56%,#ECE6DA 57% 64%,transparent 65%)}
-[data-skin="nyt"] .art[data-k="1"] > i::before{background:radial-gradient(circle at 38% 40%,var(--f2) 0 8%,transparent 8.5%),radial-gradient(circle at 60% 58%,var(--f3) 0 9%,transparent 9.5%),radial-gradient(circle at 55% 35%,var(--f1) 0 7%,transparent 7.5%),radial-gradient(circle,var(--f3) 0 30%,#FFF 31% 56%,#ECE6DA 57% 64%,transparent 65%)}
-[data-skin="nyt"] .art[data-k="2"] > i::before{background:radial-gradient(circle,var(--f1) 0 24%,color-mix(in srgb,var(--f1) 70%,#000) 25% 33%,#F3EEE3 34% 50%,#D9D1C1 51% 58%,transparent 59%)}
-[data-skin="nyt"] .art[data-k="3"] > i::before{background:radial-gradient(circle,transparent 0 29%,#FFF 29.5% 56%,#ECE6DA 57% 64%,transparent 65%),conic-gradient(from 20deg,var(--f1) 0 50%,var(--f2) 0 100%)}
-[data-skin="nyt"] .art > i::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,rgba(0,0,0,.28) .9px,transparent 1.3px) 0 0/4px 4px;mix-blend-mode:multiply}
-[data-skin="nyt"] .is-first .art > i{aspect-ratio:16/10}
-[data-skin="nyt"] .is-first .art > i::before{inset:8% auto;left:50%;height:84%;aspect-ratio:1;translate:-50% 0}
-[data-skin="nyt"] .is-first .body{position:relative}
-[data-skin="nyt"] .is-first .body::before{content:"";position:absolute;z-index:2;top:-.15rem;left:50%;width:84px;height:22px;translate:-50% 0;rotate:-3deg;background:rgba(240,228,180,.75);
+[data-skin="news"] .art[data-k="1"] > i::before{background:radial-gradient(circle at 38% 40%,var(--f2) 0 8%,transparent 8.5%),radial-gradient(circle at 60% 58%,var(--f3) 0 9%,transparent 9.5%),radial-gradient(circle at 55% 35%,var(--f1) 0 7%,transparent 7.5%),radial-gradient(circle,var(--f3) 0 30%,#FFF 31% 56%,#ECE6DA 57% 64%,transparent 65%)}
+[data-skin="news"] .art[data-k="2"] > i::before{background:radial-gradient(circle,var(--f1) 0 24%,color-mix(in srgb,var(--f1) 70%,#000) 25% 33%,#F3EEE3 34% 50%,#D9D1C1 51% 58%,transparent 59%)}
+[data-skin="news"] .art[data-k="3"] > i::before{background:radial-gradient(circle,transparent 0 29%,#FFF 29.5% 56%,#ECE6DA 57% 64%,transparent 65%),conic-gradient(from 20deg,var(--f1) 0 50%,var(--f2) 0 100%) 50% 50%/50% 50% no-repeat}
+[data-skin="news"] .art > i::after{content:"";position:absolute;inset:0;z-index:2;background:radial-gradient(circle,rgba(20,15,10,.32) .9px,transparent 1.35px) 0 0/4px 4px;mix-blend-mode:multiply}
+[data-skin="news"] .art.has-photo{filter:none}
+[data-skin="news"] .art.has-photo > i::before{display:none}
+[data-skin="news"] .art-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.35) brightness(1.06) sepia(.18)}
+[data-skin="news"] .is-first .art > i{aspect-ratio:16/10}
+[data-skin="news"] .is-first .art > i::before{inset:8% auto;left:50%;height:84%;aspect-ratio:1;translate:-50% 0}
+[data-skin="news"] .is-first .body{position:relative}
+[data-skin="news"] .is-first .body::before{content:"";position:absolute;z-index:3;top:-.15rem;left:50%;width:84px;height:22px;translate:-50% 0;rotate:-3deg;background:rgba(240,228,180,.75);
   clip-path:polygon(3% 0,97% 0,100% 18%,96% 36%,100% 54%,96% 72%,100% 90%,97% 100%,3% 100%,0 82%,4% 64%,0 46%,4% 28%,0 10%)}
 @media (min-width:760px){
-  [data-skin="nyt"] .is-first .body{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:1.5rem}
-  [data-skin="nyt"] .is-first .body > *{grid-column:2}
-  [data-skin="nyt"] .is-first .body > .art{grid-column:1;grid-row:1 / span 4;margin:0}
-  [data-skin="nyt"] .is-first .body::before{left:26%}
+  [data-skin="news"] .is-first .body{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:1.5rem}
+  [data-skin="news"] .is-first .body > *{grid-column:2}
+  [data-skin="news"] .is-first .body > .art{grid-column:1;grid-row:1 / span 4;margin:0}
+  [data-skin="news"] .is-first .body::before{left:26%}
 }
-[data-skin="nyt"] .empty-title{font-family:var(--f-news);font-weight:700;color:#121212}
-[data-skin="nyt"] .empty-body{font-family:Georgia,serif;font-style:italic;color:#4A4A4A}
-[data-skin="nyt"] .pile{border-top:3px double #121212}
-[data-skin="nyt"] .pile summary{font-family:var(--f-news);font-weight:700}
-[data-skin="nyt"] .pile summary::before{border:1px solid #121212}
-[data-skin="nyt"] .pile-count{border:1px solid #121212}
-[data-skin="nyt"] .done-item .title{font-family:var(--f-news);text-decoration-color:var(--nyt-red)}
-[data-skin="nyt"] .done-item .stamp{color:var(--nyt-red);font-family:var(--f-body);font-weight:800}
-[data-skin="nyt"] .toast{border-radius:0;background:#121212;color:#FFF;box-shadow:none}
-[data-skin="nyt"] .toast button{text-decoration-color:var(--nyt-red)}
-[data-skin="nyt"] .foot{border-top:1px solid #121212;padding-top:1rem}
-[data-skin="nyt"] .foot .label{font-family:Georgia,serif;font-style:italic;color:#5E5E5E}
-[data-skin="nyt"] .dlg,[data-skin="nyt"] .install{border:1px solid #121212;border-radius:0;background:#FFF;color:#121212;box-shadow:6px 6px 0 rgba(0,0,0,.12)}
+[data-skin="news"] .empty-title{font-family:var(--f-news);font-weight:700;color:#1B1814}
+[data-skin="news"] .empty-body{font-family:Georgia,serif;font-style:italic;color:#3F382F}
+/* the cooked archive: clippings with a red stamp, and your photo */
+[data-skin="news"] .pile{border-top:3px double #1B1814}
+[data-skin="news"] .pile summary{font-family:var(--f-news);font-weight:700;font-size:1.15rem}
+[data-skin="news"] .pile summary::before{border:1px solid #1B1814}
+[data-skin="news"] .pile-count{border:1px solid #1B1814;font-family:var(--f-news)}
+[data-skin="news"] .pile-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:1.1rem;margin-top:1rem}
+[data-skin="news"] .done-item{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:.55rem;padding:.75rem;border:0!important;background:#F4EEDF;
+  box-shadow:0 1px 0 rgba(0,0,0,.08),2px 3px 6px rgba(60,45,20,.18);rotate:-.6deg;
+  clip-path:polygon(0 1%,4% 0,9% 1.2%,15% .2%,22% 1%,30% 0,38% 1.1%,46% .3%,55% 1%,63% 0,71% 1.2%,79% .2%,87% 1%,94% 0,100% 1%,100% 99%,95% 100%,88% 98.8%,80% 100%,72% 99%,64% 100%,56% 98.9%,48% 100%,40% 99%,32% 100%,24% 98.8%,16% 100%,8% 99%,0 100%)}
+[data-skin="news"] .done-item:nth-child(even){rotate:.7deg}
+[data-skin="news"] .done-item .art{width:100%}
+[data-skin="news"] .done-item .title{font-family:var(--f-news);font-weight:700;font-size:1.05rem;text-decoration:none}
+[data-skin="news"] .done-item .stamp{color:var(--news-red);font-family:var(--f-body);font-weight:800}
+[data-skin="news"] .done-acts{flex-wrap:wrap}
+[data-skin="news"] .toast{border-radius:0;background:#1B1814;color:#F3EEE2;box-shadow:none}
+[data-skin="news"] .toast button{text-decoration-color:var(--news-red)}
+[data-skin="news"] .foot{border-top:3px double #1B1814;padding-top:1rem}
+[data-skin="news"] .foot .label{font-family:Georgia,serif;font-style:italic;color:#5B5246}
+[data-skin="news"] .dlg,[data-skin="news"] .install{border:1px solid #1B1814;border-radius:0;background:#F4EEDF;color:#1B1814;box-shadow:6px 6px 0 rgba(0,0,0,.12)}
+[data-skin="news"] .dlg h2{font-family:var(--f-news);font-weight:700}
+[data-skin="news"] .photo-preview .art{width:100%}
 
 /* photos on posters: our own, or Google Maps' with its credit */
 .poster-img{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover}
@@ -1604,7 +1634,12 @@ a.btn{text-decoration:none}
     if (pickedId === id) pickedId = null;
     render();
     if (!(await remote("delete", l, id))) { resync(l); return; }
-    toast(`Removed “${it.title}”.`, "Undo", () => restore(l, id, body));
+    const photo = photos.own.get(id);
+    if (photo) { photos.own.delete(id); photoRemote(() => backend.remove("photos", id)); }
+    toast(`Removed “${it.title}”.`, "Undo", () => {
+      restore(l, id, body);
+      if (photo) { photos.own.set(id, photo); render(); photoRemote(() => backend.set("photos", id, { data: photo, at: Date.now(), by: getMe() })); }
+    });
   }
   async function restore(l, id, body) {
     if (find(l, id)) return;
@@ -1618,7 +1653,8 @@ a.btn{text-decoration:none}
     if (!it) return;
     if (pickedId === id) pickedId = null;
     patch(l, id, { done: true, doneAt: Date.now() });
-    toast(`${LISTS[l].doneLabel}: “${it.title}”.`, "Undo", () => patch(l, id, { done: false, doneAt: null }));
+    if (l === "dishes" && writable) toast(`Cooked: “${it.title}”. Got a picture of it?`, "Add a photo", () => openPhotoSheet(id, false, "dish"));
+    else toast(`${LISTS[l].doneLabel}: “${it.title}”.`, "Undo", () => patch(l, id, { done: false, doneAt: null }));
   }
 
   // Ranks are fractional so a move rewrites one document, not the whole list.
@@ -1768,7 +1804,7 @@ a.btn{text-decoration:none}
     li.append(rank);
 
     const body = el("div", "body");
-    body.append(artEl(it));
+    body.append(artEl(it, current));
     const title = el("div", "title");
     title.append(el("span", "title-text", it.title));
     if (pickedId === it.id) title.append(el("span", "sticker", cfg.picked));
@@ -1802,19 +1838,27 @@ a.btn{text-decoration:none}
   }
 
   // Generated art for the app looks (hidden in the zine): a film still for Films (MUBI) and an overhead
-  // plate for Dishes (NYT Cooking), palette and composition picked from the title. Decorative only.
+  // plate for Dishes (the newspaper), palette and composition picked from the title, or for a dish we
+  // cooked, our own photo of it, printed in halftone. Decorative only.
   const STILL_INKS = [["#0C2A3A", "#E08A3C"], ["#1B1B1B", "#C9C2B0"], ["#2A0B0B", "#D6452B"], ["#06202A", "#4FB3A5"],
     ["#1A1430", "#8F7BE8"], ["#2B2010", "#E7C36A"], ["#0D1B14", "#7DBB86"], ["#301018", "#F0A3B5"]];
   const PLATE_INKS = [["#C2512F", "#F2C14E", "#6A8F3C"], ["#8C2F39", "#F4A259", "#5B8E7D"], ["#D97D2B", "#FFF1D0", "#3A5A40"],
     ["#B5442E", "#E9D8A6", "#94A35B"], ["#7A3B2E", "#E3B23C", "#386641"], ["#C75146", "#F4E285", "#5C7A3A"]];
-  function artEl(it) {
+  function artEl(it, list) {
     const h = hashStr(it.title.toLowerCase());
     const [a1, a2] = STILL_INKS[h % STILL_INKS.length], [f1, f2, f3] = PLATE_INKS[(h >>> 4) % PLATE_INKS.length];
     const a = el("span", "art");
     a.setAttribute("aria-hidden", "true");
     for (const [k, v] of [["--a1", a1], ["--a2", a2], ["--f1", f1], ["--f2", f2], ["--f3", f3], ["--ax", 20 + (h >>> 8) % 60 + "%"], ["--ay", 25 + (h >>> 14) % 50 + "%"]]) a.style.setProperty(k, v);
     a.dataset.k = String((h >>> 20) % 4);
-    a.append(el("i"));
+    const frame = el("i"), photo = list === "dishes" && photos.own.get(it.id);
+    if (photo) {
+      const img = el("img", "art-photo");
+      img.alt = ""; img.decoding = "async"; img.loading = "lazy"; img.src = photo;
+      frame.append(img);
+      a.classList.add("has-photo");
+    }
+    a.append(frame);
     return a;
   }
 
@@ -1893,7 +1937,7 @@ a.btn{text-decoration:none}
       const key = current + ":" + it.id;
       keep.add(key);
       const wantEditor = writable && editing === it.id;
-      const sig = JSON.stringify([it.title, it.note, it.link, it.addedBy, i, items.length, writable, mode, pickedId === it.id]);
+      const sig = JSON.stringify([it.title, it.note, it.link, it.addedBy, i, items.length, writable, mode, pickedId === it.id, current === "dishes" && ownPhotoSig(it.id)]);
       let rec = rowEls.get(key);
       if (!rec || rec.editor !== wantEditor || (!wantEditor && rec.sig !== sig)) {
         const fresh = wantEditor ? buildEditor(it) : buildRow(it, i, items.length);
@@ -1922,6 +1966,7 @@ a.btn{text-decoration:none}
     for (const it of items) {
       const li = el("li", "done-item");
       li.dataset.id = it.id;
+      if (current === "dishes") li.append(artEl(it, "dishes"));
       const body = el("div", "body");
       body.append(el("div", "title", it.title));
       const meta = el("div", "done-meta");
@@ -1935,6 +1980,13 @@ a.btn{text-decoration:none}
         back.type = "button";
         back.dataset.act = "back";
         back.setAttribute("aria-label", `Put “${it.title}” back on the list`);
+        if (current === "dishes") {
+          const ph = el("button", "btn btn-sm", photos.own.has(it.id) ? "Change photo" : "Add a photo");
+          ph.type = "button";
+          ph.dataset.act = "photo";
+          ph.setAttribute("aria-label", `${photos.own.has(it.id) ? "Change the photo of" : "Add a photo of"} “${it.title}”`);
+          acts.append(ph);
+        }
         acts.append(back, iconBtn("remove", ICON.x, "Remove for good"));
         li.append(acts);
       }
@@ -3086,6 +3138,7 @@ a.btn{text-decoration:none}
     return g && g !== "pending" ? { src: g.url, google: g } : { want: gid };
   }
   const photoSig = id => { const p = findPlace(id), ph = p && posterPhoto(p); return ph ? (ph.src ? ph.src.length + ph.src.slice(-16) : "w") : ""; };
+  const ownPhotoSig = id => { const o = photos.own.get(id); return o ? o.length + o.slice(-16) : ""; };
   function photoCredit(p) {
     const ph = posterPhoto(p);
     if (!ph || !ph.google) return null;
@@ -3100,14 +3153,16 @@ a.btn{text-decoration:none}
     return c;
   }
 
-  function openPhotoSheet(id, fromStrip) {
-    if (!findPlace(id)) return;
-    photos.sheet = { id, fromStrip };
+  // The photo sheet serves a restaurant poster (kind "place") or a dish we cooked (kind "dish").
+  function openPhotoSheet(id, fromStrip, kind = "place") {
+    if (kind === "place" ? !findPlace(id) : !find("dishes", id)) return;
+    photos.sheet = { id, fromStrip, kind };
     paintPhotoSheet();
     const d = $("#photo-sheet");
     if (!d.open) d.showModal();
   }
   function paintPhotoSheet() {
+    if (photos.sheet && photos.sheet.kind === "dish") return paintDishSheet();
     const sh = photos.sheet, p = sh && findPlace(sh.id), d = $("#photo-sheet");
     if (!p) { if (d.open) d.close(); return; }
     const ph = posterPhoto(p), own = photos.own.has(p.id), can = writable && !rest.blocked && !photos.blocked;
@@ -3127,6 +3182,23 @@ a.btn{text-decoration:none}
     $("#photo-google-off").hidden = !can || own || !(ph && ph.google);
     $("#photo-goto").hidden = !sh.fromStrip;
   }
+  function paintDishSheet() {
+    const sh = photos.sheet, it = find("dishes", sh.id), d = $("#photo-sheet");
+    if (!it) { if (d.open) d.close(); return; }
+    const own = photos.own.has(it.id), can = writable && !photos.blocked;
+    $("#photo-title").textContent = it.title;
+    const prev = $("#photo-preview");
+    prev.textContent = "";
+    prev.append(artEl(it, "dishes"));
+    $("#photo-note").textContent = own ? "Your photo is printed on the page." : photos.blocked ? PHOTO_RULES : !writable ? "This list is view-only." : "Add a photo of what you cooked.";
+    $("#photo-camera").hidden = !can || !matchMedia("(pointer: coarse)").matches;
+    $("#photo-pick").hidden = !can;
+    $("#photo-pick").textContent = own ? "Choose a different photo" : "Choose a photo";
+    $("#photo-pick").classList.toggle("btn-acc", $("#photo-camera").hidden);
+    $("#photo-remove").hidden = !can || !own;
+    $("#photo-google-off").hidden = true;
+    $("#photo-goto").hidden = true;
+  }
   function wirePhotos() {
     $("#photo-camera").addEventListener("click", () => $("#photo-camera-in").click());
     $("#photo-pick").addEventListener("click", () => $("#photo-pick-in").click());
@@ -3137,7 +3209,7 @@ a.btn{text-decoration:none}
       let data;
       try { data = await photoFromFile(f); }
       catch { toast("That photo couldn't be read. Try another one."); return; }
-      if (await setOwnPhoto(sh.id, data)) { if ($("#photo-sheet").open) $("#photo-sheet").close(); toast("Photo added to the poster."); }
+      if (await setOwnPhoto(sh.id, data)) { if ($("#photo-sheet").open) $("#photo-sheet").close(); toast(sh.kind === "dish" ? "Photo printed on the page." : "Photo added to the poster."); }
       else paintPhotoSheet();
     });
     $("#photo-remove").addEventListener("click", async () => { const sh = photos.sheet; if (sh) { await removeOwnPhoto(sh.id); paintPhotoSheet(); } });
@@ -3466,17 +3538,17 @@ a.btn{text-decoration:none}
 
   /* ---------- the pixel shuffle between the zine and the restaurant log ---------- */
 
-  // Each tab wears the look of a famous app of its kind: Films MUBI, Dishes NYT Cooking, Restaurants
-  // Letterboxd; Together keeps the riso zine. The browser's bar colour follows along.
-  const SKIN = { films: "mubi", dishes: "nyt", together: "zine", restaurants: "lb" };
-  const SKIN_BAR = { mubi: "#000000", nyt: "#FAF8F3", lb: "#14101C" };
+  // Each tab wears its own look: Films MUBI, Dishes a printed newspaper, Restaurants Letterboxd;
+  // Together keeps the riso zine. The browser's bar colour follows along.
+  const SKIN = { films: "mubi", dishes: "news", together: "zine", restaurants: "lb" };
+  const SKIN_BAR = { mubi: "#000000", news: "#ECE4D1", lb: "#14101C" };
   const THEME_METAS = [...document.querySelectorAll('meta[name="theme-color"]')].map(m => [m, m.content]);
   function applySkin() {
     const skin = SKIN[current] || "zine", app = skin !== "zine";
     if (document.documentElement.dataset.skin !== skin) {
       document.documentElement.dataset.skin = skin;
       for (const [m, c] of THEME_METAS) m.content = SKIN_BAR[skin] || c;
-      if (skin === "nyt") $(".logo").dataset.date = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(new Date());
+      if (skin === "news") $(".logo").dataset.date = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(new Date());
     }
     if (app) {   // on a narrow phone the nav scrolls sideways: keep the open tab in view
       const nav = $(".tabs"), over = $("#tab-" + current).getBoundingClientRect().right - nav.getBoundingClientRect().right;
@@ -3679,6 +3751,7 @@ a.btn{text-decoration:none}
   function wire() {
     document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => setTab(t.dataset.list)));
     $(".tabs").addEventListener("keydown", e => {
+      if (shuffle && ["ArrowRight", "ArrowLeft", "Home", "End"].includes(e.key)) shuffle.finish();   // step from the tab just picked
       const i = TABS.indexOf(current), n = TABS.length;
       const next = { ArrowRight: TABS[(i + 1) % n], ArrowLeft: TABS[(i + n - 1) % n], Home: TABS[0], End: TABS[n - 1] }[e.key];
       if (next) { e.preventDefault(); setTab(next, true); }
@@ -3732,6 +3805,7 @@ a.btn{text-decoration:none}
       const id = b.closest("[data-id]").dataset.id;
       if (b.dataset.act === "back") patch(current, id, { done: false, doneAt: null });
       else if (b.dataset.act === "remove") removeItem(current, id);
+      else if (b.dataset.act === "photo") openPhotoSheet(id, false, "dish");
     });
 
     $("#toast-act").addEventListener("click", () => {

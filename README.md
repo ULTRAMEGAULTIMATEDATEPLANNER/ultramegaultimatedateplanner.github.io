@@ -14,7 +14,8 @@ A shared, ranked list for two: films to watch, dishes to cook, things to do toge
 Each tab dresses like a famous app of its kind, with the zine's grain, specks, tape and halftone kept as a mixed-media layer:
 
 - **Films → MUBI.** Black and white, uppercase type in two weights, one cobalt-blue accent, square corners. Every film gets a generated "still" (a duotone frame with grain and vignette, picked from its title); #1 is the hero, in a strip of film with sprocket holes and "Up next" on it. Watched films become ticket stubs.
-- **Dishes → NYT Cooking.** Newsprint, a nameplate masthead with today's date, serif headlines, red for the important bits. Every dish gets a generated overhead plate printed in halftone; #1 is the feature, with a red-pen circle and a strip of tape. Cooked dishes get a red stamp.
+- **Dishes → a printed newspaper.** Yellowed newsprint with grain and a centre fold, a blackletter nameplate with the motto "All the Dishes That Are Fit to Cook" and an edition line with today's date, serif headlines with italic decks, rules between stories, and the add form as a clip-out coupon. Every dish gets a generated overhead plate printed in halftone; #1 is the lead story, with a red-pencil circle, a drop cap and a strip of tape. Cooked dishes become clippings with a red COOKED stamp.
+- **A photo of what you cooked.** After "Cooked it", the message offers **Add a photo** (also on each clipping: **Add a photo** / **Change photo**). The photo is taken or chosen on the phone, made into the same small JPEG as restaurant photos, stored in the same place (`clubs/{club}/photos/{dishId}`, so no new database rules), and printed on the page in black-and-white halftone. Removing the dish for good removes its photo; Undo brings both back.
 - **Together → the riso zine** (the original look).
 - **Restaurants → Letterboxd** (below).
 
