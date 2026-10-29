@@ -97,3 +97,10 @@ What was built from it:
 - **The map:** Leaflet 1.9.4 with leaflet-gesture-handling 1.2.2 (pinned, with SRI), on OpenStreetMap tiles printed as grey ink on paper (inverted in dark mode). CARTO was the original plan, but it now watermarks keyless requests and the brief rules out keys. It opens on the Netherlands, has "Fit our pins", and SVG drop pins with ticket-style popups built from DOM nodes. On phones one finger always scrolls the page and two fingers move the map. With no connection the map says so and the list keeps working.
 - **Data and rules:** `clubs/{club}/restaurants/{place}` and `clubs/{club}/meta/people`, with `validPlace`/`validPeople` in `firestore.rules`. Existing rules are unchanged. Without Firebase, data lives in `someday-club:restaurants:v1` / `someday-club:people:v1`.
 
+### Follow-up: find the restaurant by name
+
+> What if you make it so I can look up the exact restaurant directly there, without having to add the Google Maps link?
+
+- The name box became a search (an ARIA combobox): from three letters, after a 300 ms pause, it asks Photon (photon.komoot.io, OpenStreetMap data, free and keyless) for restaurants, cafés, fast food, bars, pubs, ice cream, food courts and beer gardens, leaning towards the middle of the Netherlands, with Dutch places listed first. Up to six results show name, type and address, as text only.
+- Picking one fills in the name and city (`'s-Gravenhage` becomes Den Haag), pins the exact spot and stores a Google Maps search link for its name and address as `mapsUrl`, so the card's "Open in Google Maps" lands on that place. No Google API is called, and the data model and rules are unchanged.
+- A pasted link with coordinates still wins; a short link keeps the picked spot. Enter without picking adds by name, as before. Arrow keys, Enter and Escape work; a tap elsewhere closes the list, but putting the phone keyboard away doesn't. Answers that arrive late are dropped, results are remembered for the session, and offline or failed searches say so while adding by name keeps working.

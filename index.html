@@ -274,6 +274,20 @@ textarea.input{min-height:5.5rem;resize:vertical;line-height:1.4}
 .pin-chip{flex:none;font-family:var(--f-type);font-size:var(--t-xs);letter-spacing:.04em;padding:.25rem .5rem;border:1.5px solid var(--ink);background:var(--acc);color:var(--on-acc);white-space:nowrap}
 .pin-chip[data-approx="true"]{background:transparent;color:var(--ink);border-style:dashed}
 .field-error{margin:0;font-size:var(--t-sm);font-weight:700;color:var(--ink)}
+.found{border:2px solid var(--ink);background:var(--paper);box-shadow:3px 3px 0 var(--ink)}
+.found-status{margin:0;padding:.6rem .8rem;font-size:var(--t-sm);font-weight:600}
+.found-status:empty{display:none}
+.found-list{list-style:none;margin:0;padding:0}
+.found-list li{display:grid;gap:.1rem;min-height:44px;padding:.5rem .8rem;cursor:pointer}
+.found-list li + li{border-top:1.5px dotted color-mix(in srgb,var(--ink) 38%,transparent)}
+.found-list li:hover{background:color-mix(in srgb,var(--acc) 22%,var(--paper))}
+.found-list li[aria-selected="true"]{background:color-mix(in srgb,var(--acc) 40%,var(--paper));outline:3px solid var(--ink);outline-offset:-3px}
+.found-name{font-weight:800;overflow-wrap:anywhere}
+.found-where{font-family:var(--f-type);font-size:var(--t-xs);color:var(--ink-soft);overflow-wrap:anywhere}
+.found-credit{margin:0;padding:.3rem .8rem;border-top:1.5px solid var(--ink);font-family:var(--f-type);font-size:var(--t-xs);color:var(--ink-soft)}
+.picked{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.3rem .8rem;padding:.5rem .75rem;border:2px solid var(--ink);background:color-mix(in srgb,var(--acc) 18%,var(--sheet));font-size:var(--t-sm)}
+.picked-text{font-weight:600;overflow-wrap:anywhere}
+.picked-text::before{content:"✓ ";font-weight:800}
 .nopin{display:grid;gap:.55rem;padding:.7rem .8rem;border:2px dashed var(--ink);background:color-mix(in srgb,var(--acc) 10%,var(--sheet))}
 .nopin p{margin:0;font-size:var(--t-sm)}
 .nopin-acts{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center}
@@ -495,8 +509,19 @@ a.btn{text-decoration:none}
         <fieldset id="radd-fields">
           <label class="sr" for="r-name">Restaurant name</label>
           <div class="add-row">
-            <input class="input" id="r-name" maxlength="120" placeholder="Where did you eat?" enterkeyhint="done">
+            <input class="input" id="r-name" maxlength="120" placeholder="Where did you eat? Type to search" enterkeyhint="done"
+              role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="r-found">
             <button class="btn btn-acc" type="submit">Add</button>
+          </div>
+          <div class="found" id="r-found-box" hidden>
+            <p class="found-status" id="r-found-status"></p>
+            <ul class="found-list" id="r-found" role="listbox" aria-label="Restaurants found"></ul>
+            <p class="found-credit">Search: Photon · © OpenStreetMap contributors</p>
+          </div>
+          <p class="sr" id="r-found-live" role="status"></p>
+          <div class="picked" id="r-picked" hidden>
+            <span class="picked-text" id="r-picked-text"></span>
+            <button class="linkish" type="button" id="r-picked-clear">Not this one</button>
           </div>
           <div class="field">
             <label class="field-label" for="r-url">Google Maps link (optional)</label>
@@ -534,7 +559,7 @@ a.btn{text-decoration:none}
       <ol class="rlist" id="rlist" aria-label="Restaurants we've been to"></ol>
       <div class="empty" id="rempty">
         <p class="empty-title" id="rempty-title">No tables yet</p>
-        <p class="empty-body" id="rempty-body">Add the first place you two ate at. Paste its Google Maps link and it pins itself on the map below.</p>
+        <p class="empty-body" id="rempty-body">Add the first place you two ate at. Type its name, pick it from the list, and it pins itself on the map below.</p>
       </div>
 
       <section class="mapsheet" id="mapsheet" aria-labelledby="map-title">
@@ -1559,7 +1584,7 @@ a.btn{text-decoration:none}
     editing: null, reviewing: null, pendingReview: null, placing: null, blocked: false, justAdded: null
   };
   const restEls = new Map();
-  const rform = { coords: null, source: null };   // where the add form's pin came from: link, map or paste
+  const rform = { coords: null, source: null, found: null };   // where the add form's pin came from: search, link, map or paste
   let restKey = LS_REST, peopleKey = LS_PEOPLE;
   const RULES_NOTICE = "Restaurants can't be saved to the shared list yet: the database needs its updated rules. That's a one-time, two-minute step in Firebase.";
 
@@ -2024,7 +2049,7 @@ a.btn{text-decoration:none}
     const waiting = !rest.loaded && mode !== "local";
     $("#rempty").hidden = total > 0;
     $("#rempty-title").textContent = waiting ? "Fetching the list…" : "No tables yet";
-    $("#rempty-body").textContent = waiting ? "Pulling in everywhere you've been." : "Add the first place you two ate at. Paste its Google Maps link and it pins itself on the map below.";
+    $("#rempty-body").textContent = waiting ? "Pulling in everywhere you've been." : "Add the first place you two ate at. Type its name, pick it from the list, and it pins itself on the map below.";
     ensureMap().then(() => { if (mapState.status === "ready") { mapState.map.invalidateSize(); syncMarkers(); } });
   }
 
@@ -2038,11 +2063,15 @@ a.btn{text-decoration:none}
     $("#r-url-err").textContent = err || "";
     if (parsed && parsed.lat != null) { rform.coords = { lat: parsed.lat, lng: parsed.lng, approx: false }; rform.source = "link"; }
     else if (rform.source === "link") { rform.coords = null; rform.source = null; }
+    if (!rform.coords && rform.found) { rform.coords = { lat: rform.found.lat, lng: rform.found.lng, approx: false }; rform.source = "search"; }
     if (parsed && parsed.name && !$("#r-name").value.trim()) $("#r-name").value = parsed.name;
+    const f = rform.found;
+    $("#r-picked").hidden = !f;
+    $("#r-picked-text").textContent = f ? "On the map: " + [f.name, f.where].filter(Boolean).join(" · ") : "";
     let shown = rform.coords, cityHit = null;
     if (!shown) { cityHit = cityCoords($("#r-city").value); if (cityHit) shown = { lat: cityHit.lat, lng: cityHit.lng, approx: true }; }
     const chip = $("#r-pinned");
-    chip.hidden = !shown;
+    chip.hidden = !shown || rform.source === "search";
     chip.dataset.approx = String(!!(shown && shown.approx));
     chip.textContent = !shown ? "" : shown.approx ? `Pinned to ${cityHit.city} centre` : "Pinned ✓";
     $("#r-help").hidden = !(urlText && !err && !rform.coords);
@@ -2053,7 +2082,8 @@ a.btn{text-decoration:none}
     $("#r-date").value = todayISO();
     $("#r-coords-field").hidden = true;
     $("#r-coords-toggle").setAttribute("aria-expanded", "false");
-    rform.coords = null; rform.source = null;
+    rform.coords = null; rform.source = null; rform.found = null;
+    closeFinder();
     refreshAddForm();
   }
   async function submitPlace(e) {
@@ -2064,7 +2094,7 @@ a.btn{text-decoration:none}
     const urlText = $("#r-url").value.trim();
     const parsed = urlText ? parseMapsLink(urlText) : null;
     if (parsed && parsed.error) { toast(parsed.error); $("#r-url").focus(); return; }
-    const mapsUrl = urlText ? mapsUrlOk(urlText) : "";
+    const mapsUrl = urlText ? mapsUrlOk(urlText) : rform.found ? rform.found.mapsUrl : "";
     if (urlText && !mapsUrl) { toast("That link is too long. Copy the place's link again from Google Maps."); $("#r-url").focus(); return; }
     const city = $("#r-city").value.trim().slice(0, 60);
     let c = rform.coords;
@@ -2079,6 +2109,146 @@ a.btn{text-decoration:none}
     $("#r-name").focus();
     const id = await addPlace(body);
     if (id && !c) toast(`Added “${name}”. It has no pin yet: tap “Place on map” on its card.`);
+  }
+
+  /* ---------- restaurants: finding a place by name ---------- */
+
+  // Free, keyless search of OpenStreetMap's eating places through Photon (photon.komoot.io): what's
+  // typed in the name box is sent there. Results are untrusted and only ever rendered as text.
+  const PHOTON = "https://photon.komoot.io/api/";
+  const FOOD_TAGS = { restaurant: "Restaurant", cafe: "Café", fast_food: "Fast food", bar: "Bar", pub: "Pub", ice_cream: "Ice cream", food_court: "Food court", biergarten: "Beer garden" };
+  const finder = { seq: 0, timer: 0, ctrl: null, results: [], active: -1, cache: new Map() };
+
+  function placeFromPhoton(feat) {
+    const p = feat && feat.properties, g = feat && feat.geometry;
+    if (!p || !g || !Array.isArray(g.coordinates)) return null;
+    const [lng, lat] = g.coordinates;
+    if (typeof lat !== "number" || typeof lng !== "number" || !isFinite(lat) || !isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null;
+    const name = str(p.name, 120).trim();
+    if (!name) return null;
+    const street = (str(p.street, 80) + " " + str(p.housenumber, 12)).trim();
+    const rawCity = str(p.city, 60) || str(p.town, 60) || str(p.village, 60) || str(p.locality, 60);
+    const cc = cityCoords(rawCity);
+    const city = cc ? cc.city : rawCity.trim();
+    const nl = p.countrycode === "NL";
+    const abroad = nl ? "" : str(p.country, 40);
+    const where = [street, city, abroad].filter(Boolean).join(", ");
+    const search = q => mapsUrlOk("https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q));
+    return {
+      name, where, city, nl, kind: FOOD_TAGS[p.osm_value] || "",
+      lat: round6(lat), lng: round6(lng),
+      mapsUrl: search([name, where].filter(Boolean).join(", ")) || search(name)
+    };
+  }
+  async function findPlaces(q) {
+    const key = q.toLowerCase();
+    if (finder.cache.has(key)) return finder.cache.get(key);
+    if (navigator.onLine === false) throw new Error("offline");
+    if (finder.ctrl) finder.ctrl.abort();
+    const ctrl = finder.ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const u = new URL(PHOTON);
+    // Leaning towards the middle of the Netherlands, but places abroad still turn up.
+    for (const [k, v] of [["q", q], ["limit", "10"], ["lang", "default"], ["lat", "52.2"], ["lon", "5.3"], ["zoom", "7"]]) u.searchParams.set(k, v);
+    for (const k of Object.keys(FOOD_TAGS)) u.searchParams.append("osm_tag", "amenity:" + k);
+    try {
+      const res = await fetch(u, { signal: ctrl.signal, credentials: "omit" });
+      if (!res.ok) throw new Error("search " + res.status);
+      const json = await res.json();
+      const seen = new Set();
+      const list = (json && Array.isArray(json.features) ? json.features : []).map(placeFromPhoton)
+        .filter(r => r && !seen.has(r.name + "|" + r.where) && seen.add(r.name + "|" + r.where))
+        .sort((a, b) => b.nl - a.nl)   // stable: Dutch places first, otherwise in Photon's order
+        .slice(0, 6);
+      if (finder.cache.size >= 40) finder.cache.delete(finder.cache.keys().next().value);
+      finder.cache.set(key, list);
+      return list;
+    } finally {
+      clearTimeout(t);
+      if (finder.ctrl === ctrl) finder.ctrl = null;
+    }
+  }
+  function showFinder(msg, list) {
+    finder.results = list; finder.active = -1;
+    const input = $("#r-name"), ul = $("#r-found");
+    ul.replaceChildren(...list.map((r, i) => {
+      const li = el("li");
+      li.id = "r-opt-" + i;
+      li.dataset.i = i;
+      li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", "false");
+      li.append(el("span", "found-name", r.name), el("span", "found-where", [r.kind, r.where].filter(Boolean).join(" · ")));
+      return li;
+    }));
+    ul.hidden = !list.length;
+    $("#r-found-status").textContent = msg;
+    $("#r-found-box").hidden = false;
+    input.setAttribute("aria-expanded", String(list.length > 0));
+    input.removeAttribute("aria-activedescendant");
+  }
+  function closeFinder() {
+    finder.seq++;   // an answer still on its way is dropped
+    clearTimeout(finder.timer);
+    finder.results = []; finder.active = -1;
+    $("#r-found").replaceChildren();
+    $("#r-found-box").hidden = true;
+    $("#r-name").setAttribute("aria-expanded", "false");
+    $("#r-name").removeAttribute("aria-activedescendant");
+  }
+  async function runFind(q) {
+    const seq = ++finder.seq;
+    if (!finder.results.length) showFinder("Searching…", []);
+    let list;
+    try { list = await findPlaces(q); }
+    catch {
+      if (seq !== finder.seq) return;
+      showFinder(navigator.onLine === false ? "Search needs a connection. You can still add it by name."
+        : "Search isn't answering right now. You can still add it by name, or paste its Google Maps link.", []);
+      return;
+    }
+    if (seq !== finder.seq || $("#r-name").value.trim() !== q) return;
+    showFinder(list.length ? "" : `No restaurant called “${q}” found. Add it by name, or paste its Google Maps link.`, list);
+    $("#r-found-live").textContent = list.length ? `${list.length} found. Use the arrow keys to choose.` : "Nothing found.";
+  }
+  function onNameInput() {
+    const q = $("#r-name").value.trim();
+    if (rform.found && q !== rform.found.name) clearPick();
+    clearTimeout(finder.timer);
+    if (q.length < 3 || rform.found) { closeFinder(); return; }
+    finder.timer = setTimeout(() => runFind(q), 300);
+  }
+  function setActive(i) {
+    finder.active = i;
+    $("#r-found").querySelectorAll("li").forEach((li, j) => li.setAttribute("aria-selected", String(j === i)));
+    const li = $("#r-opt-" + i);
+    if (li) { $("#r-name").setAttribute("aria-activedescendant", li.id); li.scrollIntoView({ block: "nearest" }); }
+  }
+  function onNameKey(e) {
+    if (e.isComposing) return;
+    const n = finder.results.length, open = !$("#r-found-box").hidden;
+    if (e.key === "ArrowDown" && n) { e.preventDefault(); setActive((finder.active + 1) % n); }
+    else if (e.key === "ArrowUp" && n) { e.preventDefault(); setActive(finder.active <= 0 ? n - 1 : finder.active - 1); }
+    else if (e.key === "Enter" && n && finder.active >= 0) { e.preventDefault(); pickFound(finder.active); }
+    else if (e.key === "Escape" && open) { e.preventDefault(); e.stopPropagation(); closeFinder(); }
+  }
+  function pickFound(i) {
+    const r = finder.results[i];
+    if (!r) return;
+    rform.found = r;
+    if (rform.source !== "link") { rform.coords = { lat: r.lat, lng: r.lng, approx: false }; rform.source = "search"; }
+    $("#r-name").value = r.name;
+    if (r.city) $("#r-city").value = r.city;
+    closeFinder();
+    refreshAddForm();
+    $("#r-found-live").textContent = `Picked ${r.name}${r.where ? ", " + r.where : ""}. Press Add to save it.`;
+  }
+  function clearPick() {
+    const f = rform.found;
+    if (!f) return;
+    if (f.city && $("#r-city").value === f.city) $("#r-city").value = "";
+    rform.found = null;
+    if (rform.source === "search") { rform.coords = null; rform.source = null; }
+    refreshAddForm();
   }
 
   /* ---------- restaurants: who's who ---------- */
@@ -2260,7 +2430,7 @@ a.btn{text-decoration:none}
   function fitPins() {
     if (mapState.status !== "ready") { ensureMap(); return; }
     const pts = rest.items.filter(p => p.lat != null).map(p => [p.lat, p.lng]);
-    if (!pts.length) { mapState.map.fitBounds(NL_BOUNDS); toast("No pins yet. Add a place with its Google Maps link."); return; }
+    if (!pts.length) { mapState.map.fitBounds(NL_BOUNDS); toast("No pins yet. Add a place by searching for its name."); return; }
     mapState.map.fitBounds(L.latLngBounds(pts).pad(0.15), { maxZoom: 14 });
   }
   function scrollToMap() { $("#mapsheet").scrollIntoView({ block: "center", behavior: reducedMotion() ? "auto" : "smooth" }); }
@@ -2326,6 +2496,26 @@ a.btn{text-decoration:none}
     try { const s = localStorage.getItem(LS_RSORT); if (["latest", "best", "az"].includes(s)) rest.sort = s; } catch {}
     $("#r-date").value = todayISO();
     $("#radd").addEventListener("submit", submitPlace);
+    $("#r-name").addEventListener("input", onNameInput);
+    $("#r-name").addEventListener("keydown", onNameKey);
+    $("#r-name").addEventListener("focus", () => {
+      const q = $("#r-name").value.trim();
+      if (q.length >= 3 && !rform.found && $("#r-found-box").hidden) runFind(q);
+    });
+    // The list stays open when the phone keyboard is put away (that blurs the box on iPhone), and
+    // closes on a tap or focus anywhere else. Pressing on it never takes focus from the name box.
+    const inFinder = t => t instanceof Node && (t === $("#r-name") || $("#r-found-box").contains(t) || $("#r-picked").contains(t));
+    // (A search still waiting to start is dropped too, so the list never pops up after moving on.)
+    document.addEventListener("click", e => { if (!inFinder(e.target)) closeFinder(); });
+    document.addEventListener("focusin", e => { if (!inFinder(e.target)) closeFinder(); });
+    $("#r-found-box").addEventListener("mousedown", e => e.preventDefault());
+    $("#r-found").addEventListener("click", e => { const li = e.target.closest("li[data-i]"); if (li) pickFound(+li.dataset.i); });
+    $("#r-picked-clear").addEventListener("click", () => {
+      clearPick();
+      $("#r-name").focus();   // searches again for the name in the box
+      const q = $("#r-name").value.trim();
+      if (q.length >= 3 && $("#r-found-box").hidden) runFind(q);
+    });
     $("#r-url").addEventListener("input", refreshAddForm);
     $("#r-city").addEventListener("input", refreshAddForm);
     $("#r-tap").addEventListener("click", () => startPlacing({ kind: "form" }));
