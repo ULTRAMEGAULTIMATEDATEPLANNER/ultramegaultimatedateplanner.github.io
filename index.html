@@ -16,7 +16,7 @@
 <meta name="theme-color" content="#111014" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Dela+Gothic+One&family=Special+Elite&display=swap">
+<link rel="stylesheet" crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Dela+Gothic+One&family=Source+Serif+4:opsz,wght@8..60,600..700&family=Special+Elite&display=swap">
 <style>
 /* Layout: a riso-printed zine for two. Poster masthead, four tabs (one spot ink each), one taped-down sheet holding the ranked list (or, on Restaurants, the log of places and a printed map), a stamped "done" pile underneath. */
 :root{
@@ -397,6 +397,232 @@ a.btn{text-decoration:none}
 .ticket-acts{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.15rem;padding-top:.55rem;border-top:2px dotted color-mix(in srgb,var(--ink) 40%,transparent)}
 .map .ticket a.btn{color:var(--ink)}
 
+/* ===== Restaurants: a Letterboxd-style log in purple and green =====
+   While the Restaurants tab is open the whole page wears this skin (html[data-skin="lb"]): a dark
+   purple film-diary look with green stars, generated "posters" for each place, profile stats and a
+   ratings histogram. The other three tabs keep the riso zine. A pixel shuffle plays between the two. */
+:root[data-skin="lb"]{
+  --lb-bg:#14101C; --lb-bg2:#1D1729; --lb-bg3:#2A2140; --lb-line:#3A2F52; --lb-text:#AB9EC8; --lb-strong:#ECE6FA; --lb-dim:#81739F;
+  --lb-purple:#A77BFF; --lb-green:#00E054; --lb-green-btn:#00C853;
+  --paper:var(--lb-bg); --sheet:var(--lb-bg2); --ink:var(--lb-strong); --ink-soft:var(--lb-text); --on-ink:var(--lb-bg); --on-acc:#0A0712;
+  --blue:var(--lb-purple); --tape:transparent; --plate-blend:normal; --tile-blend:normal;
+  --tile-filter:grayscale(1) invert(1) sepia(.5) hue-rotate(218deg) saturate(2.3) brightness(.66) contrast(1.12);
+  --f-serif:"Source Serif 4",Georgia,"Times New Roman",serif;
+  color-scheme:dark;
+}
+[data-skin="lb"] body{--acc:var(--lb-green);background:var(--lb-bg);color:var(--lb-text)}
+[data-skin="lb"] :focus-visible{outline:2px solid var(--lb-purple);outline-offset:2px}
+[data-skin="lb"] .grain,[data-skin="lb"] .specks,[data-skin="lb"] .reg,[data-skin="lb"] .perf,[data-skin="lb"] .inks,
+[data-skin="lb"] .mast-sub,[data-skin="lb"] .mast-top>.label,[data-skin="lb"] .logo .plate-acc,[data-skin="lb"] .mast::before{display:none}
+[data-skin="lb"] .label{font-family:var(--f-body);letter-spacing:.01em;color:var(--lb-text)}
+
+/* header: logo dots + wordmark, tools on the right, the four tabs as the site nav */
+[data-skin="lb"] .wrap{max-width:62rem;padding-block:0 40px}
+[data-skin="lb"] .mast{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.5rem 1rem;padding-block:16px 10px}
+[data-skin="lb"] .mast-top{display:contents}
+[data-skin="lb"] .logo{order:-1;margin:0;display:flex;align-items:center;gap:.55rem;filter:none;font-family:var(--f-body);font-weight:800;font-stretch:100%;
+  text-transform:none;font-size:clamp(.98rem,3.4vw,1.15rem);line-height:1.15;letter-spacing:-.01em;color:#fff}
+[data-skin="lb"] .logo::before{content:"";flex:none;width:36px;height:13px;
+  background:radial-gradient(circle at 6.5px 6.5px,#7C4DFF 6px,transparent 6.5px),radial-gradient(circle at 18px 6.5px,#00E054 6px,transparent 6.5px),radial-gradient(circle at 29.5px 6.5px,#C9A8FF 6px,transparent 6.5px)}
+[data-skin="lb"] .logo .plate{grid-area:auto;-webkit-mask-image:none;mask-image:none}
+[data-skin="lb"] .logo .l1,[data-skin="lb"] .logo .l2,[data-skin="lb"] .logo .l3{display:inline;font-size:inherit;white-space:normal}
+[data-skin="lb"] .logo .l1::after,[data-skin="lb"] .logo .l2::after{content:" "}
+[data-skin="lb"] .mast-tools{gap:.35rem .5rem}
+[data-skin="lb"] .mast-tools .btn{min-height:32px;padding:.4rem .55rem;font-size:.64rem;letter-spacing:.04em}
+[data-skin="lb"] .sync{border:0;background:none;padding:0;color:var(--lb-text);font-family:var(--f-body);font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+[data-skin="lb"] .tabs{display:flex;flex-wrap:nowrap;gap:0 clamp(.75rem,3.2vw,1.6rem);overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--lb-line)}
+[data-skin="lb"] .tabs::-webkit-scrollbar{display:none}
+@media (max-width:420px){[data-skin="lb"] .tab:not([aria-selected="true"]) .tab-count{display:none}}
+[data-skin="lb"] .tab{flex:none;display:inline-flex;align-items:center;gap:.35rem;min-height:42px;padding:0;border:0;background:none;color:var(--lb-text);box-shadow:none;transform:none}
+[data-skin="lb"] .tab:hover{background:none;color:#fff}
+[data-skin="lb"] .tab[aria-selected="true"]{background:none;color:#fff;box-shadow:inset 0 -2px 0 var(--lb-green);transform:none}
+[data-skin="lb"] .tab[aria-selected="true"]::after{display:none}
+[data-skin="lb"] .tab-name{font-family:var(--f-body);font-weight:700;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;-webkit-mask-image:none!important;mask-image:none!important}
+@media (min-width:560px){[data-skin="lb"] .tab-name{font-size:.78rem;letter-spacing:.1em}}
+[data-skin="lb"] .tab-foot{display:contents}
+[data-skin="lb"] .tab-sub{display:none}
+[data-skin="lb"] .tab-count,[data-skin="lb"] .tab[aria-selected="true"] .tab-count{min-width:0;padding:0;border:0;background:none;color:var(--lb-dim);font-size:.72rem;font-weight:600}
+[data-skin="lb"] .tab[aria-selected="true"] .tab-count{color:var(--lb-green)}
+[data-skin="lb"] .sheet{margin-top:0;padding:clamp(20px,3vw,30px) 0 0;background:none;border:0;box-shadow:none}
+[data-skin="lb"] .sheet::before,[data-skin="lb"] .sheet::after{display:none}
+[data-skin="lb"] .foot{margin-top:2.4rem;padding-top:1rem;border-top:1px solid var(--lb-line)}
+[data-skin="lb"] .foot .label{font-size:.75rem;color:var(--lb-dim)}
+
+/* controls */
+[data-skin="lb"] .btn{min-height:36px;padding:.55rem .9rem;border:0;border-radius:3px;box-shadow:none;background:var(--lb-line);color:var(--lb-strong);
+  font-stretch:100%;font-weight:700;font-size:.72rem;letter-spacing:.08em}
+[data-skin="lb"] .btn:hover{background:#4A3D68;color:#fff}
+[data-skin="lb"] .btn:active{transform:translateY(1px);box-shadow:none}
+[data-skin="lb"] .btn-acc{background:var(--lb-green-btn);color:#0A0712}
+[data-skin="lb"] .btn-acc:hover{background:#1FE070;color:#0A0712;filter:none}
+[data-skin="lb"] .btn-sm{padding:.45rem .7rem;font-size:.68rem}
+[data-skin="lb"] .btn:disabled{opacity:.4;cursor:default}
+[data-skin="lb"] .icon-btn{width:40px;height:40px;border:0;border-radius:3px;color:var(--lb-text)}
+[data-skin="lb"] .icon-btn:hover{background:var(--lb-bg3);color:#fff}
+[data-skin="lb"] .linkish{color:var(--lb-purple);font-weight:600;text-decoration:none}
+[data-skin="lb"] .linkish:hover{color:#C9A8FF;text-decoration:underline}
+[data-skin="lb"] .input{border:1px solid transparent;border-radius:3px;background:var(--lb-bg3);color:#fff;box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+[data-skin="lb"] .input:focus{border-color:var(--lb-purple);background:#33284D;outline:none}
+[data-skin="lb"] .input::placeholder{color:var(--lb-dim)}
+[data-skin="lb"] .field-label{font-family:var(--f-body);font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--lb-text)}
+[data-skin="lb"] .chk input{accent-color:var(--lb-green)}
+[data-skin="lb"] .toast{border-radius:6px;background:var(--lb-bg3);color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.55)}
+[data-skin="lb"] .toast button{color:var(--lb-green);text-decoration:none}
+[data-skin="lb"] .dlg,[data-skin="lb"] .install{border:1px solid var(--lb-line);border-radius:8px;background:var(--lb-bg2);color:var(--lb-strong);box-shadow:0 20px 50px rgba(0,0,0,.6)}
+[data-skin="lb"] .dlg h2,[data-skin="lb"] .install h2{font-family:var(--f-serif);font-weight:700;color:#fff}
+[data-skin="lb"] .dlg::backdrop,[data-skin="lb"] .install::backdrop{background:rgba(8,5,14,.72)}
+
+/* profile: our two avatars, the title, names and the stats row */
+.lb-h{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;margin:0 0 .8rem;padding-bottom:.4rem;border-bottom:1px solid var(--lb-line);
+  font-family:var(--f-body);font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--lb-text)}
+.lb-profile{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:1rem;margin-bottom:1.4rem;padding-bottom:1.3rem;border-bottom:1px solid var(--lb-line)}
+.lb-avatars{display:flex}
+.lb-av{display:grid;place-items:center;width:clamp(54px,13vw,76px);aspect-ratio:1;border-radius:50%;font-weight:800;font-size:clamp(1.1rem,4vw,1.5rem);color:#fff;
+  background:#5B2BB5 linear-gradient(140deg,#8A5CFF,#4B20B8);box-shadow:0 0 0 3px var(--lb-bg),inset 0 0 0 1px rgba(255,255,255,.2)}
+.lb-av + .lb-av{margin-left:-16px;background:#0B8F4E linear-gradient(140deg,#16D877,#06753F)}
+.lb-title{margin:0;font-family:var(--f-serif);font-weight:700;font-size:clamp(1.55rem,5.6vw,2.3rem);line-height:1.08;color:#fff;letter-spacing:-.01em;text-wrap:balance}
+.lb-title-sub{font-family:var(--f-body);font-weight:400;font-size:.46em;letter-spacing:.01em;color:var(--lb-text);white-space:nowrap}
+.lb-names{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .8rem;margin:.4rem 0 0;color:var(--lb-strong);font-weight:600}
+.lb-stats{grid-column:1/-1;display:flex;flex-wrap:wrap;margin:0}
+.lb-stats div{display:flex;flex-direction:column-reverse;align-items:center;padding:0 clamp(.7rem,3.2vw,1.3rem)}
+.lb-stats div:first-child{padding-left:0}
+.lb-stats div + div{border-left:1px solid var(--lb-line)}
+.lb-stats dd{margin:0;font-size:clamp(1.25rem,4.8vw,1.65rem);font-weight:700;line-height:1.15;color:#fff;font-variant-numeric:tabular-nums}
+.lb-stats dt{font-size:.62rem;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--lb-text)}
+@media (min-width:760px){.lb-profile{grid-template-columns:auto minmax(0,1fr) auto}.lb-stats{grid-column:auto;justify-content:flex-end}}
+
+/* posters: generated "film posters" for places (no images, no data from outside) */
+.poster{position:relative;isolation:isolate;container-type:inline-size;display:flex;flex-direction:column;justify-content:space-between;width:100%;aspect-ratio:2/3;
+  overflow:hidden;padding:9% 9% 10%;border-radius:4px;color:#fff;text-align:left;font-size:.8rem;
+  background:var(--p1) linear-gradient(var(--pa,160deg),var(--p1),var(--p2));box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),0 3px 9px rgba(0,0,0,.5)}
+.poster::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.2;background:radial-gradient(circle,#fff 1px,transparent 1.6px) 0 0/7px 7px}
+.poster[data-pattern="1"]::before{background:repeating-linear-gradient(135deg,#fff 0 1px,transparent 1px 9px)}
+.poster[data-pattern="2"]::before{background:repeating-radial-gradient(circle at 85% 105%,#fff 0 1px,transparent 1.5px 11px)}
+.poster-mark{position:absolute;right:-4%;bottom:-16%;z-index:-1;font-family:var(--f-serif);font-weight:700;font-size:6em;font-size:95cqi;line-height:1;opacity:.2}
+.poster-city{font-size:.6rem;font-size:max(9cqi,6px);font-weight:600;letter-spacing:.14em;text-transform:uppercase;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poster-name{margin-top:auto;font-family:var(--f-serif);font-weight:700;font-size:1rem;font-size:16cqi;line-height:1.03;overflow-wrap:anywhere;text-shadow:0 1px 8px rgba(0,0,0,.4);
+  display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+@container (max-width:80px){.poster-city{display:none}}
+
+/* recently eaten (four big posters) and the ratings histogram */
+.lb-top{display:grid;gap:1.5rem;margin-bottom:1.8rem}
+@media (min-width:760px){.lb-top{grid-template-columns:minmax(0,1fr) 15rem;gap:2rem}}
+.lb-posters{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(7px,1.8vw,14px)}
+.lb-posters li{display:grid;gap:.35rem;align-content:start}
+.lb-posters button{display:block;width:100%;padding:0;border:0;border-radius:4px;background:none;cursor:pointer}
+.lb-posters button:hover .poster,.lb-posters button:focus-visible .poster{box-shadow:inset 0 0 0 2px var(--lb-green),0 3px 9px rgba(0,0,0,.5)}
+.lb-posters button:focus-visible{outline-offset:3px}
+.lb-posters .stars{text-align:center}
+.lb-hist{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:end;gap:.45rem}
+.lb-hist-bars{display:flex;align-items:flex-end;gap:2px;height:58px}
+.lb-hist-bars span{flex:1;min-height:2px;border-radius:2px 2px 0 0;background:#463868}
+.lb-hist-bars span.is-top{background:var(--lb-purple)}
+.lb-hist-end{font-size:.72rem;line-height:1;letter-spacing:.02em;color:var(--lb-green)}
+.lb-avg{font-family:var(--f-serif);font-weight:700;font-size:1rem;letter-spacing:0;text-transform:none;color:#fff}
+
+/* the log form */
+[data-skin="lb"] .radd{margin-bottom:1.8rem;padding:clamp(.85rem,2.6vw,1.2rem);border-radius:6px;background:var(--lb-bg2)}
+[data-skin="lb"] .radd .lb-h{border-bottom:0;padding-bottom:0;margin-bottom:.6rem}
+[data-skin="lb"] #r-name{padding-left:2.4rem;background:var(--lb-bg3) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='6.5' cy='6.5' r='5' fill='none' stroke='%23AB9EC8' stroke-width='2'/%3E%3Cpath d='M10.3 10.3 15 15' stroke='%23AB9EC8' stroke-width='2'/%3E%3C/svg%3E") no-repeat .8rem 50%/16px}
+[data-skin="lb"] .found{border:1px solid var(--lb-line);border-radius:4px;background:var(--lb-bg);box-shadow:0 10px 26px rgba(0,0,0,.5);overflow:hidden}
+[data-skin="lb"] .found-list li + li{border-top:1px solid var(--lb-line)}
+[data-skin="lb"] .found-list li:hover{background:var(--lb-bg3)}
+[data-skin="lb"] .found-list li[aria-selected="true"]{background:#382B5A;outline:2px solid var(--lb-purple);outline-offset:-2px}
+[data-skin="lb"] .found-name{font-family:var(--f-serif);font-weight:700;font-size:1.02rem;color:#fff}
+[data-skin="lb"] .found-where,[data-skin="lb"] .found-credit{font-family:var(--f-body);color:var(--lb-text)}
+[data-skin="lb"] .found-credit{border-top:1px solid var(--lb-line);font-size:.66rem}
+[data-skin="lb"] .picked{border:0;border-left:3px solid var(--lb-green);border-radius:3px;background:var(--lb-bg3);color:var(--lb-strong)}
+[data-skin="lb"] .picked-text::before{color:var(--lb-green)}
+[data-skin="lb"] .pin-chip{border:0;border-radius:999px;background:var(--lb-green);color:#0A0712;font-family:var(--f-body);font-weight:700}
+[data-skin="lb"] .pin-chip[data-approx="true"]{border:1px dashed var(--lb-dim);background:none;color:var(--lb-strong)}
+[data-skin="lb"] .nopin,[data-skin="lb"] .rest-notice{border:1px dashed var(--lb-line);border-radius:4px;background:var(--lb-bg2);color:var(--lb-strong)}
+[data-skin="lb"] .field-error{color:#FF9DB8}
+
+/* the diary of reviews */
+[data-skin="lb"] .rest-tools{margin:0;padding-bottom:.3rem;border-bottom:1px solid var(--lb-line)}
+[data-skin="lb"] #rest-count{font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+[data-skin="lb"] .seg{gap:.9rem;border:0;background:none}
+[data-skin="lb"] .seg label{min-height:36px;padding:0;font-size:.68rem;letter-spacing:.09em;color:var(--lb-dim)}
+[data-skin="lb"] .seg label + label{border-left:0}
+[data-skin="lb"] .seg label:hover{color:#fff}
+[data-skin="lb"] .seg label.is-on{background:none;color:#fff;box-shadow:inset 0 -2px 0 var(--lb-green)}
+[data-skin="lb"] .seg input:focus-visible + span{outline:2px solid var(--lb-purple);outline-offset:3px}
+[data-skin="lb"] .rcard{grid-template-columns:clamp(62px,17vw,96px) minmax(0,1fr);align-items:start;gap:0 clamp(.85rem,3vw,1.3rem);padding:1.15rem 0;background:none}
+[data-skin="lb"] .rcard + .rcard{border-top:1px solid var(--lb-line)}
+[data-skin="lb"] .rcard.is-flash{animation:lbflash 1.1s ease-out}
+@keyframes lbflash{0%{background:rgba(167,123,255,.28)}100%{background:transparent}}
+[data-skin="lb"] .rcard.is-new{animation:lbflash 1.1s ease-out}
+.rcard-body{display:grid;gap:.45rem;min-width:0}
+[data-skin="lb"] .rcard-top{gap:.25rem .6rem;align-items:baseline}
+[data-skin="lb"] .rcard-name{font-family:var(--f-serif);font-weight:700;font-stretch:100%;font-size:clamp(1.15rem,4.2vw,1.45rem);line-height:1.15;color:#fff}
+.rcard-city{font-size:.95rem;color:var(--lb-text)}
+[data-skin="lb"] .rmeta{font-size:.78rem;color:var(--lb-dim)}
+[data-skin="lb"] .medal{gap:.4rem;padding:.12rem .55rem .12rem .45rem;border:0;border-radius:999px;background:var(--lb-bg3);color:var(--lb-strong);transform:none;box-shadow:none;
+  font-family:var(--f-body);font-weight:600;font-size:.66rem;letter-spacing:.09em;align-self:center}
+[data-skin="lb"] .medal::before{content:"";width:.6rem;height:.6rem;border-radius:50%;background:var(--medal);box-shadow:0 0 0 1px rgba(255,255,255,.3)}
+[data-skin="lb"] .medal b{color:#fff}
+[data-skin="lb"] .medal[data-tier="gold"]{--medal:#E8B931;background:rgba(232,185,49,.16)}
+[data-skin="lb"] .medal[data-tier="silver"]{--medal:#C9CED6}
+[data-skin="lb"] .medal[data-tier="bronze"]{--medal:#B87333}
+[data-skin="lb"] .medal[data-tier="ash"]{--medal:#6B6460}
+[data-skin="lb"] .medal[data-tier="black"]{--medal:#121116}
+[data-skin="lb"] .medal[data-tier="unrated"]{--medal:transparent;background:none;border:1px dashed var(--lb-line);color:var(--lb-text)}
+[data-skin="lb"] .medal[data-tier="unrated"]::before{box-shadow:inset 0 0 0 2px var(--lb-purple)}
+[data-skin="lb"] .note{color:var(--lb-text);font-style:italic}
+[data-skin="lb"] .revs{grid-template-columns:minmax(0,1fr);gap:.55rem}
+[data-skin="lb"] .rev{gap:.2rem;padding:0;border:0;background:none}
+[data-skin="lb"] .rev.is-empty{color:var(--lb-dim)}
+[data-skin="lb"] .rev-head{gap:.15rem .45rem;font-size:.8rem;color:var(--lb-dim)}
+[data-skin="lb"] .rev-who{font-family:var(--f-body);font-size:.8rem;font-weight:700;letter-spacing:0;text-transform:none;color:var(--lb-strong)}
+[data-skin="lb"] .rev-text{font-size:.94rem;line-height:1.55;color:#D9D0EE}
+[data-skin="lb"] .rev.is-empty .rev-text{font-size:.82rem;color:var(--lb-dim)}
+[data-skin="lb"] .stars{font-size:.92rem;letter-spacing:.03em;color:var(--lb-green)}
+[data-skin="lb"] .racts{gap:.4rem;margin-top:.25rem}
+[data-skin="lb"] .racts .btn-sm{min-height:36px}
+[data-skin="lb"] .racts .btn:not(.btn-acc){padding-inline:.55rem;background:none;color:var(--lb-text)}
+[data-skin="lb"] .racts .btn:not(.btn-acc):hover{background:var(--lb-bg3);color:#fff}
+.rev-none{color:var(--lb-dim)}
+[data-skin="lb"] .rcard.is-editing{grid-template-columns:minmax(0,1fr);margin-block:.6rem;padding:1rem;border-radius:6px;background:var(--lb-bg2)}
+[data-skin="lb"] .rev-form{margin-top:.4rem;padding:1rem;border-radius:6px;background:var(--lb-bg2)}
+[data-skin="lb"] .star-row{gap:0}
+[data-skin="lb"] .star-row label{width:46px;height:46px;border:0;background:none;color:#4A3D68;font-size:2.1rem;transition:color .1s ease}
+[data-skin="lb"] .star-row label.is-on{background:none;color:var(--lb-green)}
+@media (hover:hover){
+  [data-skin="lb"] .star-row:hover label{color:var(--lb-green)}
+  [data-skin="lb"] .star-row label:hover ~ label{color:#4A3D68}
+}
+[data-skin="lb"] .star-row input:focus-visible + span{outline:2px solid var(--lb-purple);outline-offset:4px}
+[data-skin="lb"] .empty{justify-items:center;text-align:center;margin-top:1rem;padding:2.4rem 1rem;border:1px dashed var(--lb-line);border-radius:6px}
+[data-skin="lb"] .empty::before{display:none}
+[data-skin="lb"] .empty-title{max-width:none;filter:none;font-family:var(--f-serif);font-weight:700;text-transform:none;font-size:clamp(1.4rem,5vw,1.9rem);color:#fff}
+[data-skin="lb"] .empty-body{color:var(--lb-text)}
+
+/* the map, after dark */
+[data-skin="lb"] .mapsheet{margin-top:2.2rem;padding:0;border:0;background:none;box-shadow:none}
+[data-skin="lb"] .mapsheet::before,[data-skin="lb"] .mapsheet::after,[data-skin="lb"] .map-frame::after{display:none}
+[data-skin="lb"] .map-head{align-items:center;margin-bottom:.8rem;padding-bottom:.35rem;border-bottom:1px solid var(--lb-line)}
+[data-skin="lb"] .map-title{font-family:var(--f-body);font-size:.75rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--lb-text);text-shadow:none}
+[data-skin="lb"] .map-frame{overflow:hidden;border:1px solid var(--lb-line);border-radius:6px}
+[data-skin="lb"] .map,[data-skin="lb"] .map.leaflet-container{background:#1A1426}
+[data-skin="lb"] .map-msg{background:rgba(20,16,28,.94);color:var(--lb-strong)}
+[data-skin="lb"] .placing{border-radius:999px;background:var(--lb-bg3);color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.5)}
+[data-skin="lb"] .placing button{text-decoration:none;color:var(--lb-green)}
+[data-skin="lb"] .legend li{font-family:var(--f-body);color:var(--lb-text)}
+[data-skin="lb"] .legend b{color:#fff}
+[data-skin="lb"] .map.leaflet-container .leaflet-bar{border:1px solid var(--lb-line);border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+[data-skin="lb"] .map.leaflet-container .leaflet-bar a{background:var(--lb-bg2);color:var(--lb-strong);border-bottom:1px solid var(--lb-line)}
+[data-skin="lb"] .map.leaflet-container .leaflet-bar a:hover{background:var(--lb-bg3)}
+[data-skin="lb"] .map.leaflet-container .leaflet-control-attribution{background:rgba(20,16,28,.85);font-family:var(--f-body)}
+[data-skin="lb"] .map.leaflet-container .leaflet-control-attribution a{color:var(--lb-purple)}
+[data-skin="lb"] .map.leaflet-container .leaflet-popup-content-wrapper{border:1px solid var(--lb-line);border-radius:6px;background:var(--lb-bg2);box-shadow:0 12px 30px rgba(0,0,0,.6)}
+[data-skin="lb"] .map.leaflet-container .leaflet-popup-tip{border:1px solid var(--lb-line);background:var(--lb-bg2)}
+[data-skin="lb"] .ticket-name{font-family:var(--f-serif);font-weight:700;font-stretch:100%;color:#fff}
+[data-skin="lb"] .ticket-acts{border-top:1px solid var(--lb-line)}
+[data-skin="lb"] .map .ticket a.btn{color:var(--lb-strong)}
+
+/* the pixel shuffle between the zine and the log */
+.shuffle{position:fixed;left:0;top:0;z-index:95;pointer-events:none}
+
 @media (max-width:640px){
   .item{grid-template-columns:20px 2.6rem minmax(0,1fr);padding-inline:0}
   .acts{grid-column:3;flex-wrap:wrap}
@@ -499,19 +725,40 @@ a.btn{text-decoration:none}
     </div>
 
     <section id="rest" hidden aria-labelledby="rest-title">
-      <div class="sheet-head">
-        <h2 class="sheet-title" id="rest-title">Restaurants <span class="sheet-sub">we've been to</span></h2>
-        <button class="btn" type="button" id="us-open">Us</button>
+      <div class="lb-profile">
+        <div class="lb-avatars" aria-hidden="true"><span class="lb-av" id="lb-av-a">1</span><span class="lb-av" id="lb-av-b">2</span></div>
+        <div>
+          <h2 class="lb-title" id="rest-title">Restaurants <span class="lb-title-sub">we've been to</span></h2>
+          <p class="lb-names"><span id="lb-names">Person 1 &amp; Person 2</span><button class="btn btn-sm" type="button" id="us-open">Edit names</button></p>
+        </div>
+        <dl class="lb-stats" id="lb-stats">
+          <div><dt>Places</dt><dd id="st-places">0</dd></div>
+          <div><dt>This year</dt><dd id="st-year">0</dd></div>
+          <div><dt>Reviews</dt><dd id="st-reviews">0</dd></div>
+          <div><dt>Average</dt><dd id="st-avg">–</dd></div>
+        </dl>
       </div>
       <p class="rest-notice" id="rest-notice" role="status" hidden></p>
 
+      <div class="lb-top" id="lb-top" hidden>
+        <section aria-labelledby="lb-recent-h">
+          <h3 class="lb-h" id="lb-recent-h">Recently eaten</h3>
+          <ol class="lb-posters" id="lb-posters"></ol>
+        </section>
+        <section aria-labelledby="lb-ratings-h">
+          <h3 class="lb-h"><span id="lb-ratings-h">Ratings</span><span class="lb-avg" id="lb-avg"></span></h3>
+          <div class="lb-hist" id="lb-hist" role="img"></div>
+        </section>
+      </div>
+
       <form class="add radd" id="radd" autocomplete="off" novalidate>
+        <p class="lb-h">Log a restaurant</p>
         <fieldset id="radd-fields">
           <label class="sr" for="r-name">Restaurant name</label>
           <div class="add-row">
             <input class="input" id="r-name" maxlength="120" placeholder="Where did you eat? Type to search" enterkeyhint="done"
               role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="r-found">
-            <button class="btn btn-acc" type="submit">Add</button>
+            <button class="btn btn-acc" type="submit">Log</button>
           </div>
           <div class="found" id="r-found-box" hidden>
             <p class="found-status" id="r-found-status"></p>
@@ -546,7 +793,6 @@ a.btn{text-decoration:none}
         </fieldset>
       </form>
       <datalist id="nl-cities"></datalist>
-      <div class="perf" aria-hidden="true"></div>
 
       <div class="rest-tools">
         <span class="label" id="rest-count">0 places</span>
@@ -1452,6 +1698,7 @@ a.btn{text-decoration:none}
   function render() {
     if (dragging) { renderQueued = true; return; }
     document.body.dataset.list = current;
+    applySkin();
 
     for (const l of TABS) {
       const t = $("#tab-" + l), on = l === current;
@@ -1468,7 +1715,7 @@ a.btn{text-decoration:none}
     $("#ranked").hidden = onRest;
     $("#rest").hidden = !onRest;
     $("#foot-tip").textContent = onRest
-      ? "Paste a place's Google Maps link and it pins itself. The stars are yours, not Google's."
+      ? "Type a restaurant's name to find it and pin it. The stars are yours, not Google's."
       : "Drag the grip or use the arrows to re-rank. Higher up means sooner. “Pick” leans toward the top.";
     if (onRest) {
       const f = captureFocus();
@@ -1798,12 +2045,30 @@ a.btn{text-decoration:none}
     if (score != null) { m.append(document.createTextNode(" · ")); m.append(el("b", null, scoreText(score))); }
     return m;
   }
+  // Letterboxd-style: only the stars given, in green, with a half star for averages like 3.5.
+  const starText = n => "★".repeat(Math.floor(n)) + (n % 1 >= .5 ? "½" : "");
   function starsEl(n) {
-    const s = el("span", "stars");
+    const s = el("span", "stars", starText(n));
     s.setAttribute("role", "img");
     s.setAttribute("aria-label", `${n} out of 5 stars`);
-    for (let i = 1; i <= 5; i++) s.append(el("span", i <= n ? null : "off", "★"));
     return s;
+  }
+  // Generated "posters" for places: a purple/green gradient and pattern picked from the name, the name
+  // in big serif type and the city on top. Nothing is loaded from outside; the text is set as text.
+  const POSTER_INKS = [["#6A3DF0", "#1A0B40"], ["#0D8F50", "#062A1B"], ["#8452F5", "#2C1266"], ["#0F7D5C", "#1D0F3F"],
+    ["#4C22A8", "#0F0820"], ["#16A35F", "#2A1460"], ["#7A45E6", "#0B4A33"], ["#3D1F8A", "#0E8A55"]];
+  function hashStr(t) { let h = 2166136261; for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619); return h >>> 0; }
+  function posterEl(p) {
+    const h = hashStr(p.name.toLowerCase() + "|" + p.city.toLowerCase());
+    const [c1, c2] = POSTER_INKS[h % POSTER_INKS.length];
+    const po = el("span", "poster");
+    po.style.setProperty("--p1", c1);
+    po.style.setProperty("--p2", c2);
+    po.style.setProperty("--pa", 120 + (h >>> 8) % 90 + "deg");
+    po.dataset.pattern = String((h >>> 16) % 3);
+    po.setAttribute("aria-hidden", "true");
+    po.append(el("span", "poster-mark", ([...p.name.trim()][0] || "?").toUpperCase()), el("span", "poster-city", p.city || "\u00a0"), el("span", "poster-name", p.name));
+    return po;
   }
   function buildLegend() {
     const ul = $("#legend");
@@ -1824,28 +2089,34 @@ a.btn{text-decoration:none}
     const li = el("li", "rcard" + (rest.justAdded === p.id ? " is-new" : ""));
     li.dataset.id = p.id;
     const score = scoreOf(p), tier = tierOf(score);
+    const body = el("div", "rcard-body");
+    li.append(posterEl(p), body);
     const top = el("div", "rcard-top");
-    top.append(el("h3", "rcard-name", p.name), medalChip(tier, score));
-    li.append(top);
-    const where = [p.city, fmtDate(p.visitedAt), p.visits === 1 ? "1 visit" : `${p.visits} visits`,
+    top.append(el("h3", "rcard-name", p.name));
+    if (p.city) top.append(el("span", "rcard-city", p.city));
+    top.append(medalChip(tier, score));
+    body.append(top);
+    const where = [p.visitedAt ? "Visited " + fmtDate(p.visitedAt) : "", p.visits === 1 ? "1 visit" : `${p.visits} visits`,
       p.lat == null ? "no pin yet" : p.approx ? "pinned to the city centre" : ""].filter(Boolean).join(" · ");
-    li.append(el("p", "rmeta label", where));
-    if (p.note) li.append(el("p", "note", p.note));
+    body.append(el("p", "rmeta label", where));
+    if (p.note) body.append(el("p", "note", p.note));
 
     const revs = el("div", "revs");
     for (const k of ["a", "b"]) {
       const r = p.reviews[k];
       const box = el("div", "rev" + (r ? "" : " is-empty"));
       const head = el("div", "rev-head");
+      if (r) head.append(el("span", "rev-by", "Review by"));
       head.append(el("span", "rev-who", personName(k)));
       if (r) head.append(starsEl(r.stars));
+      else head.append(el("span", "rev-none", "hasn't reviewed it yet"));
       box.append(head);
-      box.append(r ? (r.text ? el("p", "rev-text", r.text) : el("p", "rev-text label", "Stars only.")) : el("p", "rev-text", "No review yet."));
+      if (r) box.append(r.text ? el("p", "rev-text", r.text) : el("p", "rev-text label", "Stars only."));
       revs.append(box);
     }
-    li.append(revs);
+    body.append(revs);
 
-    if (rest.reviewing === p.id) { li.append(buildReviewForm(p, getMe())); return li; }
+    if (rest.reviewing === p.id) { body.append(buildReviewForm(p, getMe())); return li; }
     const acts = el("div", "racts");
     if (writable && !rest.blocked) {
       const mine = getMe() && p.reviews[getMe()];
@@ -1865,7 +2136,7 @@ a.btn{text-decoration:none}
       e.setAttribute("aria-label", `Edit ${p.name}`); e.title = "Edit";
       acts.append(e);
     }
-    li.append(acts);
+    body.append(acts);
     return li;
   }
   function actBtn(act, label, primary) {
@@ -2033,6 +2304,57 @@ a.btn{text-decoration:none}
     for (const [id, rec] of restEls) if (!keep.has(id)) { rec.el.remove(); restEls.delete(id); }
   }
 
+  // The profile row (our names, the stats), the four most recent posters and the ratings histogram.
+  let topSig = "";
+  function renderProfile() {
+    const items = rest.items, year = new Date().getFullYear();
+    const initial = k => rest.people[k] ? [...rest.people[k]][0].toUpperCase() : k === "a" ? "1" : "2";
+    $("#lb-names").textContent = `${personName("a")} & ${personName("b")}`;
+    $("#lb-av-a").textContent = initial("a");
+    $("#lb-av-b").textContent = initial("b");
+    const scores = items.map(scoreOf).filter(x => x != null);
+    const avg = scores.length ? scores.reduce((t, x) => t + x, 0) / scores.length : null;
+    $("#st-places").textContent = items.length;
+    $("#st-year").textContent = items.filter(p => p.visitedAt && new Date(p.visitedAt).getFullYear() === year).length;
+    $("#st-reviews").textContent = items.reduce((n, p) => n + Object.keys(p.reviews).length, 0);
+    $("#st-avg").textContent = avg == null ? "–" : avg.toFixed(1);
+    $("#lb-top").hidden = !items.length;
+
+    const recent = items.slice().sort((x, y) => (y.visitedAt || 0) - (x.visitedAt || 0) || y.createdAt - x.createdAt).slice(0, 4);
+    const sig = JSON.stringify([recent.map(p => [p.id, p.name, p.city, scoreOf(p)]), scores]);
+    if (sig === topSig) return;   // rebuilt only when something on it changed, so focus isn't lost
+    topSig = sig;
+    const ol = $("#lb-posters");
+    ol.textContent = "";
+    for (const p of recent) {
+      const sc = scoreOf(p);
+      const li = el("li"), btn = el("button");
+      btn.type = "button";
+      btn.dataset.show = p.id;
+      btn.setAttribute("aria-label", `${p.name}${sc != null ? ", " + scoreText(sc) + " stars" : ""}: show its review`);
+      btn.append(posterEl(p));
+      li.append(btn);
+      if (sc != null) li.append(starsEl(Math.round(sc * 2) / 2));
+      ol.append(li);
+    }
+    const bins = Array(9).fill(0);   // 1, 1.5, … 5 stars
+    for (const sc of scores) bins[Math.min(8, Math.max(0, Math.round((sc - 1) * 2)))]++;
+    const max = Math.max(1, ...bins);
+    const bars = el("div", "lb-hist-bars");
+    bins.forEach((c, i) => {
+      const b = el("span");
+      b.style.height = c / max * 100 + "%";
+      if (c && c === max) b.classList.add("is-top");
+      b.title = `${c} × ${starText(1 + i / 2)}`;
+      bars.append(b);
+    });
+    const hist = $("#lb-hist");
+    hist.textContent = "";
+    hist.append(el("span", "lb-hist-end", "★"), bars, el("span", "lb-hist-end", "★★★★★"));
+    hist.setAttribute("aria-label", scores.length ? "Ratings: " + bins.map((c, i) => c ? `${c} at ${1 + i / 2} stars` : "").filter(Boolean).join(", ") : "No ratings yet");
+    $("#lb-avg").textContent = avg == null ? "" : avg.toFixed(1) + " average";
+  }
+
   function renderRestaurants() {
     const local = mode === "local" || mode === "fallback";
     const notice = rest.blocked ? RULES_NOTICE
@@ -2044,6 +2366,7 @@ a.btn{text-decoration:none}
     $("#radd-fields").disabled = rest.blocked;
     const total = rest.items.length, pinned = rest.items.filter(p => p.lat != null).length;
     $("#rest-count").textContent = `${total} place${total === 1 ? "" : "s"} · ${pinned} on the map`;
+    renderProfile();
     document.querySelectorAll('#rsort input').forEach(r => { r.checked = r.value === rest.sort; r.parentElement.classList.toggle("is-on", r.checked); });
     renderRestList();
     const waiting = !rest.loaded && mode !== "local";
@@ -2548,6 +2871,7 @@ a.btn{text-decoration:none}
       else if (act === "edit") { rest.editing = id; rest.reviewing = null; render(); }
     });
     $("#us-open").addEventListener("click", () => openUs("us"));
+    $("#lb-posters").addEventListener("click", e => { const b = e.target.closest("button[data-show]"); if (b) showInList(b.dataset.show); });
     $("#us-form").addEventListener("submit", submitUs);
     $("#us-cancel").addEventListener("click", () => { rest.pendingReview = null; closeUs(); });
     $("#us-sheet").addEventListener("close", () => { rest.pendingReview = null; });
@@ -2565,20 +2889,208 @@ a.btn{text-decoration:none}
     });
   }
 
+  /* ---------- the pixel shuffle between the zine and the restaurant log ---------- */
+
+  // Restaurants wears its own Letterboxd-style skin; the browser's bar colour follows along.
+  const THEME_METAS = [...document.querySelectorAll('meta[name="theme-color"]')].map(m => [m, m.content]);
+  function applySkin() {
+    const lb = current === "restaurants";
+    document.documentElement.dataset.skin = lb ? "lb" : "zine";
+    for (const [m, c] of THEME_METAS) m.content = lb ? "#14101C" : c;
+    if (lb) {   // on a narrow phone the nav scrolls sideways: keep Restaurants in view
+      const nav = $(".tabs"), over = $("#tab-" + current).getBoundingClientRect().right - nav.getBoundingClientRect().right;
+      if (over > 0) nav.scrollLeft += over;
+    }
+  }
+
+  // Going to or from Restaurants, the page breaks into blocks of its own colours (read from whatever is
+  // under each block), the blocks fly in a wave from the tapped tab to wherever the new page needs that
+  // shade, take on its colours, and dissolve into it. About 1.5 s; skipped with reduced motion.
+  const SHUFFLE = { pixelate: 180, dissolve: 250, total: 1500 };
+  let shuffle = null;
+  const probe = (() => { const c = document.createElement("canvas"); c.width = c.height = 1; return c.getContext("2d", { willReadFrequently: true }); })();
+  const rgbMemo = new Map();
+  function rgbaOf(css) {   // any CSS colour (rgb(), color(srgb …), color-mix results) → [r, g, b, a]
+    let v = rgbMemo.get(css);
+    if (!v) {
+      probe.clearRect(0, 0, 1, 1);
+      probe.fillStyle = "#000";
+      probe.fillStyle = css;
+      probe.fillRect(0, 0, 1, 1);
+      const d = probe.getImageData(0, 0, 1, 1).data;
+      v = [d[0], d[1], d[2], d[3] / 255];
+      rgbMemo.set(css, v);
+    }
+    return v;
+  }
+  const mixRGB = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  const hasOwnText = n => { for (const t of n.childNodes) if (t.nodeType === 3 && t.data.trim()) return true; return false; };
+
+  // One colour per block: the background under its centre (see-through layers blended down), tinted
+  // with the text colour where there is text, so headings and lines of type show up as darker bands.
+  function sampleScreen(cols, rows, cell) {
+    const out = new Uint8ClampedArray(cols * rows * 3);
+    const page = rgbaOf(getComputedStyle(document.body).backgroundColor);
+    const bgMemo = new Map(), inkMemo = new Map();
+    const bgOf = n => {
+      if (!n || n.nodeType !== 1) return page;
+      let v = bgMemo.get(n);
+      if (v) return v;
+      const c = rgbaOf(getComputedStyle(n).backgroundColor);
+      v = c[3] >= .98 ? c : c[3] < .02 ? bgOf(n.parentElement) : mixRGB(bgOf(n.parentElement), c, c[3]);
+      bgMemo.set(n, v);
+      return v;
+    };
+    const colourAt = n => {
+      if (!n) return page;
+      let v = inkMemo.get(n);
+      if (v) return v;
+      const bg = bgOf(n);
+      v = /^(IMG|CANVAS|VIDEO)$/.test(n.tagName) ? mixRGB(bg, rgbaOf(getComputedStyle(n).color), .22)
+        : hasOwnText(n) ? mixRGB(bg, rgbaOf(getComputedStyle(n).color), .38) : bg;
+      inkMemo.set(n, v);
+      return v;
+    };
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const v = colourAt(document.elementFromPoint(Math.min(innerWidth - 1, (c + .5) * cell), Math.min(innerHeight - 1, (r + .5) * cell)));
+      const k = (r * cols + c) * 3;
+      out[k] = v[0]; out[k + 1] = v[1]; out[k + 2] = v[2];
+    }
+    return { px: out, page };
+  }
+
+  function pixelShuffle(apply, origin) {
+    if (shuffle) shuffle.finish();
+    const W = innerWidth, H = innerHeight, cell = Math.round(Math.min(22, Math.max(14, W / 28)));
+    const cols = Math.ceil(W / cell), rows = Math.ceil(H / cell), n = cols * rows;
+    const from = sampleScreen(cols, rows, cell);
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const cv = el("canvas", "shuffle");
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    cv.style.width = W + "px"; cv.style.height = H + "px";
+    cv.setAttribute("aria-hidden", "true");
+    document.body.append(cv);
+    const ctx = cv.getContext("2d");
+    ctx.scale(dpr, dpr);
+    const ob = origin && origin.getBoundingClientRect();
+    const ox = ob ? ob.left + ob.width / 2 : W / 2, oy = ob ? ob.top + ob.height / 2 : 0;
+    const styles = new Map();
+    const fill = (r, g, b) => {   // fillStyle strings, cached per (slightly rounded) colour
+      const key = (r >> 2) << 12 | (g >> 2) << 6 | b >> 2;
+      let f = styles.get(key);
+      if (!f) { f = `rgb(${r & 252},${g & 252},${b & 252})`; styles.set(key, f); }
+      return f;
+    };
+    const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const burst = t => 1 - Math.pow(1 - t, 3);   // blocks leave at once and slow down as they land
+    const clamp01 = t => t < 0 ? 0 : t > 1 ? 1 : t;
+    const A = from.px;
+    let B = null, to = null, dst = null, delay = null, arc = null, fadeAt = null, applied = false, done = false, raf = 0;
+    let flyAt = 0, fly = 0, covered = false;
+    const t0 = performance.now();
+
+    function swap() {
+      apply();
+      applied = true;
+      to = sampleScreen(cols, rows, cell);
+      B = to.px;
+      // The k-th darkest old block goes to the k-th darkest spot on the new page (a little noise keeps it
+      // lively), so every block lands where its shade is needed; the wave starts at the tapped tab.
+      const lum = (a, i) => a[i * 3] * .2126 + a[i * 3 + 1] * .7152 + a[i * 3 + 2] * .0722;
+      const rank = a => Array.from({ length: n }, (_, i) => [lum(a, i) + (Math.random() - .5) * 24, i]).sort((p, q) => p[0] - q[0]);
+      const ra = rank(A), rb = rank(B);
+      dst = new Int32Array(n); delay = new Float32Array(n); arc = new Float32Array(n); fadeAt = new Float32Array(n);
+      for (let k = 0; k < n; k++) dst[ra[k][1]] = rb[k][1];
+      // The flight gets whatever is left of the 1.5 s once the new page is in place (switching it takes a
+      // moment on a slow phone). Blocks set off in a wave from the tapped tab and all land together at
+      // the end of it, so the new page snaps into place and dissolves straight away.
+      flyAt = performance.now();
+      fly = Math.max(600, SHUFFLE.total - SHUFFLE.dissolve - (flyAt - t0));
+      const far = Math.hypot(W, H);
+      for (let i = 0; i < n; i++) {
+        const x = (i % cols + .5) * cell, y = (Math.floor(i / cols) + .5) * cell;
+        delay[i] = Math.hypot(x - ox, y - oy) / far * fly * .32 + Math.random() * fly * .12;
+        arc[i] = (Math.random() - .5) * cell * 6;
+        fadeAt[i] = Math.random();
+      }
+    }
+    function draw(now) {
+      try { frame(now); }
+      catch (e) { finish(); throw e; }   // never leave the overlay covering the page
+    }
+    function frame(now) {
+      const t = now - t0;
+      ctx.clearRect(0, 0, W, H);
+      if (!applied) {   // pixelate: the old page's blocks fade in over it
+        const a = clamp01(t / SHUFFLE.pixelate);
+        ctx.globalAlpha = ease(a);
+        for (let i = 0; i < n; i++) { const k = i * 3; ctx.fillStyle = fill(A[k], A[k + 1], A[k + 2]); ctx.fillRect(i % cols * cell, Math.floor(i / cols) * cell, cell + .5, cell + .5); }
+        ctx.globalAlpha = 1;
+        if (covered) swap();   // the full mosaic is on screen: switch the page under it and read the new one
+        covered = a >= 1;
+      } else if (now - flyAt < fly) {   // reassort: blocks fly to their new spots and recolour
+        const tf = now - flyAt;
+        const back = mixRGB(from.page, to.page, clamp01(tf / fly));
+        ctx.fillStyle = fill(back[0] | 0, back[1] | 0, back[2] | 0);
+        ctx.fillRect(0, 0, W, H);
+        for (let i = 0; i < n; i++) {
+          const p = burst(clamp01((tf - delay[i]) / (fly - delay[i]))), j = dst[i];
+          const lift = Math.sin(Math.PI * p), size = cell * (1 - .3 * lift), bend = lift * arc[i];
+          const x0 = i % cols * cell, y0 = Math.floor(i / cols) * cell, x1 = j % cols * cell, y1 = Math.floor(j / cols) * cell;
+          const k0 = i * 3, k1 = j * 3;
+          ctx.fillStyle = fill(A[k0] + (B[k1] - A[k0]) * p | 0, A[k0 + 1] + (B[k1 + 1] - A[k0 + 1]) * p | 0, A[k0 + 2] + (B[k1 + 2] - A[k0 + 2]) * p | 0);
+          ctx.fillRect(x0 + (x1 - x0) * p + bend + (cell - size) / 2, y0 + (y1 - y0) * p - bend * .6 + (cell - size) / 2, size + .5, size + .5);
+        }
+      } else if (now - flyAt - fly < SHUFFLE.dissolve) {   // dissolve: blocks drop out one by one, revealing the new page
+        const td = (now - flyAt - fly) / SHUFFLE.dissolve;
+        for (let j = 0; j < n; j++) {
+          const a = 1 - clamp01((td - fadeAt[j] * .7) / .3);
+          if (a <= 0) continue;
+          const k = j * 3;
+          ctx.globalAlpha = a;
+          ctx.fillStyle = fill(B[k], B[k + 1], B[k + 2]);
+          ctx.fillRect(j % cols * cell, Math.floor(j / cols) * cell, cell + .5, cell + .5);
+        }
+        ctx.globalAlpha = 1;
+      } else { finish(); return; }
+      raf = requestAnimationFrame(draw);
+    }
+    const guard = setTimeout(() => finish(), SHUFFLE.total + 2500);   // e.g. the app was put away mid-shuffle
+    function finish() {
+      if (done) return;
+      done = true;
+      cancelAnimationFrame(raf);
+      clearTimeout(guard);
+      if (!applied) apply();
+      cv.remove();
+      if (shuffle === api) shuffle = null;
+    }
+    const api = { finish };
+    shuffle = api;
+    raf = requestAnimationFrame(draw);
+  }
+
   /* ---------- wiring ---------- */
 
   function setTab(l, focus) {
     if (!isTab(l)) return;
+    if (shuffle) shuffle.finish();   // a second tap lands on the page the first one was heading to
     if (l !== current) {
-      current = l;
-      editing = null;
-      rest.editing = null;
-      rest.reviewing = null;
-      if (rest.placing) stopPlacing();
-      clearTimeout(pickTimer);
-      try { localStorage.setItem(LS_TAB, l); } catch {}
-      try { if (location.hash.slice(1) !== l) history.replaceState(null, "", "#" + l); } catch {}
-      render();
+      const crossing = (l === "restaurants") !== (current === "restaurants");
+      const go = () => {
+        current = l;
+        editing = null;
+        rest.editing = null;
+        rest.reviewing = null;
+        if (rest.placing) stopPlacing();
+        clearTimeout(pickTimer);
+        try { localStorage.setItem(LS_TAB, l); } catch {}
+        try { if (location.hash.slice(1) !== l) history.replaceState(null, "", "#" + l); } catch {}
+        render();
+        if (crossing) scrollTo(0, 0);
+      };
+      if (crossing && !reducedMotion()) pixelShuffle(go, $("#tab-" + l));
+      else go();
     }
     if (focus) $("#tab-" + l).focus();
   }

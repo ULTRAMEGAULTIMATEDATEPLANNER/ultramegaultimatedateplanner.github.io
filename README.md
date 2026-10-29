@@ -18,7 +18,7 @@ Want a separate list for something else? Add `?club=` and 8–40 letters or digi
 
 ## The Restaurants tab
 
-The fourth tab is a log of places you two have eaten, not a ranked list.
+The fourth tab is a log of places you two have eaten, not a ranked list. It has its own look, modelled on Letterboxd in purple and green: the whole page turns dark purple, the four tabs become a slim nav, and the tab shows a profile row (your names, places, this year, reviews, average), the four most recent places as generated posters, a ratings histogram, the log form and a diary of reviews with green stars. Switching to or from it plays a 1.5-second pixel shuffle: the page breaks into blocks of its own colours, which fly in a wave from the tapped tab to wherever the new page needs that shade and dissolve into it (skipped when the phone asks for reduced motion). The other three tabs keep the riso zine.
 
 - **Adding a place:** start typing its name and pick it from the list of restaurants that appears. That fills in the name and city, pins it on its exact spot and links it to that place in Google Maps; a line under the box confirms the address, and **Not this one** brings the list back. Pressing Enter without picking adds it by name only.
 - **Other ways to pin it:** pasting the place's Google Maps link fills in the name and pins it on the exact spot; a "Pinned ✓" chip confirms it. Short share links (`maps.app.goo.gl/…`) can't be read in a browser, so for those tap **Tap the map to place it**, paste coordinates like `51.92031, 4.48712`, or pick a city (that pins it to the city centre, marked approximate).
