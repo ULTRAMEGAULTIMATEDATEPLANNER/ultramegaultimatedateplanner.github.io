@@ -152,7 +152,7 @@ function statusText(st, r, at) {
   return `${SHOW.label}:\n${line}\n(checked ${clock(at)})\n\nAlerts are ${st.paused ? "paused – send /start to turn them back on" : "on"}.`;
 }
 
-async function handleCommands(st, r, at) {
+async function handleCommands(st, r, at, justWelcomed) {
   const updates = await tg("getUpdates", { offset: st.offset || 0, timeout: 0, allowed_updates: ["message"] });
   for (const u of updates) {
     st.offset = u.update_id + 1;
@@ -161,7 +161,7 @@ async function handleCommands(st, r, at) {
     const cmd = m.text.trim().split(/[\s@]/)[0].toLowerCase();
     if (cmd === "/stop") { st.paused = true; await say("Paused. I'll keep checking, but won't send alerts until you send /start."); }
     else if (cmd === "/start") {
-      if (!st.welcomed) continue;   // the welcome message covers the first /start
+      if (justWelcomed) continue;   // the welcome message answers the first /start
       st.paused = false;
       await say(statusText(st, r, at));
     }
@@ -181,12 +181,13 @@ async function step(st, now) {
   const r = await check();
   console.log(`${clock(now)} ${r.status}${r.source ? " (" + r.source + ")" : ""}${r.why ? ": " + r.why : ""}`);
 
-  if (!st.welcomed) {
+  const welcome = !st.welcomed;
+  if (welcome) {
     await say(`👋 Ticket alert is on.\nI'm watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI check about once a minute and will message you here the moment tickets appear.\n\n${HELP}`);
     st.welcomed = true;
     st.heartbeatDay = dayKey(now);
   }
-  await handleCommands(st, r, now);
+  await handleCommands(st, r, now, welcome);
 
   if (r.status === "available") {
     const first = st.last !== "available";
