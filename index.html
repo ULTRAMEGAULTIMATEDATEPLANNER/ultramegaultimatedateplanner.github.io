@@ -2894,9 +2894,11 @@ a.btn{text-decoration:none}
   // Restaurants wears its own Letterboxd-style skin; the browser's bar colour follows along.
   const THEME_METAS = [...document.querySelectorAll('meta[name="theme-color"]')].map(m => [m, m.content]);
   function applySkin() {
-    const lb = current === "restaurants";
-    document.documentElement.dataset.skin = lb ? "lb" : "zine";
-    for (const [m, c] of THEME_METAS) m.content = lb ? "#14101C" : c;
+    const lb = current === "restaurants", skin = lb ? "lb" : "zine";
+    if (document.documentElement.dataset.skin !== skin) {
+      document.documentElement.dataset.skin = skin;
+      for (const [m, c] of THEME_METAS) m.content = lb ? "#14101C" : c;
+    }
     if (lb) {   // on a narrow phone the nav scrolls sideways: keep Restaurants in view
       const nav = $(".tabs"), over = $("#tab-" + current).getBoundingClientRect().right - nav.getBoundingClientRect().right;
       if (over > 0) nav.scrollLeft += over;
