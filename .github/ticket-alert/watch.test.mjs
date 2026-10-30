@@ -14,26 +14,26 @@ const check = (label, ok, extra = "") => { ok ? passes++ : fails++; console.log(
 
 /* ---------- the page readers ---------- */
 
-// Trimmed from tickets.lab111.nl (show 1312105, sold out) and an on-sale LAB111 show.
-const SHOP_SOLDOUT = `<div style=""><span id='show-starts-at'>zo 01 november 2026, 18:35 - LAB 1</span></div><span class="sold-out-label"></br>SOLD OUT</br></br></span></div>
+// Trimmed from tickets.lab111.nl (show 1312104, sold out) and an on-sale LAB111 show.
+const SHOP_SOLDOUT = `<div style=""><span id='show-starts-at'>zo 01 november 2026, 16:20 - LAB 1</span></div><span class="sold-out-label"></br>SOLD OUT</br></br></span></div>
 <script>let orderFormAttributes = {"not_available_label":"SOLD OUT","sold_out_label":"SOLD OUT"};</script>`;
-const SHOP_ON_SALE = `<div style=""><span id='show-starts-at'>zo 01 november 2026, 18:35 - LAB 1</span></div><table id="order-form-table" class="table order-form-table"><thead><tr class="order-form-row order-form-row-header"><th>Kaartje</th><th>Prijs</th><th>Aantal</th></tr></thead><tr data-base-object-type="show" data-base-object-id="1312105" class="order-form-row order-form-row-qty"><td class="badge-type-label">Regulier</td><td>€ <span class='badge_type_price'> 13,00</span></td><td><select class="form-control select-quantity"><option value="">0</option><option value="1">1</option></select></td></tr></table>
+const SHOP_ON_SALE = `<div style=""><span id='show-starts-at'>zo 01 november 2026, 16:20 - LAB 1</span></div><table id="order-form-table" class="table order-form-table"><thead><tr class="order-form-row order-form-row-header"><th>Kaartje</th><th>Prijs</th><th>Aantal</th></tr></thead><tr data-base-object-type="show" data-base-object-id="1312104" class="order-form-row order-form-row-qty"><td class="badge-type-label">Regulier</td><td>€ <span class='badge_type_price'> 13,00</span></td><td><select class="form-control select-quantity"><option value="">0</option><option value="1">1</option></select></td></tr></table>
 <script>let orderFormAttributes = {"not_available_label":"SOLD OUT","sold_out_label":"SOLD OUT"};</script>`;
-const SHOP_OTHER_SHOW = SHOP_ON_SALE.replace("zo 01 november 2026, 18:35 - LAB 1", "do 05 november 2026, 18:40 - LAB 4");
-// Trimmed from imaginefilmfestival.nl/en/film/pulse-2/.
-const FEST_SOLDOUT = `<table class="shows filterable" id="tickets"> <tr ; data-filter-date="1-Nov"> <td class=" date"> <i class="fa fa-heart-o like" data-programid="30940" data-showid="711"></i> 1 Nov </td> <td class="time">18:35</td> <td class="theatre">LAB111 1</td> <td class="extra"> </td> <td class="ticket"> <a class="btn bg1 fg8" target="_blank">Sold Out</a> </td> </tr> <tr ; data-filter-date="4-Nov"> <td class=" date"> <i class="fa fa-heart-o like" data-programid="30940" data-showid="1345"></i> 4 Nov </td> <td class="time">16:30</td> <td class="theatre">FilmHallen 2</td> <td class="extra"> </td> <td class="ticket"> <a href="https://filmhallen.nl/tickets/202358" class="btn bg1 fg8" target="_blank">Tickets</a> </td> </tr> </table>`;
-const FEST_ON_SALE = FEST_SOLDOUT.replace(`<a class="btn bg1 fg8" target="_blank">Sold Out</a>`, `<a href="https://tickets.lab111.nl/labcinema/nl/flow_configs/webshop/steps/start/show/1312105" class="btn bg1 fg8" target="_blank">Tickets</a>`);
+const SHOP_OTHER_SHOW = SHOP_ON_SALE.replace("zo 01 november 2026, 16:20 - LAB 1", "do 05 november 2026, 18:40 - LAB 4");
+// Trimmed from imaginefilmfestival.nl/programma/nieuw-nederlands-peil-2/, plus another film's row on sale.
+const FEST_SOLDOUT = `<table class="shows filterable" id="tickets"> <tr ; data-filter-date="1-nov"> <td class=" date"> <i class="fa fa-heart-o like" data-programid="31442" data-showid="647"></i> 1 nov </td> <td class="time">16:20</td> <td class="theatre">LAB111 1</td> <td class="ticket"> <a class="btn bg1 fg8" target="_blank">Sold Out</a> </td> </tr> <tr ; data-filter-date="4-Nov"> <td class=" date"> <i class="fa fa-heart-o like" data-programid="30940" data-showid="1345"></i> 4 Nov </td> <td class="time">16:30</td> <td class="theatre">FilmHallen 2</td> <td class="extra"> </td> <td class="ticket"> <a href="https://filmhallen.nl/tickets/202358" class="btn bg1 fg8" target="_blank">Tickets</a> </td> </tr> </table>`;
+const FEST_ON_SALE = FEST_SOLDOUT.replace(`<a class="btn bg1 fg8" target="_blank">Sold Out</a>`, `<a href="https://tickets.lab111.nl/labcinema/nl/flow_configs/webshop/steps/start/show/1312104" class="btn bg1 fg8" target="_blank">Tickets</a>`);
 
 check("Shop: sold out", readShop(SHOP_SOLDOUT).status === "soldout");
 check("Shop: on sale", readShop(SHOP_ON_SALE).status === "available");
 check("Shop: another show's page is not taken for ours", readShop(SHOP_OTHER_SHOW).status === "unknown");
 check("Shop: a page without the show (error page, login wall) is unknown", readShop("<html><body>Er ging iets mis</body></html>").status === "unknown");
 check("Shop: the words SOLD OUT in its scripts alone don't count", readShop(SHOP_ON_SALE).status === "available");
-check("Shop: show present but neither label nor ticket table is unknown", readShop(`<span id='show-starts-at'>zo 01 november 2026, 18:35 - LAB 1</span><p>Even geduld</p>`).status === "unknown");
+check("Shop: show present but neither label nor ticket table is unknown", readShop(`<span id='show-starts-at'>zo 01 november 2026, 16:20 - LAB 1</span><p>Even geduld</p>`).status === "unknown");
 check("Festival: our row sold out (the 4 Nov row on sale doesn't count)", readFestival(FEST_SOLDOUT).status === "soldout");
 const fo = readFestival(FEST_ON_SALE);
-check("Festival: our row on sale, with its ticket link", fo.status === "available" && fo.link.endsWith("/show/1312105"));
-check("Festival: screening missing is unknown", readFestival(FEST_SOLDOUT.replace(/data-showid="711"/, 'data-showid="7"')).status === "unknown");
+check("Festival: our row on sale, with its ticket link", fo.status === "available" && fo.link.endsWith("/show/1312104"));
+check("Festival: screening missing is unknown", readFestival(FEST_SOLDOUT.replace(/data-showid="647"/, 'data-showid="7"')).status === "unknown");
 check("Festival: a non-https link is ignored", readFestival(FEST_SOLDOUT.replace(`<a class="btn bg1 fg8" target="_blank">Sold Out</a>`, `<a href="javascript:alert(1)" class="btn">Tickets</a>`)).status === "unknown");
 
 /* ---------- whole runs against fakes ---------- */
@@ -120,7 +120,7 @@ userSays("/start");                  // pressing Start in Telegram before the al
 userSays("/status", STRANGER);       // someone else who found the bot
 r = await newSent();
 check("First run: one welcome message (not also a reply to /start or to a stranger), with the status and commands", r.msgs.length === 1 && /Ticket alert is on/.test(r.msgs[0]) && /Right now: SOLD OUT/.test(r.msgs[0]) && /\/stop/.test(r.msgs[0]), r.msgs.join(" | "));
-check("…and it remembers which messages it has read", state().offset === 3 && state().welcomed === true && state().last === "soldout");
+check("…and it remembers which messages it has read, and which screening it watches", state().offset === 3 && state().welcomed === true && state().last === "soldout" && state().show === "1312104");
 
 r = await newSent();
 check("Nothing new: no messages", r.msgs.length === 0, r.msgs.join(" | "));
@@ -161,7 +161,7 @@ r = await newSent();
 check("Shop down, festival page says sold out: quiet, and the log says why the shop wasn't used", r.msgs.length === 0 && state().last === "soldout" && /soldout \(festival page\) – shop: LAB111's ticket page didn't load \(HTTP 503\)/.test(r.out), r.out);
 fake.fest = { code: 200, body: FEST_ON_SALE };
 r = await newSent();
-check("Shop down, festival page on sale: alert with the festival's ticket link", r.msgs.length === 1 && /TICKETS AVAILABLE/.test(r.msgs[0]) && r.msgs[0].includes("/show/1312105"), r.msgs.join(" | "));
+check("Shop down, festival page on sale: alert with the festival's ticket link", r.msgs.length === 1 && /TICKETS AVAILABLE/.test(r.msgs[0]) && r.msgs[0].includes("/show/1312104"), r.msgs.join(" | "));
 fake.shop = { code: 200, body: SHOP_SOLDOUT };
 r = await newSent();
 check("Shop back and sold out: it wins over the festival page", r.msgs.length === 1 && /Sold out again/.test(r.msgs[0]), r.msgs.join(" | "));
@@ -196,6 +196,28 @@ r = await newSent({ STARTS_AT: "2020-01-01T00:00:00Z" });
 check("After the screening starts: goodbye, and no checking", r.msgs.length === 1 && /stopped watching/.test(r.msgs[0]) && state().done === true && !/soldout/.test(r.out), r.msgs.join(" | "));
 r = await newSent({ STARTS_AT: "2020-01-01T00:00:00Z" });
 check("…said only once", r.msgs.length === 0);
+
+// It used to watch Pulse (memory without a screening number); now it watches another screening.
+writeFileSync(STATE, JSON.stringify({ welcomed: true, heartbeatDay: state().heartbeatDay, offset: state().offset, last: "available", alerted: true, alertedAt: Date.now(), paused: true }));
+r = await newSent();
+check("Switched to another screening: says so once, with what it sees now", r.msgs.length === 1 && /^🔁 Switched: I'm now watching Nieuw Nederlands Peil 2/.test(r.msgs[0]) && /Right now: SOLD OUT/.test(r.msgs[0]), r.msgs.join(" | "));
+check("…and starts afresh for it: alerts on, nothing carried over", state().show === "1312104" && state().paused === undefined && state().alerted === false && state().last === "soldout", JSON.stringify(state()));
+r = await newSent();
+check("…not repeated", r.msgs.length === 0, r.msgs.join(" | "));
+fake.shop.body = SHOP_ON_SALE;
+r = await newSent();
+check("…and tickets for it give an alert straight away", r.msgs.length === 1 && /TICKETS AVAILABLE: Nieuw Nederlands Peil 2/.test(r.msgs[0]), r.msgs.join(" | "));
+fake.shop.body = SHOP_SOLDOUT;
+await newSent();
+writeFileSync(STATE, JSON.stringify({ ...state(), show: "1312105" }));
+fake.shop.body = SHOP_ON_SALE; fake.failSend = true;
+r = await newSent();
+check("Telegram failing during the switch: tried again next run", state().show === "1312105" && /sendMessage failed/.test(r.out), r.out);
+fake.failSend = false;
+r = await newSent();
+check("…then the switch message and the alert", r.msgs.length === 2 && /Switched/.test(r.msgs[0]) && /TICKETS AVAILABLE/.test(r.msgs[1]) && state().show === "1312104", r.msgs.join(" | "));
+fake.shop.body = SHOP_SOLDOUT;
+await newSent();
 
 const t0 = Date.now();
 r = await newSent({ CHECKS: "50", INTERVAL_SECONDS: "0.3", RUN_SECONDS: "1" });

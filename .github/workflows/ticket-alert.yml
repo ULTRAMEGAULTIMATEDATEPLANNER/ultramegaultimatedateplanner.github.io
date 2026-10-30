@@ -1,4 +1,4 @@
-# Telegram alert for tickets to the sold-out Pulse screening (Sun 1 Nov 18:35, LAB111).
+# Telegram alert for tickets to the sold-out Nieuw Nederlands Peil 2 screening (Sun 1 Nov 16:20, LAB111).
 # Runs back to back: each run checks about once a minute for 4.5 minutes, then starts the next run;
 # the 5-minute schedule restarts the chain if it ever breaks. It needs two repository secrets,
 # TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID, and switches itself off once the screening starts.

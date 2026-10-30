@@ -1,5 +1,6 @@
 // Ticket alert: messages us on Telegram the moment tickets open up for the sold-out screening of
-// Pulse at the Imagine Film Festival (Sun 1 Nov 2026, 18:35, LAB111, with the director's Q&A).
+// Nieuw Nederlands Peil 2 (Dutch short films) at the Imagine Film Festival (Sun 1 Nov 2026, 16:20,
+// LAB111). It watched Pulse before; when the screening below changes, it says so and starts afresh.
 //
 // GitHub Actions runs it back to back (each run starts the next; a 5-minute schedule restarts the
 // chain if it ever breaks), checking about once a minute. The source of truth is LAB111's own ticket shop; the festival
@@ -11,12 +12,13 @@ const env = process.env;
 const num = (v, d) => (v !== undefined && v !== "" && isFinite(+v) ? +v : d);
 
 export const SHOW = {
-  label: "Pulse, Sun 1 Nov 18:35 at LAB111 (with the director's Q&A)",
-  startsAt: Date.parse(env.STARTS_AT || "2026-11-01T18:35:00+01:00"),
-  shopUrl: env.SHOP_URL || "https://tickets.lab111.nl/labcinema/nl/flow_configs/webshop/steps/start/show/1312105",
-  shopExpect: "01 november 2026, 18:35",
-  festivalUrl: env.FESTIVAL_URL || "https://www.imaginefilmfestival.nl/en/film/pulse-2/",
-  festivalShowId: "711"
+  id: "1312104",   // LAB111's number for the screening
+  label: "Nieuw Nederlands Peil 2 (Dutch shorts), Sun 1 Nov 16:20 at LAB111",
+  startsAt: Date.parse(env.STARTS_AT || "2026-11-01T16:20:00+01:00"),
+  shopUrl: env.SHOP_URL || "https://tickets.lab111.nl/labcinema/nl/flow_configs/webshop/steps/start/show/1312104",
+  shopExpect: "01 november 2026, 16:20",
+  festivalUrl: env.FESTIVAL_URL || "https://www.imaginefilmfestival.nl/programma/nieuw-nederlands-peil-2/",
+  festivalShowId: "647"
 };
 
 const CHECKS = num(env.CHECKS, 5);
@@ -207,7 +209,13 @@ async function step(st, now) {
   if (welcome) {
     await say(`👋 Ticket alert is on.\nI'm watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI check about once a minute and will message you here the moment tickets appear.\n\n${HELP}`);
     st.welcomed = true;
+    st.show = SHOW.id;
     st.heartbeatDay = dayKey(now);
+  } else if (st.show !== SHOW.id) {
+    // Now watching another screening: say so, and forget what was seen for the old one.
+    await say(`🔁 Switched: I'm now watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI'll message you here the moment tickets appear.\n\n${HELP}`);
+    for (const k of ["last", "alerted", "alertedAt", "warned", "unknownSince", "paused"]) delete st[k];
+    st.show = SHOW.id;
   }
   await handleCommands(st, r, now, welcome);
 
