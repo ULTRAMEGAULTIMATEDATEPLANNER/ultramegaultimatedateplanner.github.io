@@ -3,8 +3,8 @@
   "heartbeatDay": "30/10/2026",
   "unknownSince": 0,
   "warned": false,
-  "alerted": true,
-  "last": "available",
+  "alerted": false,
+  "last": "soldout",
   "offset": 218192663,
   "alertedAt": 1793359552064
 }
