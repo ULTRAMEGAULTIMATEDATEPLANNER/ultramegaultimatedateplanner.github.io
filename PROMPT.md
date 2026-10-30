@@ -136,3 +136,10 @@ What was built from it:
 
 - Dishes moved from the NYT Cooking app look to a printed newspaper (`data-skin="news"`): yellowed newsprint with heavier grain, specks and a centre fold; a blackletter nameplate (UnifrakturMaguntia) with the motto "All the Dishes That Are Fit to Cook" and an edition line ("Vol. I · date · Serves two") between rules; section kicker "Cooking"; serif headlines with italic decks and a red drop cap on the lead; "No. N" ranks with a red-pencil circle on #1; halftone plates; a dashed clip-out coupon for adding; the cooked pile as torn clippings with a red stamp.
 - Photos after cooking: the "Cooked it" message offers "Add a photo"; clippings have Add a photo / Change photo. The shared photo sheet now serves restaurants and dishes. Dish photos reuse `clubs/{club}/photos/{itemId}` (same validated JPEG, no rules change) and print in grayscale halftone in the clipping and, if the dish goes back on the list, in its story.
+
+### Follow-up: real film posters, and a grey newspaper without made-up pictures
+
+> Films: take the posters of the films from online once we log or add them, or remove the super 8 image. Dishes: a grayer New York style newspaper (it looked too warm), and no pictures until we add them, shown as an option.
+
+- Films: the generated stills are gone. Posters come from English Wikipedia (MediaWiki API, `generator=search` for "title [year] film", `prop=pageimages|description`, `pilicense=any` so non-free posters are included, `origin=*` for CORS; the first page whose description or title says "film"). The image (upload.wikimedia.org, CORS-enabled) is turned into a 360×540 JPEG and saved in `clubs/{club}/photos/{filmId}`; "no film article" or a poster we removed is remembered as "-" in `gplace/{filmId}`; errors such as a 429 are retried in a later session. The poster sheet offers your own image, Remove the poster, and Find the poster online.
+- Dishes: cool grey newsprint (#EDEDE9), black ink, graphite pencil circle; red only on the COOKED stamp. No generated plates: a dashed "Add a photo" frame on #1 and on cooked clippings, a "+ Add a photo" link on the other dishes; photos print in black-and-white halftone.

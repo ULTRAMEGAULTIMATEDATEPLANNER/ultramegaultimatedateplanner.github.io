@@ -660,12 +660,9 @@ a.btn{text-decoration:none}
 :is([data-skin="mubi"],[data-skin="news"]) .acts{gap:.3rem}
 :is([data-skin="mubi"],[data-skin="news"]) .item:hover{background:none}
 :is([data-skin="mubi"],[data-skin="news"]) .item + .item{border-top:1px solid var(--line)}
-:is([data-skin="mubi"],[data-skin="news"]) .body{display:grid;grid-template-columns:clamp(84px,24vw,132px) minmax(0,1fr);column-gap:clamp(.7rem,2.6vw,1.1rem);align-items:start}
-:is([data-skin="mubi"],[data-skin="news"]) .body > :not(.art){grid-column:2}
-:is([data-skin="mubi"],[data-skin="news"]) .body > .art{grid-row:1 / span 4}
-:is([data-skin="mubi"],[data-skin="news"]) .is-first .body{grid-template-columns:minmax(0,1fr)}
-:is([data-skin="mubi"],[data-skin="news"]) .is-first .body > *{grid-column:1}
-:is([data-skin="mubi"],[data-skin="news"]) .is-first .body > .art{grid-row:auto;margin-bottom:.8rem}
+:is([data-skin="mubi"],[data-skin="news"]) .body.has-art{display:grid;grid-template-columns:clamp(58px,16vw,88px) minmax(0,1fr);column-gap:clamp(.7rem,2.6vw,1.1rem);align-items:start}
+:is([data-skin="mubi"],[data-skin="news"]) .body.has-art > :not(.art):not(.art-btn):not(.photo-slot){grid-column:2}
+:is([data-skin="mubi"],[data-skin="news"]) .body.has-art > :is(.art,.art-btn,.photo-slot){grid-row:1 / span 4}
 :is([data-skin="mubi"],[data-skin="news"]) .is-editing{grid-template-columns:minmax(0,1fr)!important}
 :is([data-skin="mubi"],[data-skin="news"]) .done-item .body{display:block}
 :is([data-skin="mubi"],[data-skin="news"]) .empty::before{display:none}
@@ -715,25 +712,19 @@ a.btn{text-decoration:none}
 [data-skin="mubi"] .handle{color:#555}
 [data-skin="mubi"] .handle:hover{color:#FFF}
 [data-skin="mubi"] .sticker{margin:0 0 .45rem;transform:none;border:0;background:var(--mubi-blue);color:#FFF;font-family:var(--f-body);font-weight:500;font-size:.62rem;letter-spacing:.18em}
-[data-skin="mubi"] .is-first .sticker{position:absolute;z-index:2;top:.75rem;left:.75rem}
 [data-skin="mubi"] .is-first .body{position:relative}
 [data-skin="mubi"] .is-picking,[data-skin="mubi"] .is-picked{background:#101a66!important;outline:0}
 [data-skin="mubi"] .is-dragging{border:1px solid #FFF!important;box-shadow:0 10px 30px rgba(0,0,0,.8);background:#0A0A0A}
-/* generated film stills: a duotone frame (palette and composition from the title), grain, vignette;
-   the hero sits in a strip of film with sprocket holes */
-[data-skin="mubi"] .art{background:#000}
-[data-skin="mubi"] .art > i{display:block;position:relative;overflow:hidden;aspect-ratio:16/9;
-  background:radial-gradient(ellipse 60% 70% at var(--ax) var(--ay),color-mix(in srgb,var(--a2) 70%,#FFF),var(--a2) 22%,transparent 62%),linear-gradient(170deg,color-mix(in srgb,var(--a1) 80%,var(--a2)),color-mix(in srgb,var(--a1) 45%,#000) 92%)}
-[data-skin="mubi"] .art > i::before{content:"";position:absolute;inset:0;mix-blend-mode:soft-light}
-[data-skin="mubi"] .art[data-k="0"] > i::before{background:linear-gradient(180deg,transparent 0 58%,rgba(0,0,0,.5) 58.5% 100%)}
-[data-skin="mubi"] .art[data-k="1"] > i::before{background:linear-gradient(90deg,transparent 0 30%,rgba(255,255,255,.75) 30% 46%,transparent 46%),linear-gradient(180deg,transparent 0 22%,rgba(0,0,0,.4) 22% 26%,transparent 26%)}
-[data-skin="mubi"] .art[data-k="2"] > i::before{background:radial-gradient(circle at 68% 34%,rgba(255,255,255,.95) 0 9%,transparent 9.5%),linear-gradient(180deg,transparent 0 72%,rgba(0,0,0,.45) 72%)}
-[data-skin="mubi"] .art[data-k="3"] > i::before{background:repeating-linear-gradient(180deg,rgba(255,255,255,.55) 0 3px,transparent 3px 11px);-webkit-mask-image:linear-gradient(90deg,transparent 0 40%,#000 55%);mask-image:linear-gradient(90deg,transparent 0 40%,#000 55%)}
-[data-skin="mubi"] .art > i::after{content:"";position:absolute;inset:0;background:var(--grain) 0 0/180px,radial-gradient(ellipse at 50% 45%,transparent 45%,rgba(0,0,0,.7) 100%);mix-blend-mode:overlay;opacity:.75}
-[data-skin="mubi"] .is-first .art{padding:13px 0;
-  background:radial-gradient(circle,#D4D4D4 0 2.4px,transparent 2.9px) 0 3px/15px 7px repeat-x,radial-gradient(circle,#D4D4D4 0 2.4px,transparent 2.9px) 0 calc(100% - 3px)/15px 7px repeat-x,#000}
-[data-skin="mubi"] .is-first .art > i{aspect-ratio:2.2/1}
-[data-skin="mubi"] .is-first .sticker{top:1.6rem}
+/* real posters (from Wikipedia, or our own image); no poster, no picture */
+[data-skin="mubi"] .art{display:block;background:#111;box-shadow:0 0 0 1px #262626}
+[data-skin="mubi"] .art > i{display:block;position:relative;overflow:hidden;aspect-ratio:2/3}
+[data-skin="mubi"] .art-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+[data-skin="mubi"] .art > i::after{content:"";position:absolute;inset:0;background:var(--grain) 0 0/180px;mix-blend-mode:overlay;opacity:.35}
+[data-skin="mubi"] .is-first .body.has-art{grid-template-columns:clamp(116px,34vw,220px) minmax(0,1fr);column-gap:clamp(.9rem,3vw,1.6rem)}
+[data-skin="mubi"] .is-first .body.has-art .sticker{position:absolute;z-index:2;top:.55rem;left:.55rem}
+.art-btn{display:block;width:100%;padding:0;border:0;background:none;cursor:pointer}
+[data-skin="mubi"] .art-btn:hover .art,[data-skin="mubi"] .art-btn:focus-visible .art{box-shadow:0 0 0 2px #FFF}
+[data-skin="mubi"] .done-item .art{float:left;width:46px;margin:0 .7rem 0 0}
 [data-skin="mubi"] .empty-title{font-family:var(--f-body);font-weight:300;letter-spacing:.06em;text-transform:uppercase;color:#FFF}
 [data-skin="mubi"] .empty-body{color:#A3A3A3}
 /* watched: ticket stubs */
@@ -758,113 +749,117 @@ a.btn{text-decoration:none}
 [data-skin="mubi"] .foot{border-top:1px solid #262626;padding-top:1rem}
 [data-skin="mubi"] .dlg,[data-skin="mubi"] .install{border:1px solid #333;border-radius:0;background:#0A0A0A;color:#FFF;box-shadow:none}
 
-/* ----- Dishes: a printed newspaper. Yellowed newsprint with grain and a centre fold, a blackletter
-   nameplate, rules between stories, headlines and decks, pictures printed in halftone, red pencil ----- */
+/* ----- Dishes: a grey, New York style printed newspaper. Cool newsprint with grain and a centre fold,
+   black ink only (the red is the rubber stamp), a blackletter nameplate, rules between stories,
+   headlines and decks; pictures only when we add a photo, printed in black-and-white halftone ----- */
 :root[data-skin="news"]{
-  --paper:#ECE4D1; --sheet:#ECE4D1; --ink:#1B1814; --ink-soft:#5B5246; --on-ink:#F3EEE2; --on-acc:#FFF; --line:#B8AC93;
-  --news-red:#B42A1F; --grain-blend:multiply; --grain-op:.24; --speck-op:.5; --speck-filter:none;
+  --paper:#EDEDE9; --sheet:#EDEDE9; --ink:#111; --ink-soft:#555; --on-ink:#F4F4F1; --on-acc:#FFF; --line:#B4B4AE;
+  --news-red:#BE2A2A; --grain-blend:multiply; --grain-op:.24; --speck-op:.5; --speck-filter:none;
   --f-news:"Source Serif 4",Georgia,"Times New Roman",serif; --f-black:"UnifrakturMaguntia","Old English Text MT",serif;
   color-scheme:light;
 }
-[data-skin="news"] body{--acc:var(--news-red);color:#1B1814;background:#ECE4D1;
-  background-image:linear-gradient(90deg,transparent calc(50% - 2px),rgba(60,45,20,.09) 50%,rgba(255,255,255,.4) calc(50% + 1px),transparent calc(50% + 4px)),
-    radial-gradient(ellipse at 50% 30%,transparent 55%,rgba(120,90,40,.16) 100%)}
-[data-skin="news"] :focus-visible{outline:2px solid #1B1814;outline-offset:2px}
+[data-skin="news"] body{--acc:#111;color:#111;background:#EDEDE9;
+  background-image:linear-gradient(90deg,transparent calc(50% - 2px),rgba(0,0,0,.07) 50%,rgba(255,255,255,.5) calc(50% + 1px),transparent calc(50% + 4px)),
+    radial-gradient(ellipse at 50% 30%,transparent 60%,rgba(0,0,0,.07) 100%)}
+[data-skin="news"] :focus-visible{outline:2px solid #111;outline-offset:2px}
 [data-skin="news"] .mast{flex-direction:column;align-items:center;text-align:center;gap:.4rem;padding-block:14px 0}
-[data-skin="news"] .logo{order:0;flex-direction:column;gap:.35rem;font-family:var(--f-black);font-weight:400;font-size:clamp(1.85rem,8.6vw,3.9rem);letter-spacing:0;line-height:1.02;color:#1B1814}
-[data-skin="news"] .logo::before{content:"“All the Dishes That Are Fit to Cook”";font-family:var(--f-news);font-style:italic;font-weight:600;font-size:.72rem;letter-spacing:.01em;color:#5B5246}
+[data-skin="news"] .logo{order:0;flex-direction:column;gap:.35rem;font-family:var(--f-black);font-weight:400;font-size:clamp(1.85rem,8.6vw,3.9rem);letter-spacing:0;line-height:1.02;color:#111}
+[data-skin="news"] .logo::before{content:"“All the Dishes That Are Fit to Cook”";font-family:var(--f-news);font-style:italic;font-weight:600;font-size:.72rem;letter-spacing:.01em;color:#555}
 [data-skin="news"] .logo::after{content:"Vol. I \00B7  " attr(data-date) " \00B7  Serves two";display:block;width:min(100%,46rem);margin-top:.45rem;padding:.32rem 0;
-  border-top:3px double #1B1814;border-bottom:1px solid #1B1814;font-family:var(--f-news);font-weight:600;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase}
+  border-top:3px double #111;border-bottom:1px solid #111;font-family:var(--f-news);font-weight:600;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase}
 [data-skin="news"] .mast-tools{order:1}
-[data-skin="news"] .sync{color:#5B5246}
-[data-skin="news"] .tabs{justify-content:safe center;gap:0;border-bottom:1px solid #1B1814}
-[data-skin="news"] .tab{padding-inline:clamp(.45rem,2vw,1rem);color:#5B5246}
-[data-skin="news"] .tab + .tab{box-shadow:-1px 0 0 0 #B8AC93}
+[data-skin="news"] .sync{color:#555}
+[data-skin="news"] .tabs{justify-content:safe center;gap:0;border-bottom:1px solid #111}
+[data-skin="news"] .tab{padding-inline:clamp(.45rem,2vw,1rem);color:#555}
+[data-skin="news"] .tab + .tab{box-shadow:-1px 0 0 0 #B4B4AE}
 [data-skin="news"] .tab-name{font-family:var(--f-news);font-weight:700;letter-spacing:.08em}
-[data-skin="news"] .tab:hover,[data-skin="news"] .tab[aria-selected="true"]{color:#1B1814}
+[data-skin="news"] .tab:hover,[data-skin="news"] .tab[aria-selected="true"]{color:#111}
 [data-skin="news"] .tab[aria-selected="true"] .tab-name{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:5px}
-[data-skin="news"] .btn{border:1px solid #1B1814;background:transparent;color:#1B1814;font-family:var(--f-body);font-weight:700;font-size:.66rem;letter-spacing:.12em}
-[data-skin="news"] .btn:hover{background:#1B1814;color:#F3EEE2}
-[data-skin="news"] .btn-acc,[data-skin="news"] .btn-acc:hover{border-color:#1B1814;background:#1B1814;color:#F3EEE2;filter:none}
-[data-skin="news"] .icon-btn{border:1px solid #B8AC93;color:#3A332B;background:transparent}
-[data-skin="news"] .icon-btn:hover{background:#1B1814;color:#F3EEE2}
-[data-skin="news"] .linkish{color:#1B1814;text-decoration-color:var(--news-red)}
-[data-skin="news"] .input{border:0;border-bottom:1px solid #1B1814;background:transparent;color:#1B1814;padding-inline:.1rem}
+[data-skin="news"] .btn{border:1px solid #111;background:transparent;color:#111;font-family:var(--f-body);font-weight:700;font-size:.66rem;letter-spacing:.12em}
+[data-skin="news"] .btn:hover{background:#111;color:#F4F4F1}
+[data-skin="news"] .btn-acc,[data-skin="news"] .btn-acc:hover{border-color:#111;background:#111;color:#F4F4F1;filter:none}
+[data-skin="news"] .icon-btn{border:1px solid #B4B4AE;color:#333;background:transparent}
+[data-skin="news"] .icon-btn:hover{background:#111;color:#F4F4F1}
+[data-skin="news"] .linkish{color:#111;text-decoration-color:#111}
+[data-skin="news"] .input{border:0;border-bottom:1px solid #111;background:transparent;color:#111;padding-inline:.1rem}
 [data-skin="news"] .input:focus{border-bottom-width:2px;outline:none}
-[data-skin="news"] .input::placeholder{color:#7D7262;font-style:italic}
+[data-skin="news"] .input::placeholder{color:#7A7A76;font-style:italic}
 [data-skin="news"] #add-title{font-family:var(--f-news);font-weight:600;font-size:clamp(1.05rem,4vw,1.3rem)}
-[data-skin="news"] .field-label,[data-skin="news"] .chk{font-family:var(--f-news);font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#5B5246}
-[data-skin="news"] .chk input{accent-color:#1B1814}
-[data-skin="news"] .sheet-head{flex-direction:column;align-items:center;text-align:center;gap:.6rem;margin-bottom:1.1rem;padding-bottom:.9rem;border-bottom:1px solid #1B1814}
+[data-skin="news"] .field-label,[data-skin="news"] .chk{font-family:var(--f-news);font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#555}
+[data-skin="news"] .chk input{accent-color:#111}
+[data-skin="news"] .sheet-head{flex-direction:column;align-items:center;text-align:center;gap:.6rem;margin-bottom:1.1rem;padding-bottom:.9rem;border-bottom:1px solid #111}
 [data-skin="news"] .sheet-title{font-family:var(--f-news);font-weight:700;font-size:clamp(2.2rem,9vw,3.9rem);letter-spacing:-.02em;line-height:.95;text-shadow:none}
-[data-skin="news"] .sheet-title::before{content:"Cooking";display:block;margin-bottom:.35rem;font-family:var(--f-body);font-weight:800;font-size:.17em;letter-spacing:.3em;text-transform:uppercase;color:var(--news-red)}
-[data-skin="news"] .sheet-sub{font-family:var(--f-news);font-style:italic;font-weight:600;font-size:.4em;letter-spacing:0;color:#5B5246}
+[data-skin="news"] .sheet-title::before{content:"Cooking";display:block;margin-bottom:.35rem;font-family:var(--f-body);font-weight:800;font-size:.17em;letter-spacing:.3em;text-transform:uppercase;color:#111}
+[data-skin="news"] .sheet-sub{font-family:var(--f-news);font-style:italic;font-weight:600;font-size:.4em;letter-spacing:0;color:#555}
 /* the add form is a clip-out coupon */
-[data-skin="news"] .add{position:relative;padding:1rem 1rem .8rem;border:2px dashed #1B1814;background:rgba(255,253,245,.45)}
-[data-skin="news"] .add::before{content:"\2702  Fill in, clip out: a dish to cook";position:absolute;top:-.62rem;left:.8rem;padding:0 .4rem;background:#ECE4D1;font-family:var(--f-news);font-style:italic;font-size:.74rem;color:#5B5246}
+[data-skin="news"] .add{position:relative;padding:1rem 1rem .8rem;border:2px dashed #111;background:rgba(255,255,255,.45)}
+[data-skin="news"] .add::before{content:"\2702  Fill in, clip out: a dish to cook";position:absolute;top:-.62rem;left:.8rem;padding:0 .4rem;background:#EDEDE9;font-family:var(--f-news);font-style:italic;font-size:.74rem;color:#555}
 /* stories */
-[data-skin="news"] .item + .item{border-top:1px solid #B8AC93}
-[data-skin="news"] .item.is-first{padding-bottom:1.2rem;border-bottom:3px double #1B1814}
-[data-skin="news"] .rank{font-family:var(--f-news);font-weight:700;font-size:clamp(1.05rem,3.6vw,1.3rem);color:#1B1814}
+[data-skin="news"] .item + .item{border-top:1px solid #B4B4AE}
+[data-skin="news"] .item.is-first{padding-bottom:1.2rem;border-bottom:3px double #111}
+[data-skin="news"] .rank{font-family:var(--f-news);font-weight:700;font-size:clamp(1.05rem,3.6vw,1.3rem);color:#111}
 [data-skin="news"] .rank::before{content:"No.";margin-right:.12em;font-size:.6em;letter-spacing:.04em;vertical-align:.25em}
-[data-skin="news"] .is-first .rank{position:relative;color:var(--news-red)}
-[data-skin="news"] .is-first .rank::after{content:"";position:absolute;inset:-.32em -.45em;border:2.5px solid var(--news-red);border-radius:52% 46% 55% 44% / 48% 56% 42% 52%;transform:rotate(-8deg);opacity:.85}
+[data-skin="news"] .is-first .rank{position:relative;color:#111}
+[data-skin="news"] .is-first .rank::after{content:"";position:absolute;inset:-.32em -.45em;border:2.5px solid #3A3A3A;border-radius:52% 46% 55% 44% / 48% 56% 42% 52%;transform:rotate(-8deg);opacity:.85}
 [data-skin="news"] .title{font-family:var(--f-news);font-weight:700;font-stretch:100%;font-size:clamp(1.15rem,4.2vw,1.45rem);line-height:1.1;letter-spacing:-.01em}
 [data-skin="news"] .is-first .title{font-size:clamp(1.75rem,7vw,2.9rem);line-height:1;letter-spacing:-.02em}
-[data-skin="news"] .note{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:#3F382F;line-height:1.4}
+[data-skin="news"] .note{font-family:Georgia,"Times New Roman",serif;font-style:italic;color:#333;line-height:1.4}
 [data-skin="news"] .is-first .note{font-size:1rem}
-[data-skin="news"] .is-first .note::first-letter{float:left;margin:.05em .08em 0 0;font-family:var(--f-news);font-style:normal;font-weight:700;font-size:2.6em;line-height:.85;color:var(--news-red)}
-[data-skin="news"] .meta{font-family:var(--f-news);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#5B5246}
-[data-skin="news"] .link{color:#1B1814;text-decoration-color:var(--news-red)}
-[data-skin="news"] .handle{color:#9C907A}
-[data-skin="news"] .handle:hover{color:#1B1814}
-[data-skin="news"] .sticker{transform:rotate(-2deg);border:1.5px solid var(--news-red);background:transparent;color:var(--news-red);font-family:var(--f-body);font-weight:800;font-size:.58rem;letter-spacing:.16em}
-[data-skin="news"] .is-picking,[data-skin="news"] .is-picked{background:rgba(180,42,31,.1)!important;outline:0}
-[data-skin="news"] .is-dragging{border:1px solid #1B1814!important;box-shadow:5px 5px 0 rgba(0,0,0,.12);background:#F3ECDB}
-/* pictures: generated plates on linen, or your own photo, printed in halftone */
-[data-skin="news"] .art{background:#CDBFA2 repeating-linear-gradient(45deg,rgba(255,255,255,.16) 0 2px,transparent 2px 7px);filter:sepia(.35) saturate(.75) contrast(1.05);box-shadow:inset 0 0 0 1px rgba(27,24,20,.4)}
-[data-skin="news"] .art > i{display:block;position:relative;aspect-ratio:1}
-[data-skin="news"] .art > i::before{content:"";position:absolute;inset:7%;border-radius:50%;box-shadow:3px 5px 8px rgba(0,0,0,.25);
-  background:radial-gradient(circle at var(--ax) var(--ay),var(--f2) 0 12%,transparent 12.5%),radial-gradient(circle at 50% 50%,var(--f1) 0 30%,var(--f3) 31% 36%,#FFF 37% 56%,#ECE6DA 57% 64%,transparent 65%)}
-[data-skin="news"] .art[data-k="1"] > i::before{background:radial-gradient(circle at 38% 40%,var(--f2) 0 8%,transparent 8.5%),radial-gradient(circle at 60% 58%,var(--f3) 0 9%,transparent 9.5%),radial-gradient(circle at 55% 35%,var(--f1) 0 7%,transparent 7.5%),radial-gradient(circle,var(--f3) 0 30%,#FFF 31% 56%,#ECE6DA 57% 64%,transparent 65%)}
-[data-skin="news"] .art[data-k="2"] > i::before{background:radial-gradient(circle,var(--f1) 0 24%,color-mix(in srgb,var(--f1) 70%,#000) 25% 33%,#F3EEE3 34% 50%,#D9D1C1 51% 58%,transparent 59%)}
-[data-skin="news"] .art[data-k="3"] > i::before{background:radial-gradient(circle,transparent 0 29%,#FFF 29.5% 56%,#ECE6DA 57% 64%,transparent 65%),conic-gradient(from 20deg,var(--f1) 0 50%,var(--f2) 0 100%) 50% 50%/50% 50% no-repeat}
-[data-skin="news"] .art > i::after{content:"";position:absolute;inset:0;z-index:2;background:radial-gradient(circle,rgba(20,15,10,.32) .9px,transparent 1.35px) 0 0/4px 4px;mix-blend-mode:multiply}
-[data-skin="news"] .art.has-photo{filter:none}
-[data-skin="news"] .art.has-photo > i::before{display:none}
-[data-skin="news"] .art-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.35) brightness(1.06) sepia(.18)}
-[data-skin="news"] .is-first .art > i{aspect-ratio:16/10}
-[data-skin="news"] .is-first .art > i::before{inset:8% auto;left:50%;height:84%;aspect-ratio:1;translate:-50% 0}
+[data-skin="news"] .is-first .note::first-letter{float:left;margin:.05em .08em 0 0;font-family:var(--f-news);font-style:normal;font-weight:700;font-size:2.6em;line-height:.85;color:#111}
+[data-skin="news"] .meta{font-family:var(--f-news);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#555}
+[data-skin="news"] .link{color:#111;text-decoration-color:#777}
+[data-skin="news"] .handle{color:#9A9A96}
+[data-skin="news"] .handle:hover{color:#111}
+[data-skin="news"] .sticker{transform:rotate(-2deg);border:1.5px solid #111;background:transparent;color:#111;font-family:var(--f-body);font-weight:800;font-size:.58rem;letter-spacing:.16em}
+[data-skin="news"] .is-picking,[data-skin="news"] .is-picked{background:rgba(0,0,0,.06)!important;outline:0}
+[data-skin="news"] .is-dragging{border:1px solid #111!important;box-shadow:5px 5px 0 rgba(0,0,0,.12);background:#F6F6F3}
+/* pictures: only our own photos, printed in black-and-white halftone; a dashed slot offers to add one */
+[data-skin="news"] .art{display:block;background:#DDD;box-shadow:inset 0 0 0 1px rgba(0,0,0,.45)}
+[data-skin="news"] .art > i{display:block;position:relative;overflow:hidden;aspect-ratio:1}
+[data-skin="news"] .art-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.35) brightness(1.05)}
+[data-skin="news"] .art > i::after{content:"";position:absolute;inset:0;z-index:2;background:radial-gradient(circle,rgba(0,0,0,.34) .9px,transparent 1.35px) 0 0/4px 4px;mix-blend-mode:multiply}
+[data-skin="news"] .photo-slot{display:grid;place-content:center;justify-items:center;gap:.35rem;width:100%;aspect-ratio:1;padding:.4rem;border:1.5px dashed #555;background:rgba(255,255,255,.35);color:#333;cursor:pointer;
+  font-family:var(--f-news);font-style:italic;font-size:.8rem;line-height:1.2;text-align:center}
+[data-skin="news"] .photo-slot:hover{background:#FFF;color:#111}
+[data-skin="news"] .photo-slot svg{width:22px;height:22px}
+[data-skin="news"] .is-first .body.has-art{grid-template-columns:minmax(0,1fr)}
+[data-skin="news"] .is-first .body.has-art > *{grid-column:1}
+[data-skin="news"] .is-first .body.has-art > :is(.art,.art-btn,.photo-slot){grid-row:auto;margin-bottom:.8rem}
+[data-skin="news"] .is-first :is(.art > i,.photo-slot){aspect-ratio:16/9}
+[data-skin="news"] .is-first .photo-slot{font-size:.95rem}
 [data-skin="news"] .is-first .body{position:relative}
-[data-skin="news"] .is-first .body::before{content:"";position:absolute;z-index:3;top:-.15rem;left:50%;width:84px;height:22px;translate:-50% 0;rotate:-3deg;background:rgba(240,228,180,.75);
+[data-skin="news"] .is-first .body.has-art::before{content:"";position:absolute;z-index:3;top:-.15rem;left:50%;width:84px;height:22px;translate:-50% 0;rotate:-3deg;background:rgba(222,222,214,.85);
   clip-path:polygon(3% 0,97% 0,100% 18%,96% 36%,100% 54%,96% 72%,100% 90%,97% 100%,3% 100%,0 82%,4% 64%,0 46%,4% 28%,0 10%)}
 @media (min-width:760px){
-  [data-skin="news"] .is-first .body{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:1.5rem}
-  [data-skin="news"] .is-first .body > *{grid-column:2}
-  [data-skin="news"] .is-first .body > .art{grid-column:1;grid-row:1 / span 4;margin:0}
-  [data-skin="news"] .is-first .body::before{left:26%}
+  [data-skin="news"] .is-first .body.has-art{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:1.5rem}
+  [data-skin="news"] .is-first .body.has-art > *{grid-column:2}
+  [data-skin="news"] .is-first .body.has-art > :is(.art,.art-btn,.photo-slot){grid-column:1;grid-row:1 / span 4;margin:0}
+  [data-skin="news"] .is-first .body.has-art::before{left:26%}
 }
-[data-skin="news"] .empty-title{font-family:var(--f-news);font-weight:700;color:#1B1814}
-[data-skin="news"] .empty-body{font-family:Georgia,serif;font-style:italic;color:#3F382F}
+[data-skin="news"] .art-btn:hover .art,[data-skin="news"] .art-btn:focus-visible .art{box-shadow:inset 0 0 0 2px #111}
+[data-skin="news"] .add-photo{margin-top:.15rem;font-family:var(--f-news);font-style:italic;font-weight:600;font-size:.85rem;text-decoration-thickness:1px}
+[data-skin="news"] .empty-title{font-family:var(--f-news);font-weight:700;color:#111}
+[data-skin="news"] .empty-body{font-family:Georgia,serif;font-style:italic;color:#333}
 /* the cooked archive: clippings with a red stamp, and your photo */
-[data-skin="news"] .pile{border-top:3px double #1B1814}
+[data-skin="news"] .pile{border-top:3px double #111}
 [data-skin="news"] .pile summary{font-family:var(--f-news);font-weight:700;font-size:1.15rem}
-[data-skin="news"] .pile summary::before{border:1px solid #1B1814}
-[data-skin="news"] .pile-count{border:1px solid #1B1814;font-family:var(--f-news)}
+[data-skin="news"] .pile summary::before{border:1px solid #111}
+[data-skin="news"] .pile-count{border:1px solid #111;font-family:var(--f-news)}
 [data-skin="news"] .pile-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15rem),1fr));gap:1.1rem;margin-top:1rem}
-[data-skin="news"] .done-item{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:.55rem;padding:.75rem;border:0!important;background:#F4EEDF;
-  box-shadow:0 1px 0 rgba(0,0,0,.08),2px 3px 6px rgba(60,45,20,.18);rotate:-.6deg;
+[data-skin="news"] .done-item{position:relative;display:grid;grid-template-columns:minmax(0,1fr);gap:.55rem;padding:.75rem;border:0!important;background:#F6F6F3;
+  box-shadow:0 1px 0 rgba(0,0,0,.08),2px 3px 6px rgba(0,0,0,.16);rotate:-.6deg;
   clip-path:polygon(0 1%,4% 0,9% 1.2%,15% .2%,22% 1%,30% 0,38% 1.1%,46% .3%,55% 1%,63% 0,71% 1.2%,79% .2%,87% 1%,94% 0,100% 1%,100% 99%,95% 100%,88% 98.8%,80% 100%,72% 99%,64% 100%,56% 98.9%,48% 100%,40% 99%,32% 100%,24% 98.8%,16% 100%,8% 99%,0 100%)}
 [data-skin="news"] .done-item:nth-child(even){rotate:.7deg}
-[data-skin="news"] .done-item .art{width:100%}
+[data-skin="news"] .done-item :is(.art,.art-btn,.photo-slot){width:100%}
+[data-skin="news"] .done-item .photo-slot{aspect-ratio:4/3}
 [data-skin="news"] .done-item .title{font-family:var(--f-news);font-weight:700;font-size:1.05rem;text-decoration:none}
 [data-skin="news"] .done-item .stamp{color:var(--news-red);font-family:var(--f-body);font-weight:800}
 [data-skin="news"] .done-acts{flex-wrap:wrap}
-[data-skin="news"] .toast{border-radius:0;background:#1B1814;color:#F3EEE2;box-shadow:none}
-[data-skin="news"] .toast button{text-decoration-color:var(--news-red)}
-[data-skin="news"] .foot{border-top:3px double #1B1814;padding-top:1rem}
-[data-skin="news"] .foot .label{font-family:Georgia,serif;font-style:italic;color:#5B5246}
-[data-skin="news"] .dlg,[data-skin="news"] .install{border:1px solid #1B1814;border-radius:0;background:#F4EEDF;color:#1B1814;box-shadow:6px 6px 0 rgba(0,0,0,.12)}
+[data-skin="news"] .toast{border-radius:0;background:#111;color:#F4F4F1;box-shadow:none}
+[data-skin="news"] .toast button{text-decoration-color:#F4F4F1}
+[data-skin="news"] .foot{border-top:3px double #111;padding-top:1rem}
+[data-skin="news"] .foot .label{font-family:Georgia,serif;font-style:italic;color:#555}
+[data-skin="news"] .dlg,[data-skin="news"] .install{border:1px solid #111;border-radius:0;background:#F6F6F3;color:#111;box-shadow:6px 6px 0 rgba(0,0,0,.12)}
 [data-skin="news"] .dlg h2{font-family:var(--f-news);font-weight:700}
 [data-skin="news"] .photo-preview .art{width:100%}
 
@@ -1141,6 +1136,7 @@ a.btn{text-decoration:none}
         <button class="btn" type="button" id="photo-pick">Choose a photo</button>
         <button class="btn" type="button" id="photo-remove">Remove our photo</button>
         <button class="btn" type="button" id="photo-google-off">Not this place's photo</button>
+        <button class="btn" type="button" id="photo-find">Find the poster online</button>
         <button class="btn" type="button" id="photo-goto">Go to the review</button>
       </div>
       <input type="file" id="photo-camera-in" accept="image/*" capture="environment" hidden>
@@ -1634,11 +1630,13 @@ a.btn{text-decoration:none}
     if (pickedId === id) pickedId = null;
     render();
     if (!(await remote("delete", l, id))) { resync(l); return; }
-    const photo = photos.own.get(id);
+    const photo = photos.own.get(id), mark = photos.gplace.get(id);
     if (photo) { photos.own.delete(id); photoRemote(() => backend.remove("photos", id)); }
+    if (mark) { photos.gplace.delete(id); photoRemote(() => backend.remove("gplace", id)); }
     toast(`Removed “${it.title}”.`, "Undo", () => {
       restore(l, id, body);
       if (photo) { photos.own.set(id, photo); render(); photoRemote(() => backend.set("photos", id, { data: photo, at: Date.now(), by: getMe() })); }
+      if (mark) { photos.gplace.set(id, mark); photoRemote(() => backend.set("gplace", id, { id: mark, at: Date.now() })); }
     });
   }
   async function restore(l, id, body) {
@@ -1804,7 +1802,20 @@ a.btn{text-decoration:none}
     li.append(rank);
 
     const body = el("div", "body");
-    body.append(artEl(it, current));
+    const art = artEl(it, current), canPhoto = writable && !photos.blocked;
+    if (art && current === "films") {   // a poster opens its sheet (change, remove, look up again)
+      const pb = el("button", "art-btn");
+      pb.type = "button"; pb.dataset.act = "photo"; pb.setAttribute("aria-label", `Poster of “${it.title}”`);
+      pb.append(art);
+      body.append(pb);
+    } else if (art && current === "dishes" && canPhoto) {
+      const pb = el("button", "art-btn");
+      pb.type = "button"; pb.dataset.act = "photo"; pb.setAttribute("aria-label", `Photo of “${it.title}”`);
+      pb.append(art);
+      body.append(pb);
+    } else if (art) body.append(art);
+    else if (current === "dishes" && i === 0 && canPhoto) body.append(photoSlot("Add a photo"));
+    body.classList.toggle("has-art", !!body.firstChild);
     const title = el("div", "title");
     title.append(el("span", "title-text", it.title));
     if (pickedId === it.id) title.append(el("span", "sticker", cfg.picked));
@@ -1819,6 +1830,15 @@ a.btn{text-decoration:none}
     }
     if (it.addedBy && mode === "shared" && userApi) meta.append(whoChip(it.addedBy));
     if (meta.childNodes.length) body.append(meta);
+    if (!art && i > 0 && current === "dishes" && writable && !photos.blocked) {
+      const add = el("button", "linkish add-photo", "+ Add a photo");
+      add.type = "button"; add.dataset.act = "photo"; add.setAttribute("aria-label", `Add a photo of “${it.title}”`);
+      body.append(add);
+    } else if (!art && current === "films" && writable && !photos.blocked && photos.gplace.get(it.id) === "-") {
+      const add = el("button", "linkish add-photo", "+ Add a poster");
+      add.type = "button"; add.dataset.act = "photo"; add.setAttribute("aria-label", `Add a poster for “${it.title}”`);
+      body.append(add);
+    }
     li.append(body);
 
     if (writable) {
@@ -1837,29 +1857,26 @@ a.btn{text-decoration:none}
     return li;
   }
 
-  // Generated art for the app looks (hidden in the zine): a film still for Films (MUBI) and an overhead
-  // plate for Dishes (the newspaper), palette and composition picked from the title, or for a dish we
-  // cooked, our own photo of it, printed in halftone. Decorative only.
-  const STILL_INKS = [["#0C2A3A", "#E08A3C"], ["#1B1B1B", "#C9C2B0"], ["#2A0B0B", "#D6452B"], ["#06202A", "#4FB3A5"],
-    ["#1A1430", "#8F7BE8"], ["#2B2010", "#E7C36A"], ["#0D1B14", "#7DBB86"], ["#301018", "#F0A3B5"]];
-  const PLATE_INKS = [["#C2512F", "#F2C14E", "#6A8F3C"], ["#8C2F39", "#F4A259", "#5B8E7D"], ["#D97D2B", "#FFF1D0", "#3A5A40"],
-    ["#B5442E", "#E9D8A6", "#94A35B"], ["#7A3B2E", "#E3B23C", "#386641"], ["#C75146", "#F4E285", "#5C7A3A"]];
+  // A film's poster or a dish's photo (both kept in the photo store, under the item's id); nothing when
+  // there isn't one. Shown only in the app looks; decorative, the title says what it is.
   function artEl(it, list) {
-    const h = hashStr(it.title.toLowerCase());
-    const [a1, a2] = STILL_INKS[h % STILL_INKS.length], [f1, f2, f3] = PLATE_INKS[(h >>> 4) % PLATE_INKS.length];
-    const a = el("span", "art");
+    const photo = (list === "films" || list === "dishes") && photos.own.get(it.id);
+    if (!photo) return null;
+    const a = el("span", "art"), frame = el("i"), img = el("img", "art-photo");
     a.setAttribute("aria-hidden", "true");
-    for (const [k, v] of [["--a1", a1], ["--a2", a2], ["--f1", f1], ["--f2", f2], ["--f3", f3], ["--ax", 20 + (h >>> 8) % 60 + "%"], ["--ay", 25 + (h >>> 14) % 50 + "%"]]) a.style.setProperty(k, v);
-    a.dataset.k = String((h >>> 20) % 4);
-    const frame = el("i"), photo = list === "dishes" && photos.own.get(it.id);
-    if (photo) {
-      const img = el("img", "art-photo");
-      img.alt = ""; img.decoding = "async"; img.loading = "lazy"; img.src = photo;
-      frame.append(img);
-      a.classList.add("has-photo");
-    }
+    img.alt = ""; img.decoding = "async"; img.loading = "lazy"; img.src = photo;
+    frame.append(img);
     a.append(frame);
     return a;
+  }
+  // Where a dish has no photo yet: a dashed frame that offers to add one.
+  function photoSlot(label) {
+    const b = el("button", "photo-slot");
+    b.type = "button";
+    b.dataset.act = "photo";
+    b.innerHTML = ICON.camera;
+    b.append(el("span", null, label));
+    return b;
   }
 
   function buildEditor(it) {
@@ -1937,7 +1954,7 @@ a.btn{text-decoration:none}
       const key = current + ":" + it.id;
       keep.add(key);
       const wantEditor = writable && editing === it.id;
-      const sig = JSON.stringify([it.title, it.note, it.link, it.addedBy, i, items.length, writable, mode, pickedId === it.id, current === "dishes" && ownPhotoSig(it.id)]);
+      const sig = JSON.stringify([it.title, it.note, it.link, it.addedBy, i, items.length, writable, mode, pickedId === it.id, ownPhotoSig(it.id), photos.gplace.get(it.id) || "", photos.blocked]);
       let rec = rowEls.get(key);
       if (!rec || rec.editor !== wantEditor || (!wantEditor && rec.sig !== sig)) {
         const fresh = wantEditor ? buildEditor(it) : buildRow(it, i, items.length);
@@ -1966,7 +1983,9 @@ a.btn{text-decoration:none}
     for (const it of items) {
       const li = el("li", "done-item");
       li.dataset.id = it.id;
-      if (current === "dishes") li.append(artEl(it, "dishes"));
+      const art = artEl(it, current);
+      if (art) li.append(art);
+      else if (current === "dishes" && writable && !photos.blocked) li.append(photoSlot("Add a photo of it"));
       const body = el("div", "body");
       body.append(el("div", "title", it.title));
       const meta = el("div", "done-meta");
@@ -1980,11 +1999,11 @@ a.btn{text-decoration:none}
         back.type = "button";
         back.dataset.act = "back";
         back.setAttribute("aria-label", `Put “${it.title}” back on the list`);
-        if (current === "dishes") {
-          const ph = el("button", "btn btn-sm", photos.own.has(it.id) ? "Change photo" : "Add a photo");
+        if (current === "dishes" && photos.own.has(it.id)) {
+          const ph = el("button", "btn btn-sm", "Change photo");
           ph.type = "button";
           ph.dataset.act = "photo";
-          ph.setAttribute("aria-label", `${photos.own.has(it.id) ? "Change the photo of" : "Add a photo of"} “${it.title}”`);
+          ph.setAttribute("aria-label", `Change the photo of “${it.title}”`);
           acts.append(ph);
         }
         acts.append(back, iconBtn("remove", ICON.x, "Remove for good"));
@@ -2031,6 +2050,7 @@ a.btn{text-decoration:none}
     if (dragging) { renderQueued = true; return; }
     document.body.dataset.list = current;
     applySkin();
+    posterBackfill();
 
     for (const l of TABS) {
       const t = $("#tab-" + l), on = l === current;
@@ -2996,7 +3016,7 @@ a.btn{text-decoration:none}
     }, e => { photos.gplaceLoaded = true; if (e && e.code === "permission_denied") photos.blocked = true; render(); });
   }
 
-  async function setOwnPhoto(id, data) {
+  async function setOwnPhoto(id, data, quiet) {
     const before = photos.own.get(id);
     photos.own.set(id, data);
     render();
@@ -3004,7 +3024,7 @@ a.btn{text-decoration:none}
     if (!ok) {
       if (before) photos.own.set(id, before); else photos.own.delete(id);
       render();
-      toast(photos.blocked ? PHOTO_RULES : mode === "shared" ? "Couldn't save the photo. Check the connection and try again." : "This browser is out of room for more photos.");
+      if (!quiet) toast(photos.blocked ? PHOTO_RULES : mode === "shared" ? "Couldn't save the photo. Check the connection and try again." : "This browser is out of room for more photos.");
     }
     return ok;
   }
@@ -3153,16 +3173,16 @@ a.btn{text-decoration:none}
     return c;
   }
 
-  // The photo sheet serves a restaurant poster (kind "place") or a dish we cooked (kind "dish").
+  // The photo sheet serves a restaurant poster (kind "place"), a dish's photo ("dish") or a film's poster ("film").
   function openPhotoSheet(id, fromStrip, kind = "place") {
-    if (kind === "place" ? !findPlace(id) : !find("dishes", id)) return;
+    if (kind === "place" ? !findPlace(id) : !find(kind === "film" ? "films" : "dishes", id)) return;
     photos.sheet = { id, fromStrip, kind };
     paintPhotoSheet();
     const d = $("#photo-sheet");
     if (!d.open) d.showModal();
   }
   function paintPhotoSheet() {
-    if (photos.sheet && photos.sheet.kind === "dish") return paintDishSheet();
+    if (photos.sheet && photos.sheet.kind !== "place") return paintItemSheet();
     const sh = photos.sheet, p = sh && findPlace(sh.id), d = $("#photo-sheet");
     if (!p) { if (d.open) d.close(); return; }
     const ph = posterPhoto(p), own = photos.own.has(p.id), can = writable && !rest.blocked && !photos.blocked;
@@ -3182,20 +3202,25 @@ a.btn{text-decoration:none}
     $("#photo-google-off").hidden = !can || own || !(ph && ph.google);
     $("#photo-goto").hidden = !sh.fromStrip;
   }
-  function paintDishSheet() {
-    const sh = photos.sheet, it = find("dishes", sh.id), d = $("#photo-sheet");
+  // The sheet for a dish's photo or a film's poster.
+  function paintItemSheet() {
+    const sh = photos.sheet, film = sh.kind === "film", list = film ? "films" : "dishes", it = find(list, sh.id), d = $("#photo-sheet");
     if (!it) { if (d.open) d.close(); return; }
     const own = photos.own.has(it.id), can = writable && !photos.blocked;
     $("#photo-title").textContent = it.title;
     const prev = $("#photo-preview");
     prev.textContent = "";
-    prev.append(artEl(it, "dishes"));
-    $("#photo-note").textContent = own ? "Your photo is printed on the page." : photos.blocked ? PHOTO_RULES : !writable ? "This list is view-only." : "Add a photo of what you cooked.";
-    $("#photo-camera").hidden = !can || !matchMedia("(pointer: coarse)").matches;
+    prev.append(artEl(it, list) || el("p", "label", film ? "No poster yet." : "No photo yet."));
+    $("#photo-note").textContent = photos.blocked ? PHOTO_RULES : !writable ? "This list is view-only."
+      : film ? (own ? "The poster on the list. Use your own image, or remove it." : posterBusy.has(it.id) ? "Looking for the poster on Wikipedia…" : "No poster found yet. Look it up on Wikipedia, or use your own image.")
+      : own ? "Your photo is printed on the page." : "Add a photo of what you cooked.";
+    $("#photo-camera").hidden = !can || film || !matchMedia("(pointer: coarse)").matches;
     $("#photo-pick").hidden = !can;
-    $("#photo-pick").textContent = own ? "Choose a different photo" : "Choose a photo";
+    $("#photo-pick").textContent = film ? (own ? "Use my own image" : "Choose an image") : own ? "Choose a different photo" : "Choose a photo";
     $("#photo-pick").classList.toggle("btn-acc", $("#photo-camera").hidden);
     $("#photo-remove").hidden = !can || !own;
+    $("#photo-remove").textContent = film ? "Remove the poster" : "Remove our photo";
+    $("#photo-find").hidden = !can || !film || own || posterBusy.has(it.id);
     $("#photo-google-off").hidden = true;
     $("#photo-goto").hidden = true;
   }
@@ -3209,14 +3234,86 @@ a.btn{text-decoration:none}
       let data;
       try { data = await photoFromFile(f); }
       catch { toast("That photo couldn't be read. Try another one."); return; }
-      if (await setOwnPhoto(sh.id, data)) { if ($("#photo-sheet").open) $("#photo-sheet").close(); toast(sh.kind === "dish" ? "Photo printed on the page." : "Photo added to the poster."); }
+      if (await setOwnPhoto(sh.id, data)) { if ($("#photo-sheet").open) $("#photo-sheet").close(); toast(sh.kind === "dish" ? "Photo printed on the page." : sh.kind === "film" ? "Poster updated." : "Photo added to the poster."); }
       else paintPhotoSheet();
     });
-    $("#photo-remove").addEventListener("click", async () => { const sh = photos.sheet; if (sh) { await removeOwnPhoto(sh.id); paintPhotoSheet(); } });
+    $("#photo-remove").addEventListener("click", async () => {
+      const sh = photos.sheet;
+      if (!sh) return;
+      await removeOwnPhoto(sh.id);
+      if (sh.kind === "film") noPoster(sh.id);   // a removed poster isn't looked up again by itself
+      paintPhotoSheet();
+    });
+    $("#photo-find").addEventListener("click", async () => {
+      const sh = photos.sheet, it = sh && find("films", sh.id);
+      if (!it) return;
+      photos.gplace.delete(it.id);
+      posterGaveUp.delete(it.id);
+      photoRemote(() => backend.remove("gplace", it.id));
+      const got = posterFor(it, true);
+      paintPhotoSheet();
+      await got;
+      paintPhotoSheet();
+      if (!photos.own.has(it.id)) toast("Couldn't find a poster for that title on Wikipedia.");
+    });
     $("#photo-google-off").addEventListener("click", () => { const sh = photos.sheet; if (sh) { googleNotThis(sh.id); paintPhotoSheet(); } });
     $("#photo-goto").addEventListener("click", () => { const sh = photos.sheet; $("#photo-sheet").close(); if (sh) showInList(sh.id); });
     $("#photo-close").addEventListener("click", () => $("#photo-sheet").close());
     $("#photo-sheet").addEventListener("close", () => { photos.sheet = null; });
+  }
+
+  /* ---------- films: real posters from Wikipedia ---------- */
+
+  // When a film is added (and once for films added before), English Wikipedia is searched for
+  // "title film" (a year from the title or note helps), and the poster from the first film article is
+  // copied into the photo store as a 360×540 JPEG, so both phones see it and it's looked up only once.
+  // No match, or a poster we removed, is remembered as "-" (in gplace) so it isn't looked up again by
+  // itself. Free and keyless: one search per film.
+  const WIKI = "https://en.wikipedia.org/w/api.php";
+  const posterBusy = new Set(), posterGaveUp = new Set();
+  let posterQueue = false;
+  async function findPoster(it) {
+    const year = /\b(?:19|20)\d{2}\b/.exec(`${it.title} ${it.note}`);
+    const u = new URL(WIKI);
+    for (const [k, v] of Object.entries({ action: "query", format: "json", origin: "*", generator: "search", gsrlimit: "5",
+      gsrsearch: `${it.title.replace(/[()[\]{}"]/g, " ")} ${year ? year[0] + " " : ""}film`,
+      prop: "pageimages|description", piprop: "thumbnail", pithumbsize: "600", pilicense: "any" })) u.searchParams.set(k, v);
+    const res = await fetch(u, { credentials: "omit" });
+    if (!res.ok) throw new Error("wikipedia " + res.status);
+    const j = await res.json();
+    const pages = Object.values((j && j.query && j.query.pages) || {}).sort((a, b) => a.index - b.index);
+    const page = pages.find(p => p && p.thumbnail && typeof p.thumbnail.source === "string" && /^https:\/\/upload\.wikimedia\.org\//.test(p.thumbnail.source)
+      && /\bfilm\b/i.test(`${p.description || ""} ${p.title || ""}`));
+    return page ? page.thumbnail.source : null;
+  }
+  function noPoster(id) {
+    photos.gplace.set(id, "-");
+    render();
+    photoRemote(() => backend.set("gplace", id, { id: "-", at: Date.now() }));
+  }
+  async function posterFor(it, asked) {
+    if (!it || posterBusy.has(it.id) || photos.own.has(it.id) || (!asked && photos.gplace.has(it.id)) || !writable || photos.blocked || navigator.onLine === false) return;
+    posterBusy.add(it.id);
+    try {
+      const src = await findPoster(it);
+      if (!src) { noPoster(it.id); return; }
+      const res = await fetch(src, { credentials: "omit" });
+      if (!res.ok) throw new Error("poster " + res.status);
+      const data = await photoFromFile(await res.blob());
+      if (find("films", it.id) && !photos.own.has(it.id)) await setOwnPhoto(it.id, data, true);
+    } catch { posterGaveUp.add(it.id); }
+    finally { posterBusy.delete(it.id); }
+  }
+  async function posterBackfill() {
+    if (posterQueue || !writable || photos.blocked || !photos.ownLoaded || !photos.gplaceLoaded || !loaded.films) return;
+    posterQueue = true;
+    try {
+      for (let it; (it = data.films.find(x => !photos.own.has(x.id) && !photos.gplace.has(x.id) && !posterBusy.has(x.id) && !posterGaveUp.has(x.id))); ) {
+        await posterFor(it);
+        if (!photos.own.has(it.id) && !photos.gplace.has(it.id)) posterGaveUp.add(it.id);
+        await new Promise(r => setTimeout(r, 1200));
+      }
+    } finally { posterQueue = false; }
   }
 
   /* ---------- restaurants: who's who ---------- */
@@ -3541,7 +3638,7 @@ a.btn{text-decoration:none}
   // Each tab wears its own look: Films MUBI, Dishes a printed newspaper, Restaurants Letterboxd;
   // Together keeps the riso zine. The browser's bar colour follows along.
   const SKIN = { films: "mubi", dishes: "news", together: "zine", restaurants: "lb" };
-  const SKIN_BAR = { mubi: "#000000", news: "#ECE4D1", lb: "#14101C" };
+  const SKIN_BAR = { mubi: "#000000", news: "#EDEDE9", lb: "#14101C" };
   const THEME_METAS = [...document.querySelectorAll('meta[name="theme-color"]')].map(m => [m, m.content]);
   function applySkin() {
     const skin = SKIN[current] || "zine", app = skin !== "zine";
@@ -3798,6 +3895,7 @@ a.btn{text-decoration:none}
       else if (act === "down") nudge(current, id, 1);
       else if (act === "done") markDone(current, id);
       else if (act === "edit") { editing = id; render(); }
+      else if (act === "photo") openPhotoSheet(id, false, current === "films" ? "film" : "dish");
     });
     $("#pile-list").addEventListener("click", e => {
       const b = e.target.closest("button[data-act]");
@@ -3805,7 +3903,7 @@ a.btn{text-decoration:none}
       const id = b.closest("[data-id]").dataset.id;
       if (b.dataset.act === "back") patch(current, id, { done: false, doneAt: null });
       else if (b.dataset.act === "remove") removeItem(current, id);
-      else if (b.dataset.act === "photo") openPhotoSheet(id, false, "dish");
+      else if (b.dataset.act === "photo") openPhotoSheet(id, false, current === "films" ? "film" : "dish");
     });
 
     $("#toast-act").addEventListener("click", () => {
