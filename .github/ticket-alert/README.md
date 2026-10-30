@@ -4,12 +4,14 @@ A Telegram message the moment tickets open up for the sold-out screening of **Ni
 
 It first watched Pulse (1 Nov, 18:35). To watch another screening, change `SHOW` at the top of `watch.mjs` (LAB111's show number, time and festival page); the next run says "Switched" in Telegram and starts afresh for it.
 
-- `.github/workflows/ticket-alert.yml` runs on GitHub Actions back to back: each run checks about once a minute for 4.5 minutes and then starts the next run. GitHub's 5-minute schedule can start late or skip runs, so it is only a backup that restarts the chain if it breaks.
+- `.github/workflows/ticket-alert.yml` runs on GitHub Actions back to back: each run checks about twice a minute for 4.5 minutes and then starts the next run. GitHub's 5-minute schedule can start late or skip runs, so it is only a backup that restarts the chain if it breaks.
 - `watch.mjs` reads LAB111's ticket shop (show 1312104). A sold-out show carries a SOLD OUT label; a show on sale has the ticket table. The shop is sometimes slow, so a failed read gets a second try; if it still can't be read, it falls back to the festival page's row for the screening.
 - Messages: a welcome (or "Switched" after a change of screening), an alert with the ticket link (repeated every 10 minutes while tickets stay on sale), "sold out again", a warning if the pages can't be read for 15 minutes, a daily "still watching" at 10:00, and a goodbye when the screening starts. Then it switches its own workflow off.
+- **Booking it itself** (`buy.mjs`): with our Cineville passes, email and last name set as secrets, it books the free Cineville tickets the moment seats appear, in Chrome, the way a person would: Cineville × 2, one pass number per ticket, last name, email, the terms box, "Bestelling plaatsen". It first sends the alert with the link, then a screenshot of how it went. If the passes aren't taken as typed, it tries them once more with or without the `CP$` in front. It never pays: if the shop sends it to a payment page, it stops. It only books all tickets at once (not 1 of 2), and stops trying when the shop's answer means retrying won't help (pass blocked, Cineville maximum reached, bookings closed). The shop won't book the same passes twice for one screening, so a retry after an unclear result is safe. Passes, email and name are never logged (the run logs are public) or saved.
+- Practice run on the real shop, without ordering and with made-up details: **Actions → Ticket alert – practice booking → Run workflow** with the show number of a screening that is on sale (`try-shop.mjs`).
 - Telegram commands: `/status`, `/stop` (pause alerts), `/start` (resume). It only answers our own chat.
 - Its memory is `state.json` on the `ticket-alert-state` branch.
-- Tests: `node .github/ticket-alert/watch.test.mjs`.
+- Tests: `node .github/ticket-alert/watch.test.mjs`, and for the booking against a pretend shop `PLAYWRIGHT=… CHROME_PATH=… node .github/ticket-alert/buy.test.mjs`.
 
 ## Setup (about 6 minutes)
 
@@ -19,3 +21,5 @@ It first watched Pulse (1 Nov, 18:35). To watch another screening, change `SHOW`
 4. In this repository on GitHub: **Settings → Secrets and variables → Actions → New repository secret**. Add `TELEGRAM_BOT_TOKEN` (the token) and `TELEGRAM_CHAT_ID` (the Id).
 
 The next run (within 5 minutes) sends "Ticket alert is on". To run it right away: **Actions → Ticket alert → Run workflow**.
+
+To have it book the tickets too, add three more secrets the same way: `CINEVILLE_PASSES` (the pass numbers with a space between them, one per ticket), `TICKET_EMAIL` (where the tickets go) and `TICKET_LAST_NAME` (the name on the booking). The next run says "Auto-booking is on". At the cinema, have the passes checked at the desk at least 15 minutes before the start.

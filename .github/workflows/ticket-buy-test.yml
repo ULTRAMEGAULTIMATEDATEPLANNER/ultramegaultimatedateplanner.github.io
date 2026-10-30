@@ -1,0 +1,33 @@
+# Practice run of the ticket alert's booking on LAB111's real shop (try-shop.mjs), on a screening that
+# is on sale. Only made-up details, never our secrets, and it never places an order. Start it from
+# Actions → "Ticket alert – practice booking" → Run workflow, with a LAB111 show number.
+name: Ticket alert – practice booking
+
+on:
+  workflow_dispatch:
+    inputs:
+      show:
+        description: LAB111 show number of a screening that is on sale
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  practice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/ticket-alert
+      - run: npm install --no-save --no-audit --no-fund --prefix .github/ticket-alert playwright-core@1.56.1
+      - name: Practice run (no order)
+        run: node .github/ticket-alert/try-shop.mjs "$SHOW" practice
+        env:
+          SHOW: ${{ inputs.show }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: practice-screenshots
+          path: practice

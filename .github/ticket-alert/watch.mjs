@@ -3,7 +3,8 @@
 // LAB111). It watched Pulse before; when the screening below changes, it says so and starts afresh.
 //
 // GitHub Actions runs it back to back (each run starts the next; a 5-minute schedule restarts the
-// chain if it ever breaks), checking about once a minute. The source of truth is LAB111's own ticket shop; the festival
+// chain if it ever breaks), checking about twice a minute. With our Cineville passes, email and last
+// name set as secrets, it books the free Cineville tickets itself the moment seats appear (buy.mjs). The source of truth is LAB111's own ticket shop; the festival
 // page is only used when the shop can't be read. Telegram commands: /status, /stop, /start.
 // Its memory (what was last seen, what was already sent) is state.json on the ticket-alert-state
 // branch. After the screening starts it says goodbye and switches its own workflow off.
@@ -21,8 +22,8 @@ export const SHOW = {
   festivalShowId: "647"
 };
 
-const CHECKS = num(env.CHECKS, 5);
-const INTERVAL_MS = num(env.INTERVAL_SECONDS, 55) * 1000;
+const CHECKS = num(env.CHECKS, 9);
+const INTERVAL_MS = num(env.INTERVAL_SECONDS, 30) * 1000;
 const RUN_MS = num(env.RUN_SECONDS, 270) * 1000;            // no new check after this, so runs don't pile up
 const RETRY_MS = num(env.RETRY_SECONDS, 4) * 1000;          // LAB111's shop is sometimes slow: one more try
 const REALERT_MS = num(env.REALERT_MINUTES, 10) * 60000;    // reminders while tickets stay on sale
@@ -33,7 +34,16 @@ const GH_API = env.GITHUB_API || "https://api.github.com";
 const TOKEN = env.TELEGRAM_BOT_TOKEN || "";
 const CHAT_ID = String(env.TELEGRAM_CHAT_ID || "").trim();
 const STATE_BRANCH = "ticket-alert-state";
-const UA = "Mozilla/5.0 (compatible; personal ticket alert; one check a minute)";
+const UA = "Mozilla/5.0 (compatible; personal ticket alert; two checks a minute)";
+
+// Auto-booking: secrets CINEVILLE_PASSES (the pass numbers, one per ticket), TICKET_EMAIL and
+// TICKET_LAST_NAME. Without all three it only sends alerts. None of them is ever logged or saved.
+const BUY = {
+  passes: (env.CINEVILLE_PASSES || "").split(/[\s,;]+/).filter(Boolean),
+  email: (env.TICKET_EMAIL || "").trim(),
+  lastName: (env.TICKET_LAST_NAME || "").trim()
+};
+const AUTO = BUY.passes.length > 0 && !!BUY.email && !!BUY.lastName;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* ---------- reading the pages ---------- */
@@ -104,6 +114,21 @@ async function tg(method, body) {
 }
 const say = text => tg("sendMessage", { chat_id: CHAT_ID, text, disable_web_page_preview: true });
 
+// A screenshot of the shop with a caption; just the caption if the picture can't be sent.
+async function photo(png, caption) {
+  if (png) {
+    const form = new FormData();
+    form.set("chat_id", CHAT_ID);
+    form.set("caption", caption.slice(0, 1024));
+    form.set("photo", new Blob([png], { type: "image/png" }), "shop.png");
+    const res = await fetch(`${TG_API}/bot${TOKEN}/sendPhoto`, { method: "POST", body: form }).catch(() => null);
+    const j = res ? await res.json().catch(() => ({})) : {};
+    if (j.ok) return;
+    console.log(`Telegram sendPhoto failed: ${j.description || (res ? "HTTP " + res.status : "no answer")}`);
+  }
+  await say(caption);
+}
+
 /* ---------- memory (state.json on its own branch) ---------- */
 
 const REPO = env.GITHUB_REPOSITORY || "";
@@ -173,7 +198,42 @@ const HELP = "/status – what the ticket page says right now\n/stop – pause t
 
 function statusText(st, r, at) {
   const line = r.status === "available" ? `TICKETS AVAILABLE – buy now: ${r.link}` : WORD[r.status] + (r.status === "unknown" ? ` (${r.why})` : "");
-  return `${SHOW.label}:\n${line}\n(checked ${clock(at)})\n\nAlerts are ${st.paused ? "paused – send /start to turn them back on" : "on"}.`;
+  const auto = st.booked ? "\n✅ I booked your tickets." : AUTO ? `\nAuto-booking: ${st.bookGaveUp ? "stopped (see my last message)" : `on, ${BUY.passes.length} Cineville tickets`}.` : "";
+  return `${SHOW.label}:\n${line}\n(checked ${clock(at)})${auto}\n\nAlerts are ${st.paused ? "paused – send /start to turn them back on" : "on"}.`;
+}
+
+const deskBy = () => clock(SHOW.startsAt - 15 * 60000);
+
+// Tickets are on sale: book them, and say how it went (a failure only once; it tries again on the
+// next check unless the shop's answer means trying again won't help).
+async function autoBook(st, r, first) {
+  const n = BUY.passes.length;
+  if (first) {
+    await say(`🎟 TICKETS AVAILABLE: ${SHOW.label}.\nBooking your ${n} Cineville tickets right now…\n(If you want, you can also go yourself: ${r.link})`);
+    st.alerted = true;
+  }
+  let res;
+  try {
+    const { book } = await import(env.BOOK_MODULE || "./buy.mjs");
+    res = await book({ url: SHOW.shopUrl, expect: SHOW.shopExpect, ...BUY });
+  } catch (e) {
+    res = { status: "failed", reason: `the booking part stopped (${String(e.message).split("\n")[0]})`, retry: true };
+  }
+  st.bookTries = (st.bookTries || 0) + 1;
+  console.log(`Booking attempt ${st.bookTries}: ${res.status}`);   // the shop's words can include a pass number
+  if (res.status === "booked") {
+    st.booked = true;
+    await photo(res.shot, `✅ Booked: ${n} Cineville tickets for ${SHOW.label}${res.already ? " (the shop says your passes already had them)" : ""}.\nThe tickets go to ${BUY.email}.\nHave your passes checked at the cinema desk at least 15 minutes before it starts, so by ${deskBy()}.`);
+  } else if (res.status === "soldout") {
+    // gone before it could book; the next check says "Sold out again"
+  } else if (res.status === "unclear") {
+    if (!st.bookFailSaid) await photo(res.shot, `⚠️ ${res.reason}. Check your email in a minute. I'll try once more to make sure (the shop won't book the same passes twice).`);
+    st.bookFailSaid = true;
+  } else {
+    if (res.final) st.bookGaveUp = true;
+    if (!st.bookFailSaid || res.final) await photo(res.shot, `❌ I couldn't book: ${res.reason}.\n${res.final ? "Trying again won't help, so I've stopped" : "I'll keep trying while seats are free"}. To book yourself: ${r.link}`);
+    st.bookFailSaid = true;
+  }
 }
 
 async function handleCommands(st, r, at, justWelcomed) {
@@ -214,20 +274,25 @@ async function step(st, now) {
   } else if (st.show !== SHOW.id) {
     // Now watching another screening: say so, and forget what was seen for the old one.
     await say(`🔁 Switched: I'm now watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI'll message you here the moment tickets appear.\n\n${HELP}`);
-    for (const k of ["last", "alerted", "alertedAt", "warned", "unknownSince", "paused"]) delete st[k];
+    for (const k of ["last", "alerted", "alertedAt", "warned", "unknownSince", "paused", "booked", "bookTries", "bookGaveUp", "bookFailSaid"]) delete st[k];
     st.show = SHOW.id;
+  }
+  if (AUTO && !st.autoSaid) {
+    await say(`🤖 Auto-booking is on. The moment seats appear for ${SHOW.label}, I'll book ${BUY.passes.length} free Cineville tickets under the name ${BUY.lastName}, sent to ${BUY.email}. You'll get a message either way.`);
+    st.autoSaid = true;
   }
   await handleCommands(st, r, now, welcome);
 
   if (r.status === "available") {
     const first = st.last !== "available";
-    if (!st.paused && (first || now - (st.alertedAt || 0) >= REALERT_MS)) {
+    if (AUTO && !st.booked && !st.bookGaveUp && !st.paused) await autoBook(st, r, first);
+    else if (!st.booked && !st.paused && (first || now - (st.alertedAt || 0) >= REALERT_MS)) {
       await say(`🎟 ${first ? "TICKETS AVAILABLE" : "Still available"}: ${SHOW.label}.\nBuy now: ${r.link}\n\n(Seen at ${clock(now)}. I'll remind you every ${Math.round(REALERT_MS / 60000)} minutes while they're on sale; send /stop once you have them.)`);
       st.alertedAt = now;
       st.alerted = true;
     }
-  } else if (r.status === "soldout" && st.last === "available" && st.alerted && !st.paused) {
-    await say("Sold out again. I'll keep watching and message you if seats open up again.");
+  } else if (r.status === "soldout" && st.last === "available" && st.alerted && !st.paused && !st.booked) {
+    await say(`Sold out again${AUTO && !st.bookGaveUp ? " before I could book" : ""}. I'll keep watching and ${AUTO && !st.bookGaveUp ? "book the moment" : "message you if"} seats open up again.`);
   }
 
   if (r.status === "unknown") {
@@ -240,11 +305,11 @@ async function step(st, now) {
     if (st.warned) await say(`✅ I can read the ticket page again. Right now: ${WORD[r.status]}.`);
     st.unknownSince = 0;
     st.warned = false;
-    if (r.status === "soldout") st.alerted = false;
+    if (r.status === "soldout") { st.alerted = false; delete st.bookFailSaid; }
     st.last = r.status;
   }
 
-  if (!st.paused && r.status !== "available" && st.heartbeatDay !== dayKey(now) && hourOf(now) >= HEARTBEAT_HOUR) {
+  if (!st.paused && !st.booked && r.status !== "available" && st.heartbeatDay !== dayKey(now) && hourOf(now) >= HEARTBEAT_HOUR) {
     await say(`Still watching ${SHOW.label}. Right now: ${WORD[r.status]} (checked ${clock(now)}).`);
     st.heartbeatDay = dayKey(now);
   }
@@ -253,6 +318,9 @@ async function step(st, now) {
 
 async function main() {
   if (!TOKEN || !CHAT_ID) { console.log("Waiting for the TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID secrets."); return; }
+  if (env.GITHUB_ACTIONS)   // hide our details from the public run logs, in every spelling the shop might echo
+    for (const v of [...BUY.passes, ...BUY.passes.map(p => p.replace(/^CP\$/, "")), BUY.email, BUY.lastName]) if (v) console.log(`::add-mask::${v}`);
+  console.log(`Auto-booking: ${AUTO ? "on" : "off"}.`);
   const startedAt = Date.now();
   try {
     let { state: st, sha } = await loadState();

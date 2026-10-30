@@ -60,6 +60,10 @@ const server = http.createServer((req, res) => {
     const tgm = /^\/tg\/bot(.+)\/(\w+)$/.exec(url.pathname);
     if (tgm) {
       if (tgm[1] !== "TEST:TOKEN") return json(401, { ok: false, description: "Unauthorized" });
+      if (tgm[2] === "sendPhoto") {
+        const caption = /name="caption"\r\n\r\n([\s\S]*?)\r\n--/.exec(body);
+        fake.sent.push("[photo] " + (caption ? caption[1] : "")); return json(200, { ok: true, result: {} });
+      }
       const b = JSON.parse(body || "{}");
       if (tgm[2] === "sendMessage") {
         if (fake.failSend) return json(500, { ok: false, description: "Internal Server Error" });
@@ -222,6 +226,99 @@ await newSent();
 const t0 = Date.now();
 r = await newSent({ CHECKS: "50", INTERVAL_SECONDS: "0.3", RUN_SECONDS: "1" });
 check("A run stops starting new checks when its time is up", Date.now() - t0 < 4000 && (r.out.match(/soldout \(LAB111\)/g) || []).length <= 4, `${Date.now() - t0} ms`);
+
+/* ---------- booking the tickets itself (with a stand-in for buy.mjs) ---------- */
+
+const DIR = mkdtempSync(join(tmpdir(), "ticket-buy-"));
+const FAKE_BOOK = join(DIR, "fake-buy.mjs"), BOOK_FILE = join(DIR, "book.json");
+writeFileSync(FAKE_BOOK, `import { readFileSync, writeFileSync } from "node:fs";
+export async function book(o) {
+  const d = JSON.parse(readFileSync(process.env.FAKE_BOOK_FILE, "utf8"));
+  d.calls.push(o);
+  const r = d.results.length > 1 ? d.results.shift() : d.results[0];
+  writeFileSync(process.env.FAKE_BOOK_FILE, JSON.stringify(d));
+  return { ...r, shot: r.shot ? Buffer.from(r.shot, "base64") : null };
+}`);
+const booking = results => writeFileSync(BOOK_FILE, JSON.stringify({ calls: [], results }));
+const bookCalls = () => JSON.parse(readFileSync(BOOK_FILE, "utf8")).calls;
+const PNG = Buffer.from("89504e470d0a1a0a", "hex").toString("base64");
+const ME = { CINEVILLE_PASSES: "CP$111111111 , CP$222222222", TICKET_EMAIL: "us@example.org", TICKET_LAST_NAME: "Testerman", BOOK_MODULE: FAKE_BOOK, FAKE_BOOK_FILE: BOOK_FILE };
+const secretsIn = out => ["111111111", "222222222", "us@example.org", "Testerman"].filter(x => out.includes(x));
+
+writeFileSync(STATE, JSON.stringify({ welcomed: true, show: "1312104", heartbeatDay: "01/01/2020", offset: state().offset, last: "soldout" }));
+fake.shop.body = SHOP_SOLDOUT;
+booking([{ status: "booked", reason: "the shop confirmed the order", shot: PNG }]);
+r = await newSent({ ...ME, HEARTBEAT_HOUR: "0" });
+check("Auto-booking: says once that it's on, with the name, the email and how many tickets", r.msgs.length === 2 && /^🤖 Auto-booking is on/.test(r.msgs[0]) && /2 free Cineville tickets under the name Testerman, sent to us@example\.org/.test(r.msgs[0]) && /^Still watching/.test(r.msgs[1]), r.msgs.join(" | "));
+check("…and the logs never show the passes, the email or the name", secretsIn(r.out).length === 0 && /Auto-booking: on/.test(r.out), secretsIn(r.out).join(", "));
+r = await newSent(ME);
+check("…not said again; nothing booked while sold out", r.msgs.length === 0 && bookCalls().length === 0, r.msgs.join(" | "));
+
+fake.shop.body = SHOP_ON_SALE;
+r = await newSent({ ...ME, STARTS_AT: "2099-11-01T16:20:00+01:00" });
+const call = bookCalls()[0] || {};
+check("Seats appear: says so, then books them (the shop page, our screening, both passes, email, name)", r.msgs.length === 2 && /^🎟 TICKETS AVAILABLE/.test(r.msgs[0]) && /Booking your 2 Cineville tickets right now/.test(r.msgs[0]) && call.url === `${BASE}/shop` && call.expect === "01 november 2026, 16:20" && call.passes.join() === "CP$111111111,CP$222222222" && call.email === "us@example.org" && call.lastName === "Testerman", r.msgs.join(" | ") + JSON.stringify(call));
+check("…then a screenshot: booked, where the tickets go, and to be at the desk by 16:05", /^\[photo\] ✅ Booked: 2 Cineville tickets/.test(r.msgs[1]) && /us@example\.org/.test(r.msgs[1]) && /by 16:05/.test(r.msgs[1]) && state().booked === true, r.msgs.join(" | "));
+check("…logs still clean", secretsIn(r.out).length === 0 && /Booking attempt 1: booked/.test(r.out), r.out);
+r = await newSent({ ...ME, REALERT_MINUTES: "0" });
+check("Booked: no reminders and no second booking while seats stay free", r.msgs.length === 0 && bookCalls().length === 1, r.msgs.join(" | "));
+userSays("/status");
+r = await newSent(ME);
+check("…/status says it booked them", r.msgs.length === 1 && /✅ I booked your tickets/.test(r.msgs[0]), r.msgs.join(" | "));
+fake.shop.body = SHOP_SOLDOUT;
+writeFileSync(STATE, JSON.stringify({ ...state(), heartbeatDay: "01/01/2020" }));
+r = await newSent({ ...ME, HEARTBEAT_HOUR: "0" });
+check("…no “sold out again” and no daily message after booking", r.msgs.length === 0, r.msgs.join(" | "));
+
+writeFileSync(STATE, JSON.stringify({ welcomed: true, show: "1312104", autoSaid: true, heartbeatDay: state().heartbeatDay, offset: state().offset, last: "soldout" }));
+fake.shop.body = SHOP_ON_SALE;
+booking([{ status: "failed", reason: "the shop didn't take the tickets", retry: true, shot: PNG }, { status: "failed", reason: "the shop didn't take the tickets", retry: true }, { status: "booked", reason: "ok", already: true }]);
+r = await newSent(ME);
+check("Booking fails: one ❌ with the reason and the link, and it keeps trying", r.msgs.length === 2 && /^\[photo\] ❌ I couldn't book: the shop didn't take the tickets/.test(r.msgs[1]) && /keep trying/.test(r.msgs[1]) && r.msgs[1].includes(`${BASE}/shop`), r.msgs.join(" | "));
+r = await newSent(ME);
+check("…fails again: tried, but no repeat message", r.msgs.length === 0 && bookCalls().length === 2, r.msgs.join(" | "));
+r = await newSent(ME);
+check("…then works (the shop says the passes already have them): ✅", r.msgs.length === 1 && /✅ Booked/.test(r.msgs[0]) && /already had them/.test(r.msgs[0]) && state().booked === true, r.msgs.join(" | "));
+
+writeFileSync(STATE, JSON.stringify({ welcomed: true, show: "1312104", autoSaid: true, heartbeatDay: state().heartbeatDay, offset: state().offset, last: "soldout" }));
+booking([{ status: "failed", reason: "one of the passes has reached Cineville's maximum number of bookings", final: true }]);
+r = await newSent(ME);
+check("A failure that retrying won't fix: says so and stops booking", r.msgs.length === 2 && /maximum number of bookings/.test(r.msgs[1]) && /I've stopped/.test(r.msgs[1]) && state().bookGaveUp === true, r.msgs.join(" | "));
+r = await newSent({ ...ME, REALERT_MINUTES: "0" });
+check("…then only the usual reminders with the link", r.msgs.length === 1 && /Still available/.test(r.msgs[0]) && bookCalls().length === 1, r.msgs.join(" | "));
+
+writeFileSync(STATE, JSON.stringify({ welcomed: true, show: "1312104", autoSaid: true, heartbeatDay: state().heartbeatDay, offset: state().offset, last: "soldout" }));
+booking([{ status: "soldout", reason: "sold out again" }, { status: "failed", reason: "the shop didn't take the tickets", retry: true }]);
+r = await newSent(ME);
+check("Gone again before it could book: only the “booking now” message…", r.msgs.length === 1 && /Booking your 2/.test(r.msgs[0]) && !state().booked && !state().bookGaveUp, r.msgs.join(" | "));
+fake.shop.body = SHOP_SOLDOUT;
+r = await newSent(ME);
+check("…then one “sold out again before I could book”", r.msgs.length === 1 && /^Sold out again before I could book\. I'll keep watching and book the moment seats open up again\./.test(r.msgs[0]), r.msgs.join(" | "));
+fake.shop.body = SHOP_ON_SALE;
+r = await newSent(ME);
+check("Seats again, booking fails: says so (even after an earlier failure)", r.msgs.length === 2 && /Booking your 2/.test(r.msgs[0]) && /❌ I couldn't book/.test(r.msgs[1]), r.msgs.join(" | "));
+fake.shop.body = SHOP_SOLDOUT;
+await newSent(ME);
+fake.shop.body = SHOP_ON_SALE;
+r = await newSent({ ...ME, BOOK_MODULE: join(DIR, "missing.mjs") });
+check("The booking part itself breaking: a ❌ with the link, no crash, keeps trying", !r.err && r.msgs.length === 2 && /❌ I couldn't book: the booking part stopped/.test(r.msgs[1]) && !state().bookGaveUp, r.msgs.join(" | "));
+fake.shop.body = SHOP_SOLDOUT;
+await newSent(ME);
+fake.shop.body = SHOP_ON_SALE;
+
+writeFileSync(STATE, JSON.stringify({ welcomed: true, show: "1312104", autoSaid: true, heartbeatDay: state().heartbeatDay, offset: state().offset, last: "soldout", paused: true }));
+booking([{ status: "booked", reason: "ok" }]);
+r = await newSent(ME);
+check("Paused with /stop: doesn't book", r.msgs.length === 0 && bookCalls().length === 0, r.msgs.join(" | "));
+
+writeFileSync(STATE, JSON.stringify({ welcomed: true, show: "1312105", autoSaid: true, booked: true, heartbeatDay: state().heartbeatDay, offset: state().offset, last: "soldout" }));
+r = await newSent(ME);
+check("Tickets booked for the old screening don't count for the new one", r.msgs.length === 3 && /Switched/.test(r.msgs[0]) && /✅ Booked/.test(r.msgs[2]) && bookCalls().length === 1, r.msgs.join(" | "));
+
+r = await newSent({ ...ME, GITHUB_ACTIONS: "true" });
+check("On GitHub it asks for the passes, the email and the name to be hidden in the logs", ["CP$111111111", "111111111", "us@example.org", "Testerman"].every(v => r.out.includes(`::add-mask::${v}`)), r.out);
+fake.shop.body = SHOP_SOLDOUT;
+await newSent();
 
 /* ---------- memory kept on GitHub, and switching itself off ---------- */
 
