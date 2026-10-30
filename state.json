@@ -1,10 +1,10 @@
 {
   "welcomed": true,
   "heartbeatDay": "30/10/2026",
+  "offset": 218192663,
+  "show": "1312104",
   "unknownSince": 0,
   "warned": false,
-  "alerted": true,
-  "last": "available",
-  "offset": 218192663,
-  "alertedAt": 1793362524381
+  "alerted": false,
+  "last": "soldout"
 }
