@@ -661,7 +661,7 @@ a.btn{text-decoration:none}
 :is([data-skin="mubi"],[data-skin="news"]) .item:hover{background:none}
 :is([data-skin="mubi"],[data-skin="news"]) .item + .item{border-top:1px solid var(--line)}
 :is([data-skin="mubi"],[data-skin="news"]) .body.has-art{display:grid;grid-template-columns:clamp(58px,16vw,88px) minmax(0,1fr);column-gap:clamp(.7rem,2.6vw,1.1rem);align-items:start}
-:is([data-skin="mubi"],[data-skin="news"]) .body.has-art > :not(.art):not(.art-btn):not(.photo-slot){grid-column:2}
+:is([data-skin="mubi"],[data-skin="news"]) .body.has-art > :where(:not(.art,.art-btn,.photo-slot)){grid-column:2}
 :is([data-skin="mubi"],[data-skin="news"]) .body.has-art > :is(.art,.art-btn,.photo-slot){grid-row:1 / span 4}
 :is([data-skin="mubi"],[data-skin="news"]) .is-editing{grid-template-columns:minmax(0,1fr)!important}
 :is([data-skin="mubi"],[data-skin="news"]) .done-item .body{display:block}
