@@ -5,8 +5,9 @@
   "show": "1312104",
   "unknownSince": 0,
   "warned": false,
-  "alerted": false,
-  "last": "soldout",
+  "alerted": true,
+  "last": "available",
   "autoSaid": true,
-  "bookTries": 6
+  "bookTries": 7,
+  "bookFailSaid": true
 }
