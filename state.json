@@ -8,6 +8,6 @@
   "alerted": true,
   "last": "available",
   "autoSaid": true,
-  "bookTries": 10,
+  "bookTries": 11,
   "bookFailSaid": true
 }
