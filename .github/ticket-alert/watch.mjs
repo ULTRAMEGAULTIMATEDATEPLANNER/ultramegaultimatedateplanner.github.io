@@ -217,10 +217,10 @@ async function autoBook(st, r, first) {
     const { book } = await import(env.BOOK_MODULE || "./buy.mjs");
     res = await book({ url: SHOW.shopUrl, expect: SHOW.shopExpect, ...BUY });
   } catch (e) {
-    res = { status: "failed", reason: `the booking part stopped (${String(e.message).split("\n")[0]})`, retry: true };
+    res = { status: "failed", reason: `the booking part stopped (${String(e.message).split("\n")[0]})`, retry: true, step: "booking part crashed" };
   }
   st.bookTries = (st.bookTries || 0) + 1;
-  console.log(`Booking attempt ${st.bookTries}: ${res.status}`);   // the shop's words can include a pass number
+  console.log(`Booking attempt ${st.bookTries}: ${res.status}${res.step ? ` (${res.step})` : ""}`);   // not the reason: the shop's words can include a pass number
   if (res.status === "booked") {
     st.booked = true;
     await photo(res.shot, `✅ Booked: ${n} Cineville tickets for ${SHOW.label}${res.already ? " (the shop says your passes already had them)" : ""}.\nThe tickets go to ${BUY.email}.\nHave your passes checked at the cinema desk at least 15 minutes before it starts, so by ${deskBy()}.`);
