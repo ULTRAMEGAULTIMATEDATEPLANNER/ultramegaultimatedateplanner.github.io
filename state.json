@@ -11,5 +11,6 @@
   "bookTries": 897,
   "alertedAt": 1793545619113,
   "failStep": "tickets not taken",
-  "failSaidAt": 1793545966229
+  "failSaidAt": 1793545966229,
+  "done": true
 }
