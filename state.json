@@ -1,13 +1,12 @@
 {
   "welcomed": true,
-  "heartbeatDay": "31/10/2026",
+  "heartbeatDay": "01/11/2026",
   "offset": 218192663,
   "show": "1312104",
   "unknownSince": 0,
   "warned": false,
-  "alerted": true,
-  "last": "available",
+  "alerted": false,
+  "last": "soldout",
   "autoSaid": true,
-  "bookTries": 804,
-  "bookFailSaid": true
+  "bookTries": 804
 }
