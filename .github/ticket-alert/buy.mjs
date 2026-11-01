@@ -43,11 +43,16 @@ async function attempt(browser, o) {
     if (!when.includes(o.expect)) return await done("failed", "the shop didn't show our screening", { retry: true, step: "not our screening" });
     if (await page.locator(".sold-out-label").count()) return await done("soldout", "sold out again");
 
-    const n = o.count || o.passes.length;
+    let n = o.count || o.passes.length;
     const qty = page.locator("tr", { hasText: o.ticket }).locator("select.select-quantity").first();
     if (!(await qty.count())) return await done("failed", `the shop doesn't offer ${o.ticket} tickets for this screening right now`, { retry: true, step: `no ${o.ticket} tickets on offer` });
     const options = await qty.locator("option").evaluateAll(os => os.map(x => x.value));
-    if (!options.includes(String(n))) return await done("failed", `the shop won't sell ${n} ${o.ticket} tickets right now`, { retry: true, step: `fewer than ${n} on offer` });
+    if (!options.includes(String(n))) {
+      // The shop only lists as many as are left. With `partial`, take what there is (one pass per ticket).
+      const most = Math.max(0, ...options.map(Number).filter(Number.isInteger));
+      if (!(o.partial && most >= 1)) return await done("failed", `the shop won't sell ${n} ${o.ticket} tickets right now`, { retry: true, step: `fewer than ${n} on offer` });
+      n = Math.min(n, most);
+    }
 
     const answered = page.waitForResponse(r => /gateway\/add_to_basket/.test(r.url()), { timeout: 25000 }).catch(() => null);
     await qty.selectOption(String(n));
@@ -61,7 +66,7 @@ async function attempt(browser, o) {
     await page.waitForTimeout(1500);   // the shop's script updates the page after answering
     const msgs = [...said, ...(await visibleErrors(page))];
     const text = msgs.join(" ");
-    if (ALREADY.test(text)) return await done("booked", "these passes already have tickets for this screening", { already: true });
+    if (ALREADY.test(text)) return await done("booked", "these passes already have tickets for this screening", { already: true, count: n });
     for (const [re, why] of FINAL) if (re.test(text)) return await done("failed", why, { final: true, step: "Cineville said no" });
     if ((await qty.inputValue().catch(() => "")) !== String(n))
       return await done("failed", text ? `the shop didn't take the tickets (“${text}”)` : "the shop didn't take the tickets", { retry: true, step: "tickets not taken", passRejected: !!o.passes.length && (!text || PASS_REJECTED.test(text)) });
@@ -93,10 +98,10 @@ async function attempt(browser, o) {
     const host = new URL(page.url()).hostname;
     if (host !== shopHost) return await done("failed", `after “Bestelling plaatsen” the shop sent me to ${host} (a payment page?), so I stopped there`, { final: true, step: "sent to another site" });
     const after = [...said, ...(await visibleErrors(page))].join(" ");
-    if (ALREADY.test(after)) return await done("booked", "these passes already have tickets for this screening", { already: true });
+    if (ALREADY.test(after)) return await done("booked", "these passes already have tickets for this screening", { already: true, count: n });
     for (const [re, why] of FINAL) if (re.test(after)) return await done("failed", why, { final: true, step: "Cineville said no at the order" });
     const body = (await page.locator("body").innerText().catch(() => "")).replace(/\s+/g, " ");
-    if (/bedankt|bevestig|gelukt|geslaagd|thank you|bestelnummer|ordernummer/i.test(body)) return await done("booked", "the shop confirmed the order");
+    if (/bedankt|bevestig|gelukt|geslaagd|thank you|bestelnummer|ordernummer/i.test(body)) return await done("booked", "the shop confirmed the order", { count: n });
     if (page.url() === before && after) return await done("failed", `the shop said: “${after}”`, { retry: true, step: "order refused" });
     return await done("unclear", "I pressed “Bestelling plaatsen” but couldn't see a confirmation", { retry: true, step: "no confirmation" });
   } catch (e) {
@@ -106,10 +111,12 @@ async function attempt(browser, o) {
   }
 }
 
-// Returns { status: booked | soldout | failed | unclear | ready, reason, step, shot (PNG), already, final, retry }.
+// Returns { status: booked | soldout | failed | unclear | ready, reason, step, count (tickets booked), shot (PNG),
+// already, final, retry }. With `partial`, fewer tickets than passes are booked when that's all the shop has,
+// using the first passes.
 // `reason` is for us (it can quote the shop, pass numbers included); `step` is safe for public logs.
 // If the passes aren't accepted as typed, it tries them once more with or without the CP$ in front.
-export async function book({ url, expect, passes = [], email = "", lastName = "", ticket = "Cineville", count, dryRun = false }) {
+export async function book({ url, expect, passes = [], email = "", lastName = "", ticket = "Cineville", count, partial = false, dryRun = false }) {
   let browser;
   try {
     const { chromium } = createRequire(import.meta.url)(env.PLAYWRIGHT || "playwright-core");
@@ -119,7 +126,7 @@ export async function book({ url, expect, passes = [], email = "", lastName = ""
     return { status: "failed", reason: `I couldn't start the browser (${String(e.message).split("\n")[0]})`, retry: true, step: "browser didn't start" };
   }
   try {
-    const o = { url, expect, passes, email, lastName, ticket, count, dryRun };
+    const o = { url, expect, passes, email, lastName, ticket, count, partial, dryRun };
     let r = await attempt(browser, o);
     if (r.status === "failed" && r.passRejected) {
       const r2 = await attempt(browser, { ...o, passes: passes.map(otherFormat) });

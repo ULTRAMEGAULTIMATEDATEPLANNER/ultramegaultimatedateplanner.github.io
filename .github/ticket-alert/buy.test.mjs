@@ -126,6 +126,12 @@ check("Another screening's page: not touched", r.status === "failed" && r.retry 
 reset({ max: 1 });
 r = await book(US);
 check("Only one seat on offer: doesn't book half, will retry", r.status === "failed" && r.retry && /won't sell 2/.test(r.reason) && shop.baskets.length === 0, r.reason);
+reset({ max: 1 });
+r = await book({ ...US, partial: true });
+check("…unless one at a time is allowed: books the one seat on the first pass", r.status === "booked" && r.count === 1 && shop.baskets.length === 1 && shop.baskets[0].codes.join() === "CP$111111111" && shop.baskets[0].quantity === 1 && shop.orders.length === 1, JSON.stringify(shop.baskets));
+reset();
+r = await book({ ...US, partial: true });
+check("…and still both at once when two seats are free", r.status === "booked" && r.count === 2 && shop.baskets[0].quantity === 2, JSON.stringify(shop.baskets));
 reset({ cineville: false });
 r = await book(US);
 check("No Cineville tickets on offer (for now): failed, will retry", r.status === "failed" && r.retry && !r.final && /doesn't offer Cineville/.test(r.reason), r.reason);

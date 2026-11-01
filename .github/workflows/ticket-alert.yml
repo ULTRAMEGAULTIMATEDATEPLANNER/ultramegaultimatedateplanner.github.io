@@ -38,4 +38,5 @@ jobs:
           CINEVILLE_PASSES: ${{ secrets.CINEVILLE_PASSES }}
           TICKET_EMAIL: ${{ secrets.TICKET_EMAIL }}
           TICKET_LAST_NAME: ${{ secrets.TICKET_LAST_NAME }}
+          BOOK_ONE_AT_A_TIME: "no"   # "yes": when only one seat is free, book it on the first pass, the next on the next
           GITHUB_TOKEN: ${{ github.token }}

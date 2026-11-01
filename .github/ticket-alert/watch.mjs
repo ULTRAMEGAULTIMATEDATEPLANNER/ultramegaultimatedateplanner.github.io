@@ -44,6 +44,10 @@ const BUY = {
   lastName: (env.TICKET_LAST_NAME || "").trim()
 };
 const AUTO = BUY.passes.length > 0 && !!BUY.email && !!BUY.lastName;
+// When only some seats are free (they come back one by one), book those now on the first passes and
+// the rest later. Off: only book all tickets at once.
+const ONE_AT_A_TIME = /^(1|yes|true|on)$/i.test(env.BOOK_ONE_AT_A_TIME || "");
+const FAIL_REPEAT_MS = 60 * 60000;   // the same booking problem is reported at most once an hour
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* ---------- reading the pages ---------- */
@@ -198,7 +202,8 @@ const HELP = "/status – what the ticket page says right now\n/stop – pause t
 
 function statusText(st, r, at) {
   const line = r.status === "available" ? `TICKETS AVAILABLE – buy now: ${r.link}` : WORD[r.status] + (r.status === "unknown" ? ` (${r.why})` : "");
-  const auto = st.booked ? "\n✅ I booked your tickets." : AUTO ? `\nAuto-booking: ${st.bookGaveUp ? "stopped (see my last message)" : `on, ${BUY.passes.length} Cineville tickets`}.` : "";
+  const got = st.bookedPasses || 0;
+  const auto = st.booked ? "\n✅ I booked your tickets." : AUTO ? `\nAuto-booking: ${st.bookGaveUp ? "stopped (see my last message)" : `on, ${got ? `${got} of ${BUY.passes.length} booked, the rest still to go` : `${BUY.passes.length} Cineville tickets`}${ONE_AT_A_TIME ? ", one at a time if need be" : ""}`}.` : "";
   return `${SHOW.label}:\n${line}\n(checked ${clock(at)})${auto}\n\nAlerts are ${st.paused ? "paused – send /start to turn them back on" : "on"}.`;
 }
 
@@ -206,24 +211,35 @@ const deskBy = () => clock(SHOW.startsAt - 15 * 60000);
 
 // Tickets are on sale: book them, and say how it went (a failure only once; it tries again on the
 // next check unless the shop's answer means trying again won't help).
-async function autoBook(st, r, first) {
-  const n = BUY.passes.length;
-  if (first) {
-    await say(`🎟 TICKETS AVAILABLE: ${SHOW.label}.\nBooking your ${n} Cineville tickets right now…\n(If you want, you can also go yourself: ${r.link})`);
-    st.alerted = true;
+async function autoBook(st, r, first, now) {
+  const before = st.bookedPasses || 0, total = BUY.passes.length, left = BUY.passes.slice(before), n = left.length;
+  const tickets = k => `${k} Cineville ticket${k === 1 ? "" : "s"}`;
+  const others = k => (k === 1 ? "the other ticket" : `the other ${k} tickets`);
+  if (first && now - (st.alertedAt || 0) >= REALERT_MS) {   // seats come and go: at most one of these every 10 minutes
+    await say(`🎟 TICKETS AVAILABLE: ${SHOW.label}.\nBooking ${before ? others(n) : `your ${tickets(n)}`} right now…\n(If you want, you can also go yourself: ${r.link})`);
+    st.alertedAt = now;
   }
+  st.alerted = true;
   let res;
   try {
     const { book } = await import(env.BOOK_MODULE || "./buy.mjs");
-    res = await book({ url: SHOW.shopUrl, expect: SHOW.shopExpect, ...BUY });
+    res = await book({ url: SHOW.shopUrl, expect: SHOW.shopExpect, ...BUY, passes: left, partial: ONE_AT_A_TIME });
   } catch (e) {
     res = { status: "failed", reason: `the booking part stopped (${String(e.message).split("\n")[0]})`, retry: true, step: "booking part crashed" };
   }
   st.bookTries = (st.bookTries || 0) + 1;
   console.log(`Booking attempt ${st.bookTries}: ${res.status}${res.step ? ` (${res.step})` : ""}`);   // not the reason: the shop's words can include a pass number
   if (res.status === "booked") {
-    st.booked = true;
-    await photo(res.shot, `✅ Booked: ${n} Cineville tickets for ${SHOW.label}${res.already ? " (the shop says your passes already had them)" : ""}.\nThe tickets go to ${BUY.email}.\nHave your passes checked at the cinema desk at least 15 minutes before it starts, so by ${deskBy()}.`);
+    const got = Math.min(res.count || n, n);
+    st.bookedPasses = before + got;
+    delete st.bookFailSaid;
+    const already = res.already ? " (the shop says your passes already had them)" : "";
+    if (st.bookedPasses >= total) {
+      st.booked = true;
+      await photo(res.shot, `✅ Booked: ${before ? `${got === 1 ? "the last ticket" : `the last ${got} tickets`}, so all ${total} are booked` : tickets(total)} for ${SHOW.label}${already}.\nThe tickets go to ${BUY.email}.\nHave your passes checked at the cinema desk at least 15 minutes before it starts, so by ${deskBy()}.`);
+    } else {
+      await photo(res.shot, `✅ Booked ${st.bookedPasses} of ${total}: ${tickets(got)} for ${SHOW.label}${already}, on the first pass${st.bookedPasses === 1 ? "" : "es"}.\nThe tickets go to ${BUY.email}. Only ${got === 1 ? "one seat was" : "these seats were"} free; I'll book ${others(total - st.bookedPasses)} the moment another seat appears.`);
+    }
   } else if (res.status === "soldout") {
     // gone before it could book; the next check says "Sold out again"
   } else if (res.status === "unclear") {
@@ -231,7 +247,13 @@ async function autoBook(st, r, first) {
     st.bookFailSaid = true;
   } else {
     if (res.final) st.bookGaveUp = true;
-    if (!st.bookFailSaid || res.final) await photo(res.shot, `❌ I couldn't book: ${res.reason}.\n${res.final ? "Trying again won't help, so I've stopped" : "I'll keep trying while seats are free"}. To book yourself: ${r.link}`);
+    // Once per spell of free seats, and the same problem at most once an hour.
+    const news = res.step !== st.failStep || now - (st.failSaidAt || 0) >= FAIL_REPEAT_MS;
+    if ((!st.bookFailSaid && news) || res.final) {
+      await photo(res.shot, `❌ I couldn't book: ${res.reason}.\n${res.final ? "Trying again won't help, so I've stopped" : "I'll keep trying while seats are free"}. To book yourself: ${r.link}`);
+      st.failStep = res.step;
+      st.failSaidAt = now;
+    }
     st.bookFailSaid = true;
   }
 }
@@ -274,7 +296,7 @@ async function step(st, now) {
   } else if (st.show !== SHOW.id) {
     // Now watching another screening: say so, and forget what was seen for the old one.
     await say(`🔁 Switched: I'm now watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI'll message you here the moment tickets appear.\n\n${HELP}`);
-    for (const k of ["last", "alerted", "alertedAt", "warned", "unknownSince", "paused", "booked", "bookTries", "bookGaveUp", "bookFailSaid"]) delete st[k];
+    for (const k of ["last", "alerted", "alertedAt", "warned", "unknownSince", "paused", "booked", "bookedPasses", "bookTries", "bookGaveUp", "bookFailSaid", "failStep", "failSaidAt"]) delete st[k];
     st.show = SHOW.id;
   }
   if (AUTO && !st.autoSaid) {
@@ -285,14 +307,14 @@ async function step(st, now) {
 
   if (r.status === "available") {
     const first = st.last !== "available";
-    if (AUTO && !st.booked && !st.bookGaveUp && !st.paused) await autoBook(st, r, first);
+    if (AUTO && !st.booked && !st.bookGaveUp && !st.paused) await autoBook(st, r, first, now);
     else if (!st.booked && !st.paused && (first || now - (st.alertedAt || 0) >= REALERT_MS)) {
       await say(`🎟 ${first ? "TICKETS AVAILABLE" : "Still available"}: ${SHOW.label}.\nBuy now: ${r.link}\n\n(Seen at ${clock(now)}. I'll remind you every ${Math.round(REALERT_MS / 60000)} minutes while they're on sale; send /stop once you have them.)`);
       st.alertedAt = now;
       st.alerted = true;
     }
-  } else if (r.status === "soldout" && st.last === "available" && st.alerted && !st.paused && !st.booked) {
-    await say(`Sold out again${AUTO && !st.bookGaveUp ? " before I could book" : ""}. I'll keep watching and ${AUTO && !st.bookGaveUp ? "book the moment" : "message you if"} seats open up again.`);
+  } else if (r.status === "soldout" && st.last === "available" && st.alerted && !st.paused && !st.booked && !(AUTO && !st.bookGaveUp)) {
+    await say("Sold out again. I'll keep watching and message you if seats open up again.");   // (while booking itself, it just keeps trying)
   }
 
   if (r.status === "unknown") {
@@ -320,7 +342,7 @@ async function main() {
   if (!TOKEN || !CHAT_ID) { console.log("Waiting for the TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID secrets."); return; }
   if (env.GITHUB_ACTIONS)   // hide our details from the public run logs, in every spelling the shop might echo
     for (const v of [...BUY.passes, ...BUY.passes.map(p => p.replace(/^CP\$/, "")), BUY.email, BUY.lastName]) if (v) console.log(`::add-mask::${v}`);
-  console.log(`Auto-booking: ${AUTO ? "on" : "off"}.`);
+  console.log(`Auto-booking: ${AUTO ? (ONE_AT_A_TIME ? "on, one at a time if need be" : "on") : "off"}.`);
   const startedAt = Date.now();
   try {
     let { state: st, sha } = await loadState();
