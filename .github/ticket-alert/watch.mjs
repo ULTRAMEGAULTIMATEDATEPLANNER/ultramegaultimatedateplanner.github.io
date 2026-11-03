@@ -1,6 +1,7 @@
 // Ticket alert: messages us on Telegram the moment tickets open up for the sold-out screening of
-// Nieuw Nederlands Peil 2 (Dutch short films) at the Imagine Film Festival (Sun 1 Nov 2026, 16:20,
-// LAB111). It watched Pulse before; when the screening below changes, it says so and starts afresh.
+// You Can See Everything at IDFA (Fri 13 Nov 2026, 20:30, Carr√©). Two tickets wanted; it only alerts,
+// it never buys. It watched Nieuw Nederlands Peil 2 and Pulse before; when the screening below
+// changes, it says so and starts afresh.
 //
 // GitHub Actions runs it back to back (each run starts the next; a 5-minute schedule restarts the
 // chain if it ever breaks), checking about twice a minute. With our Cineville passes, email and last
@@ -13,10 +14,11 @@ const env = process.env;
 const num = (v, d) => (v !== undefined && v !== "" && isFinite(+v) ? +v : d);
 
 export const SHOW = {
-  id: "1312104",   // LAB111's number for the screening
-  label: "Nieuw Nederlands Peil 2 (Dutch shorts), Sun 1 Nov 16:20 at LAB111",
-  startsAt: Date.parse(env.STARTS_AT || "2026-11-01T16:20:00+01:00"),
-  shopUrl: env.SHOP_URL || "https://tickets.lab111.nl/labcinema/nl/flow_configs/webshop/steps/start/show/1312104",
+  id: "idfa-b93aa33b",   // IDFA's id for the screening: b93aa33b-66dc-4440-9853-025c6dafffe3
+  idfaId: "b93aa33b-66dc-4440-9853-025c6dafffe3",
+  label: "You Can See Everything (IDFA), Fri 13 Nov 20:30 at Carr√©",
+  startsAt: Date.parse(env.STARTS_AT || "2026-11-13T20:30:00+01:00"),
+  shopUrl: env.SHOP_URL || "https://festival.idfa.nl/film/715217e7-beea-4efa-b608-600b0caf2636/you-can-see-everything/#tickets",
   shopExpect: "01 november 2026, 16:20",
   festivalUrl: env.FESTIVAL_URL || "https://www.imaginefilmfestival.nl/programma/nieuw-nederlands-peil-2/",
   festivalShowId: "647"
@@ -43,7 +45,8 @@ const BUY = {
   email: (env.TICKET_EMAIL || "").trim(),
   lastName: (env.TICKET_LAST_NAME || "").trim()
 };
-const AUTO = BUY.passes.length > 0 && !!BUY.email && !!BUY.lastName;
+// Off for IDFA: its tickets are paid, and paying stays with us. (It was for free Cineville tickets.)
+const AUTO = false && BUY.passes.length > 0 && !!BUY.email && !!BUY.lastName;
 // When only some seats are free (they come back one by one), book those now on the first passes and
 // the rest later. Off: only book all tickets at once.
 const ONE_AT_A_TIME = /^(1|yes|true|on)$/i.test(env.BOOK_ONE_AT_A_TIME || "");
@@ -51,6 +54,16 @@ const FAIL_REPEAT_MS = 60 * 60000;   // the same booking problem is reported at 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* ---------- reading the pages ---------- */
+
+// IDFA's film page carries each screening's ticketAvailabilityStatus in its page data. SOLD_OUT is
+// sold out; any other status for our screening counts as "go and look" (better one alert too many).
+export function readIdfa(html, id = SHOW.idfaId) {
+  const i = html.indexOf(`"id":"${id}"`);
+  if (i < 0) return { status: "unknown", why: "the screening isn't on IDFA's film page" };
+  const m = /"ticketAvailabilityStatus":"([A-Z_]+)"[^{}]*$/.exec(html.slice(Math.max(0, i - 600), i));
+  if (!m) return { status: "unknown", why: "IDFA's film page looks different than expected" };
+  return m[1] === "SOLD_OUT" ? { status: "soldout" } : { status: "available", idfa: m[1] };
+}
 
 // LAB111's shop: a sold-out show has a SOLD OUT label; a show on sale has the ticket table with a
 // "how many" dropdown. Anything else (or another show) is "unknown".
@@ -96,14 +109,14 @@ async function readShopNow() {
 // The shop decides whenever it gives a clear answer (after a second try); the festival page only
 // fills in when it can't.
 export async function check() {
-  let shop = await readShopNow();
-  if (shop.status === "unknown") { await sleep(RETRY_MS); shop = await readShopNow(); }
-  if (shop.status !== "unknown") return { ...shop, link: SHOW.shopUrl, source: "LAB111" };
-  let fest;
-  try { fest = readFestival(await getPage(SHOW.festivalUrl)); }
-  catch (e) { fest = { status: "unknown", why: `the festival page didn't load (${e.message})` }; }
-  if (fest.status !== "unknown") return { link: SHOW.shopUrl, ...fest, source: "festival page", note: shop.why };
-  return { status: "unknown", why: `${shop.why}; ${fest.why}` };
+  let r;
+  for (let i = 0; i < 2; i++) {
+    if (i) await sleep(RETRY_MS);
+    try { r = readIdfa(await getPage(SHOW.shopUrl.split("#")[0])); }
+    catch (e) { r = { status: "unknown", why: `IDFA's film page didn't load (${e.message})` }; }
+    if (r.status !== "unknown") return { ...r, link: SHOW.shopUrl, source: "IDFA" };
+  }
+  return r;
 }
 
 /* ---------- Telegram ---------- */
@@ -198,13 +211,13 @@ const clock = ms => ams(ms, { hour: "2-digit", minute: "2-digit" });
 const dayKey = ms => ams(ms, { year: "numeric", month: "2-digit", day: "2-digit" });
 const hourOf = ms => +ams(ms, { hour: "2-digit", hourCycle: "h23" });
 const WORD = { soldout: "SOLD OUT", available: "TICKETS AVAILABLE", unknown: "can't tell right now" };
-const HELP = "/status – what the ticket page says right now\n/stop – pause the alerts (e.g. once you have tickets)\n/start – turn them back on";
+const HELP = "/status ‚Äì what the ticket page says right now\n/stop ‚Äì pause the alerts (e.g. once you have tickets)\n/start ‚Äì turn them back on";
 
 function statusText(st, r, at) {
-  const line = r.status === "available" ? `TICKETS AVAILABLE – buy now: ${r.link}` : WORD[r.status] + (r.status === "unknown" ? ` (${r.why})` : "");
+  const line = r.status === "available" ? `TICKETS AVAILABLE ‚Äì buy now: ${r.link}` : WORD[r.status] + (r.status === "unknown" ? ` (${r.why})` : "");
   const got = st.bookedPasses || 0;
-  const auto = st.booked ? "\n✅ I booked your tickets." : AUTO ? `\nAuto-booking: ${st.bookGaveUp ? "stopped (see my last message)" : `on, ${got ? `${got} of ${BUY.passes.length} booked, the rest still to go` : `${BUY.passes.length} Cineville tickets`}${ONE_AT_A_TIME ? ", one at a time if need be" : ""}`}.` : "";
-  return `${SHOW.label}:\n${line}\n(checked ${clock(at)})${auto}\n\nAlerts are ${st.paused ? "paused – send /start to turn them back on" : "on"}.`;
+  const auto = st.booked ? "\n‚úÖ I booked your tickets." : AUTO ? `\nAuto-booking: ${st.bookGaveUp ? "stopped (see my last message)" : `on, ${got ? `${got} of ${BUY.passes.length} booked, the rest still to go` : `${BUY.passes.length} Cineville tickets`}${ONE_AT_A_TIME ? ", one at a time if need be" : ""}`}.` : "";
+  return `${SHOW.label}:\n${line}\n(checked ${clock(at)})${auto}\n\nAlerts are ${st.paused ? "paused ‚Äì send /start to turn them back on" : "on"}.`;
 }
 
 const deskBy = () => clock(SHOW.startsAt - 15 * 60000);
@@ -216,7 +229,7 @@ async function autoBook(st, r, first, now) {
   const tickets = k => `${k} Cineville ticket${k === 1 ? "" : "s"}`;
   const others = k => (k === 1 ? "the other ticket" : `the other ${k} tickets`);
   if (first && now - (st.alertedAt || 0) >= REALERT_MS) {   // seats come and go: at most one of these every 10 minutes
-    await say(`🎟 TICKETS AVAILABLE: ${SHOW.label}.\nBooking ${before ? others(n) : `your ${tickets(n)}`} right now…\n(If you want, you can also go yourself: ${r.link})`);
+    await say(`üéü TICKETS AVAILABLE: ${SHOW.label}.\nBooking ${before ? others(n) : `your ${tickets(n)}`} right now‚Ä¶\n(If you want, you can also go yourself: ${r.link})`);
     st.alertedAt = now;
   }
   st.alerted = true;
@@ -236,21 +249,21 @@ async function autoBook(st, r, first, now) {
     const already = res.already ? " (the shop says your passes already had them)" : "";
     if (st.bookedPasses >= total) {
       st.booked = true;
-      await photo(res.shot, `✅ Booked: ${before ? `${got === 1 ? "the last ticket" : `the last ${got} tickets`}, so all ${total} are booked` : tickets(total)} for ${SHOW.label}${already}.\nThe tickets go to ${BUY.email}.\nHave your passes checked at the cinema desk at least 15 minutes before it starts, so by ${deskBy()}.`);
+      await photo(res.shot, `‚úÖ Booked: ${before ? `${got === 1 ? "the last ticket" : `the last ${got} tickets`}, so all ${total} are booked` : tickets(total)} for ${SHOW.label}${already}.\nThe tickets go to ${BUY.email}.\nHave your passes checked at the cinema desk at least 15 minutes before it starts, so by ${deskBy()}.`);
     } else {
-      await photo(res.shot, `✅ Booked ${st.bookedPasses} of ${total}: ${tickets(got)} for ${SHOW.label}${already}, on the first pass${st.bookedPasses === 1 ? "" : "es"}.\nThe tickets go to ${BUY.email}. Only ${got === 1 ? "one seat was" : "these seats were"} free; I'll book ${others(total - st.bookedPasses)} the moment another seat appears.`);
+      await photo(res.shot, `‚úÖ Booked ${st.bookedPasses} of ${total}: ${tickets(got)} for ${SHOW.label}${already}, on the first pass${st.bookedPasses === 1 ? "" : "es"}.\nThe tickets go to ${BUY.email}. Only ${got === 1 ? "one seat was" : "these seats were"} free; I'll book ${others(total - st.bookedPasses)} the moment another seat appears.`);
     }
   } else if (res.status === "soldout") {
     // gone before it could book; the next check says "Sold out again"
   } else if (res.status === "unclear") {
-    if (!st.bookFailSaid) await photo(res.shot, `⚠️ ${res.reason}. Check your email in a minute. I'll try once more to make sure (the shop won't book the same passes twice).`);
+    if (!st.bookFailSaid) await photo(res.shot, `‚ö†Ô∏è ${res.reason}. Check your email in a minute. I'll try once more to make sure (the shop won't book the same passes twice).`);
     st.bookFailSaid = true;
   } else {
     if (res.final) st.bookGaveUp = true;
     // Once per spell of free seats, and the same problem at most once an hour.
     const news = res.step !== st.failStep || now - (st.failSaidAt || 0) >= FAIL_REPEAT_MS;
     if ((!st.bookFailSaid && news) || res.final) {
-      await photo(res.shot, `❌ I couldn't book: ${res.reason}.\n${res.final ? "Trying again won't help, so I've stopped" : "I'll keep trying while seats are free"}. To book yourself: ${r.link}`);
+      await photo(res.shot, `‚ùå I couldn't book: ${res.reason}.\n${res.final ? "Trying again won't help, so I've stopped" : "I'll keep trying while seats are free"}. To book yourself: ${r.link}`);
       st.failStep = res.step;
       st.failSaidAt = now;
     }
@@ -280,27 +293,27 @@ async function step(st, now) {
   if (now >= SHOW.startsAt) {
     if (!st.done) {
       st.done = true;   // switch off even if the goodbye can't be sent
-      await say("The screening has started, so I've stopped watching. Enjoy the film! 🎬").catch(e => console.log(e.message));
+      await say("The screening has started, so I've stopped watching. Enjoy the film! üé¨").catch(e => console.log(e.message));
     }
     return "done";
   }
   const r = await check();
-  console.log(`${clock(now)} ${r.status}${r.source ? " (" + r.source + ")" : ""}${r.why ? ": " + r.why : ""}${r.note ? " – shop: " + r.note : ""}`);
+  console.log(`${clock(now)} ${r.status}${r.source ? " (" + r.source + ")" : ""}${r.why ? ": " + r.why : ""}${r.note ? " ‚Äì shop: " + r.note : ""}`);
 
   const welcome = !st.welcomed;
   if (welcome) {
-    await say(`👋 Ticket alert is on.\nI'm watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI check about once a minute and will message you here the moment tickets appear.\n\n${HELP}`);
+    await say(`üëã Ticket alert is on.\nI'm watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI check about once a minute and will message you here the moment tickets appear.\n\n${HELP}`);
     st.welcomed = true;
     st.show = SHOW.id;
     st.heartbeatDay = dayKey(now);
   } else if (st.show !== SHOW.id) {
     // Now watching another screening: say so, and forget what was seen for the old one.
-    await say(`🔁 Switched: I'm now watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI'll message you here the moment tickets appear.\n\n${HELP}`);
+    await say(`üîÅ Switched: I'm now watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI'll message you here the moment tickets appear.\n\n${HELP}`);
     for (const k of ["last", "alerted", "alertedAt", "warned", "unknownSince", "paused", "booked", "bookedPasses", "bookTries", "bookGaveUp", "bookFailSaid", "failStep", "failSaidAt"]) delete st[k];
     st.show = SHOW.id;
   }
   if (AUTO && !st.autoSaid) {
-    await say(`🤖 Auto-booking is on. The moment seats appear for ${SHOW.label}, I'll book ${BUY.passes.length} free Cineville tickets under the name ${BUY.lastName}, sent to ${BUY.email}. You'll get a message either way.`);
+    await say(`ü§ñ Auto-booking is on. The moment seats appear for ${SHOW.label}, I'll book ${BUY.passes.length} free Cineville tickets under the name ${BUY.lastName}, sent to ${BUY.email}. You'll get a message either way.`);
     st.autoSaid = true;
   }
   await handleCommands(st, r, now, welcome);
@@ -309,7 +322,7 @@ async function step(st, now) {
     const first = st.last !== "available";
     if (AUTO && !st.booked && !st.bookGaveUp && !st.paused) await autoBook(st, r, first, now);
     else if (!st.booked && !st.paused && (first || now - (st.alertedAt || 0) >= REALERT_MS)) {
-      await say(`🎟 ${first ? "TICKETS AVAILABLE" : "Still available"}: ${SHOW.label}.\nBuy now: ${r.link}\n\n(Seen at ${clock(now)}. I'll remind you every ${Math.round(REALERT_MS / 60000)} minutes while they're on sale; send /stop once you have them.)`);
+      await say(`üéü ${first ? "TICKETS AVAILABLE" : "Still available"}: ${SHOW.label}.\nBuy now: ${r.link}\n\n(Seen at ${clock(now)}. I'll remind you every ${Math.round(REALERT_MS / 60000)} minutes while they're on sale; send /stop once you have them.)`);
       st.alertedAt = now;
       st.alerted = true;
     }
@@ -320,11 +333,11 @@ async function step(st, now) {
   if (r.status === "unknown") {
     st.unknownSince = st.unknownSince || now;
     if (!st.warned && now - st.unknownSince >= WARN_AFTER_MS) {
-      await say(`⚠️ I can't read the ticket page right now (${r.why}). I'll keep trying; to be safe, check it yourself now and then:\n${SHOW.shopUrl}`);
+      await say(`‚ö†Ô∏è I can't read the ticket page right now (${r.why}). I'll keep trying; to be safe, check it yourself now and then:\n${SHOW.shopUrl}`);
       st.warned = true;
     }
   } else {
-    if (st.warned) await say(`✅ I can read the ticket page again. Right now: ${WORD[r.status]}.`);
+    if (st.warned) await say(`‚úÖ I can read the ticket page again. Right now: ${WORD[r.status]}.`);
     st.unknownSince = 0;
     st.warned = false;
     if (r.status === "soldout") { st.alerted = false; delete st.bookFailSaid; }
