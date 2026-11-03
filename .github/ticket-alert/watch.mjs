@@ -1,7 +1,8 @@
 // Ticket alert: messages us on Telegram the moment tickets open up for the sold-out screening of
 // You Can See Everything at IDFA (Fri 13 Nov 2026, 20:30, Carré). Two tickets wanted; it only alerts,
-// it never buys. It watched Nieuw Nederlands Peil 2 and Pulse before; when the screening below
-// changes, it says so and starts afresh.
+// it never buys. With the secret IDFA_VOUCHER_CODES it sends our Festival Voucher codes with the
+// alert. It watched Nieuw Nederlands Peil 2 and Pulse before; when the screening below changes, it
+// says so and starts afresh.
 //
 // GitHub Actions runs it back to back (each run starts the next; a 5-minute schedule restarts the
 // chain if it ever breaks), checking about twice a minute. With our Cineville passes, email and last
@@ -47,6 +48,14 @@ const BUY = {
 };
 // Off for IDFA: its tickets are paid, and paying stays with us. (It was for free Cineville tickets.)
 const AUTO = false && BUY.passes.length > 0 && !!BUY.email && !!BUY.lastName;
+// Our IDFA Festival Voucher codes (secret IDFA_VOUCHER_CODES, one per ticket, first one first). When
+// seats appear they go in the alert, and each once more on its own so one long-press copies it.
+// Never logged or saved anywhere: this repository and its state branch are public.
+const CODES = (env.IDFA_VOUCHER_CODES || "").split(/[\s,;]+/).filter(Boolean);
+const codeList = () => CODES.map((c, i) => `${i + 1}. ${c}`).join("\n");
+const voucherText = () => CODES.length
+  ? `\n\nYour voucher codes, one per ticket:\n${codeList()}\nLog in to MyIDFA, tap "Have a promotion code? Click here" above the ticket options, enter each code, then check out at €0. No €0 option? Buy regular tickets.`
+  : "";
 // When only some seats are free (they come back one by one), book those now on the first passes and
 // the rest later. Off: only book all tickets at once.
 const ONE_AT_A_TIME = /^(1|yes|true|on)$/i.test(env.BOOK_ONE_AT_A_TIME || "");
@@ -214,7 +223,7 @@ const WORD = { soldout: "SOLD OUT", available: "TICKETS AVAILABLE", unknown: "ca
 const HELP = "/status – what the ticket page says right now\n/stop – pause the alerts (e.g. once you have tickets)\n/start – turn them back on";
 
 function statusText(st, r, at) {
-  const line = r.status === "available" ? `TICKETS AVAILABLE – buy now: ${r.link}` : WORD[r.status] + (r.status === "unknown" ? ` (${r.why})` : "");
+  const line = r.status === "available" ? `TICKETS AVAILABLE – buy now: ${r.link}${voucherText()}` : WORD[r.status] + (r.status === "unknown" ? ` (${r.why})` : "");
   const got = st.bookedPasses || 0;
   const auto = st.booked ? "\n✅ I booked your tickets." : AUTO ? `\nAuto-booking: ${st.bookGaveUp ? "stopped (see my last message)" : `on, ${got ? `${got} of ${BUY.passes.length} booked, the rest still to go` : `${BUY.passes.length} Cineville tickets`}${ONE_AT_A_TIME ? ", one at a time if need be" : ""}`}.` : "";
   return `${SHOW.label}:\n${line}\n(checked ${clock(at)})${auto}\n\nAlerts are ${st.paused ? "paused – send /start to turn them back on" : "on"}.`;
@@ -316,15 +325,20 @@ async function step(st, now) {
     await say(`🤖 Auto-booking is on. The moment seats appear for ${SHOW.label}, I'll book ${BUY.passes.length} free Cineville tickets under the name ${BUY.lastName}, sent to ${BUY.email}. You'll get a message either way.`);
     st.autoSaid = true;
   }
+  if (CODES.length && st.codesSaid !== CODES.length) {
+    await say(`🔑 Got your ${CODES.length} voucher codes:\n${codeList()}\nThe moment tickets appear I'll send them again with the alert, each on its own so you can copy it.`);
+    st.codesSaid = CODES.length;   // only the count: the codes themselves never go in the public state
+  }
   await handleCommands(st, r, now, welcome);
 
   if (r.status === "available") {
     const first = st.last !== "available";
     if (AUTO && !st.booked && !st.bookGaveUp && !st.paused) await autoBook(st, r, first, now);
     else if (!st.booked && !st.paused && (first || now - (st.alertedAt || 0) >= REALERT_MS)) {
-      await say(`🎟 ${first ? "TICKETS AVAILABLE" : "Still available"}: ${SHOW.label}.\nBuy now: ${r.link}\n\n(Seen at ${clock(now)}. I'll remind you every ${Math.round(REALERT_MS / 60000)} minutes while they're on sale; send /stop once you have them.)`);
+      await say(`🎟 ${first ? "TICKETS AVAILABLE" : "Still available"}: ${SHOW.label}.\nBuy now: ${r.link}${voucherText()}\n\n(Seen at ${clock(now)}. I'll remind you every ${Math.round(REALERT_MS / 60000)} minutes while they're on sale; send /stop once you have them.)`);
       st.alertedAt = now;
       st.alerted = true;
+      if (first) for (const c of CODES) await say(c);   // the first code, then the second, each alone
     }
   } else if (r.status === "soldout" && st.last === "available" && st.alerted && !st.paused && !st.booked && !(AUTO && !st.bookGaveUp)) {
     await say("Sold out again. I'll keep watching and message you if seats open up again.");   // (while booking itself, it just keeps trying)
@@ -354,7 +368,7 @@ async function step(st, now) {
 async function main() {
   if (!TOKEN || !CHAT_ID) { console.log("Waiting for the TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID secrets."); return; }
   if (env.GITHUB_ACTIONS)   // hide our details from the public run logs, in every spelling the shop might echo
-    for (const v of [...BUY.passes, ...BUY.passes.map(p => p.replace(/^CP\$/, "")), BUY.email, BUY.lastName]) if (v) console.log(`::add-mask::${v}`);
+    for (const v of [...BUY.passes, ...BUY.passes.map(p => p.replace(/^CP\$/, "")), BUY.email, BUY.lastName, ...CODES]) if (v) console.log(`::add-mask::${v}`);
   console.log(`Auto-booking: ${AUTO ? (ONE_AT_A_TIME ? "on, one at a time if need be" : "on") : "off"}.`);
   const startedAt = Date.now();
   try {
