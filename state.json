@@ -1,16 +1,12 @@
 {
   "welcomed": true,
-  "heartbeatDay": "01/11/2026",
+  "heartbeatDay": "03/11/2026",
   "offset": 218192663,
-  "show": "1312104",
+  "show": "idfa-b93aa33b",
+  "autoSaid": true,
+  "done": true,
   "unknownSince": 0,
   "warned": false,
   "alerted": false,
-  "last": "soldout",
-  "autoSaid": true,
-  "bookTries": 897,
-  "alertedAt": 1793545619113,
-  "failStep": "tickets not taken",
-  "failSaidAt": 1793545966229,
-  "done": true
+  "last": "soldout"
 }
