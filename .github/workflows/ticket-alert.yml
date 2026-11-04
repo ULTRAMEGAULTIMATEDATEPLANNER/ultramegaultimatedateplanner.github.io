@@ -1,6 +1,6 @@
 # Telegram alert for tickets to the sold-out You Can See Everything screening (IDFA, Fri 13 Nov 20:30, Carré).
-# Runs back to back: each run checks about twice a minute for 4.5 minutes, then starts the next run;
-# the 5-minute schedule restarts the chain if it ever breaks. It needs two repository secrets,
+# Runs back to back: each run checks about twice a minute for 5.5 hours, then starts the next run
+# (trying again if GitHub refuses); the 5-minute schedule is a backup if the chain ever breaks. It needs two repository secrets,
 # TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID, and switches itself off once the screening starts.
 # With IDFA_VOUCHER_CODES (our Festival Voucher codes) it sends the codes with the alert; it never buys.
 # The Cineville booking (CINEVILLE_PASSES, TICKET_EMAIL, TICKET_LAST_NAME) is switched off in watch.mjs.
@@ -23,7 +23,7 @@ concurrency:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 345   # one run watches for 5.5 hours (RUN_SECONDS), then starts the next
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,5 +39,7 @@ jobs:
           TICKET_EMAIL: ${{ secrets.TICKET_EMAIL }}
           TICKET_LAST_NAME: ${{ secrets.TICKET_LAST_NAME }}
           IDFA_VOUCHER_CODES: ${{ secrets.IDFA_VOUCHER_CODES }}   # sent to us with the alert, never logged
+          CHECKS: "100000"       # no cap on the number of checks: RUN_SECONDS decides when a run ends
+          RUN_SECONDS: "19800"   # 5.5 hours, so the chain hands over about four times a day
           BOOK_ONE_AT_A_TIME: "no"   # "yes": when only one seat is free, book it on the first pass, the next on the next
           GITHUB_TOKEN: ${{ github.token }}
