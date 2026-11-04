@@ -4,8 +4,8 @@
 // alert. It watched Nieuw Nederlands Peil 2 and Pulse before; when the screening below changes, it
 // says so and starts afresh.
 //
-// GitHub Actions runs it back to back (each run starts the next; a 5-minute schedule restarts the
-// chain if it ever breaks), checking about twice a minute. With our Cineville passes, email and last
+// GitHub Actions runs it back to back (each run watches for 5.5 hours, then starts the next; a
+// 5-minute schedule is a backup if the chain ever breaks), checking about twice a minute. With our Cineville passes, email and last
 // name set as secrets, it books the free Cineville tickets itself the moment seats appear (buy.mjs). The source of truth is LAB111's own ticket shop; the festival
 // page is only used when the shop can't be read. Telegram commands: /status, /stop, /start.
 // Its memory (what was last seen, what was already sent) is state.json on the ticket-alert-state
@@ -195,16 +195,25 @@ async function saveState(state, sha) {
   return (await res.json()).content.sha;
 }
 
-// GitHub's 5-minute schedule can start late or skip runs, so each run starts the next one itself
-// (unless one is already waiting); the schedule stays as a backup that restarts a broken chain.
+// GitHub's 5-minute schedule can start late or skip runs for hours, so each run starts the next one
+// itself. It always asks, even when a run looks queued: on 4 Nov a run that looked queued never
+// started, and the chain stood still for 4 hours. The concurrency group keeps at most one waiting
+// run, so asking again only replaces it. A refused request (GitHub answered HTTP 500 once on 4 Nov,
+// which cost 5 hours) is tried again for about two minutes; if every try fails, it says so in Telegram.
+const RETRY_WAITS_MS = (env.DISPATCH_RETRY_SECONDS || "5,10,20,30,60").split(",").map(s => num(s, 0) * 1000);
 async function startNextRun() {
   if (env.STATE_FILE || !REPO) return;
-  for (const status of ["queued", "pending", "waiting", "requested"]) {
-    const res = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/runs?status=${status}&per_page=1`);
-    if (res.ok && (await res.json()).total_count > 0) { console.log(`The next run is already ${status}.`); return; }
+  let why = "";
+  for (let attempt = 0; attempt <= RETRY_WAITS_MS.length; attempt++) {
+    if (attempt) await sleep(RETRY_WAITS_MS[attempt - 1]);
+    const res = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/dispatches`, { method: "POST", body: JSON.stringify({ ref: env.GITHUB_REF_NAME || "main" }) })
+      .catch(e => ({ ok: false, status: e.message }));
+    if (res.ok) { console.log(`Started the next run${attempt ? ` (try ${attempt + 1})` : ""}.`); return; }
+    why = `HTTP ${res.status}`;
+    console.log(`Couldn't start the next run (try ${attempt + 1}): ${why}`);
   }
-  const res = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/dispatches`, { method: "POST", body: JSON.stringify({ ref: env.GITHUB_REF_NAME || "main" }) });
-  console.log(res.ok ? "Started the next run." : `Couldn't start the next run: HTTP ${res.status}`);
+  await say(`⚠️ GitHub wouldn't start my next check (${why}), so I may stop watching until its backup timer restarts me, which can take hours. To restart me now: open https://github.com/${REPO}/actions/workflows/ticket-alert.yml and press "Run workflow".`)
+    .catch(e => console.log(e.message));
 }
 
 async function switchOff() {
