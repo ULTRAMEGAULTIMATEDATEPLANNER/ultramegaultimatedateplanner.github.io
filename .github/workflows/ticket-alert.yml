@@ -11,6 +11,11 @@ on:
   schedule:
     - cron: "2-59/5 * * * *"
   workflow_dispatch:
+  push:   # a change to the bot itself starts it too: the way back in when GitHub ignores "Run workflow" (4 Nov)
+    branches: [main]
+    paths:
+      - ".github/ticket-alert/**"
+      - ".github/workflows/ticket-alert.yml"
 
 permissions:
   contents: write   # its memory, state.json, lives on the ticket-alert-state branch
