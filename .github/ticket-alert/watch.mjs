@@ -200,7 +200,16 @@ async function saveState(state, sha) {
 // started, and the chain stood still for 4 hours. The concurrency group keeps at most one waiting
 // run, so asking again only replaces it. A refused request (GitHub answered HTTP 500 once on 4 Nov,
 // which cost 5 hours) is tried again for about two minutes; if every try fails, it says so in Telegram.
+// A yes is not taken on trust: during GitHub's Actions incident of 4 Nov, starts were accepted and no
+// run appeared. So after a yes it looks for a waiting run (one from the backup timer counts too).
 const RETRY_WAITS_MS = (env.DISPATCH_RETRY_SECONDS || "5,10,20,30,60").split(",").map(s => num(s, 0) * 1000);
+async function nextRunWaiting() {
+  await sleep(num(env.VERIFY_SECONDS, 8) * 1000);
+  const r = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/runs?per_page=10`).catch(() => null);
+  const j = r && r.ok ? await r.json().catch(() => null) : null;
+  if (!j || !Array.isArray(j.workflow_runs)) return true;   // couldn't look: trust the yes
+  return j.workflow_runs.some(x => String(x.id) !== String(env.GITHUB_RUN_ID) && x.status !== "completed");
+}
 async function startNextRun() {
   if (env.STATE_FILE || !REPO) return;
   let why = "";
@@ -208,11 +217,11 @@ async function startNextRun() {
     if (attempt) await sleep(RETRY_WAITS_MS[attempt - 1]);
     const res = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/dispatches`, { method: "POST", body: JSON.stringify({ ref: env.GITHUB_REF_NAME || "main" }) })
       .catch(e => ({ ok: false, status: e.message }));
-    if (res.ok) { console.log(`Started the next run${attempt ? ` (try ${attempt + 1})` : ""}.`); return; }
-    why = `HTTP ${res.status}`;
+    if (res.ok && await nextRunWaiting()) { console.log(`Started the next run${attempt ? ` (try ${attempt + 1})` : ""}.`); return; }
+    why = res.ok ? "GitHub said yes but no new run appeared" : `HTTP ${res.status}`;
     console.log(`Couldn't start the next run (try ${attempt + 1}): ${why}`);
   }
-  await say(`⚠️ GitHub wouldn't start my next check (${why}), so I may stop watching until its backup timer restarts me, which can take hours. To restart me now: open https://github.com/${REPO}/actions/workflows/ticket-alert.yml and press "Run workflow".`)
+  await say(`⚠️ GitHub wouldn't start my next check (${why}), so I may stop watching until its backup timer restarts me, which can take hours. Look at the ticket page yourself meanwhile: ${SHOW.shopUrl}\nTo restart me now: open https://github.com/${REPO}/actions/workflows/ticket-alert.yml and press "Run workflow". If no new run appears there, GitHub itself is having trouble; try again later. Send /status any time: when I'm running, I answer within a minute.`)
     .catch(e => console.log(e.message));
 }
 
@@ -338,7 +347,7 @@ async function step(st, now) {
     await say(`🔑 Got your ${CODES.length} voucher codes:\n${codeList()}\nThe moment tickets appear I'll send them again with the alert, each on its own so you can copy it.`);
     st.codesSaid = CODES.length;   // only the count: the codes themselves never go in the public state
   }
-  await handleCommands(st, r, now, welcome);
+  await handleCommands(st, r, now, welcome).catch(e => console.log(`Commands skipped: ${e.message}`));   // never let Telegram commands hold back the alert
 
   if (r.status === "available") {
     const first = st.last !== "available";
@@ -382,6 +391,7 @@ async function main() {
   const startedAt = Date.now();
   try {
     let { state: st, sha } = await loadState();
+    let unsaved = false;   // a refused save is tried again on the next check instead of ending the run
     for (let i = 0; i < CHECKS; i++) {
       if (i && Date.now() - startedAt + INTERVAL_MS > RUN_MS) break;
       if (i) await sleep(INTERVAL_MS);
@@ -389,7 +399,10 @@ async function main() {
       let res;
       try { res = await step(st, Date.now()); }
       catch (e) { console.log(`Check failed: ${e.message}`); }
-      if (JSON.stringify(st) !== before) sha = await saveState(st, sha);
+      if (unsaved || JSON.stringify(st) !== before) {
+        try { sha = await saveState(st, sha); unsaved = false; }
+        catch (e) { unsaved = true; console.log(`Couldn't save state.json (${e.message}); still checking, will try again.`); sha = await loadState().then(x => x.sha, () => sha); }
+      }
       if (res === "done") { await switchOff(); return; }
     }
   } finally {
