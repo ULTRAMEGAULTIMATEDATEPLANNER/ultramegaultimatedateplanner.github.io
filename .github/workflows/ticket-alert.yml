@@ -28,8 +28,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: .github/ticket-alert
-      - name: Get the browser driver for booking
-        run: npm install --no-save --no-audit --no-fund --prefix .github/ticket-alert playwright-core@1.56.1
+      # The Cineville booking also needed: npm install --no-save --no-audit --no-fund --prefix .github/ticket-alert playwright-core@1.56.1
+      # (a step before this one). Put it back only if booking (AUTO in watch.mjs) is ever switched on again.
       - name: Check for tickets
         run: node .github/ticket-alert/watch.mjs
         env:
