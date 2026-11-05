@@ -7,7 +7,8 @@
   "done": true,
   "unknownSince": 0,
   "warned": false,
-  "alerted": false,
-  "last": "soldout",
-  "codesSaid": 2
+  "alerted": true,
+  "last": "available",
+  "codesSaid": 2,
+  "alertedAt": 1793877316512
 }
