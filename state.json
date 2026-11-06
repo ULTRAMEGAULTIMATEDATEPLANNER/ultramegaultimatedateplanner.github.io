@@ -1,7 +1,7 @@
 {
   "welcomed": true,
   "heartbeatDay": "06/11/2026",
-  "offset": 218192667,
+  "offset": 218192668,
   "show": "idfa-b93aa33b",
   "autoSaid": true,
   "done": true,
@@ -10,5 +10,6 @@
   "alerted": false,
   "last": "soldout",
   "codesSaid": 2,
-  "alertedAt": 1793973720374
+  "alertedAt": 1793973720374,
+  "paused": true
 }
