@@ -1,4 +1,4 @@
-# Telegram alert for tickets to the sold-out You Can See Everything screening (IDFA, Fri 13 Nov 20:30, Carré).
+# Telegram alert for tickets to the sold-out You Can See Everything screening (IDFA, Sun 15 Nov 20:30, The Pulse 1).
 # Runs back to back: each run checks about twice a minute for 5.5 hours, then starts the next run
 # (trying again if GitHub refuses); the 5-minute schedule is a backup if the chain ever breaks. It needs two repository secrets,
 # TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID, and switches itself off once the screening starts.
