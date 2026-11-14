@@ -2,14 +2,12 @@
   "welcomed": true,
   "heartbeatDay": "13/11/2026",
   "offset": 218192674,
-  "show": "idfa-b93aa33b",
+  "show": "idfa-3c4e5d16",
   "autoSaid": true,
   "done": true,
-  "unknownSince": 1794584501595,
-  "warned": true,
-  "alerted": false,
-  "last": "soldout",
   "codesSaid": 2,
-  "alertedAt": 1793973720374,
-  "paused": false
+  "unknownSince": 0,
+  "warned": false,
+  "alerted": false,
+  "last": "soldout"
 }
