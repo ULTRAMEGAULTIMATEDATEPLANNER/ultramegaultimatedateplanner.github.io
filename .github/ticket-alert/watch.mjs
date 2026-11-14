@@ -14,10 +14,12 @@
 const env = process.env;
 const num = (v, d) => (v !== undefined && v !== "" && isFinite(+v) ? +v : d);
 
+// A second copy of the bot (.github/workflows/ticket-alert-concrete.yml) sets SHOW_ID, IDFA_ID, SHOW_LABEL,
+// STARTS_AT and SHOP_URL; without them it watches the screening below.
 export const SHOW = {
-  id: "idfa-3c4e5d16",   // IDFA's id for the screening: 3c4e5d16-166d-4548-9d28-965cb0464d77
-  idfaId: "3c4e5d16-166d-4548-9d28-965cb0464d77",
-  label: "You Can See Everything (IDFA), Sun 15 Nov 20:30 at The Pulse 1",
+  id: env.SHOW_ID || "idfa-3c4e5d16",   // IDFA's id for the screening: 3c4e5d16-166d-4548-9d28-965cb0464d77
+  idfaId: env.IDFA_ID || "3c4e5d16-166d-4548-9d28-965cb0464d77",
+  label: env.SHOW_LABEL || "You Can See Everything (IDFA), Sun 15 Nov 20:30 at The Pulse 1",
   startsAt: Date.parse(env.STARTS_AT || "2026-11-15T20:30:00+01:00"),
   shopUrl: env.SHOP_URL || "https://festival.idfa.nl/film/715217e7-beea-4efa-b608-600b0caf2636/you-can-see-everything/#tickets",
   shopExpect: "01 november 2026, 16:20",
@@ -36,7 +38,11 @@ const TG_API = env.TELEGRAM_API || "https://api.telegram.org";
 const GH_API = env.GITHUB_API || "https://api.github.com";
 const TOKEN = env.TELEGRAM_BOT_TOKEN || "";
 const CHAT_ID = String(env.TELEGRAM_CHAT_ID || "").trim();
-const STATE_BRANCH = "ticket-alert-state";
+const STATE_BRANCH = env.STATE_BRANCH || "ticket-alert-state";
+const WORKFLOW = env.WORKFLOW_FILE || "ticket-alert.yml";   // this copy's own workflow: its next run, its switch-off
+// Only one copy may read Telegram commands: two readers of one bot steal each other's messages, and a
+// /stop meant for one copy would pause the other. Copies with COMMANDS "off" only send.
+const COMMANDS = !/^(0|no|off|false)$/i.test(env.COMMANDS || "");
 const UA = "Mozilla/5.0 (compatible; personal ticket alert; two checks a minute)";
 
 // Auto-booking: secrets CINEVILLE_PASSES (the pass numbers, one per ticket), TICKET_EMAIL and
@@ -205,7 +211,7 @@ async function saveState(state, sha) {
 const RETRY_WAITS_MS = (env.DISPATCH_RETRY_SECONDS || "5,10,20,30,60").split(",").map(s => num(s, 0) * 1000);
 async function nextRunWaiting() {
   await sleep(num(env.VERIFY_SECONDS, 8) * 1000);
-  const r = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/runs?per_page=10`).catch(() => null);
+  const r = await ghFetch(`/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=10`).catch(() => null);
   const j = r && r.ok ? await r.json().catch(() => null) : null;
   if (!j || !Array.isArray(j.workflow_runs)) return true;   // couldn't look: trust the yes
   return j.workflow_runs.some(x => String(x.id) !== String(env.GITHUB_RUN_ID) && x.status !== "completed");
@@ -215,19 +221,19 @@ async function startNextRun() {
   let why = "";
   for (let attempt = 0; attempt <= RETRY_WAITS_MS.length; attempt++) {
     if (attempt) await sleep(RETRY_WAITS_MS[attempt - 1]);
-    const res = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/dispatches`, { method: "POST", body: JSON.stringify({ ref: env.GITHUB_REF_NAME || "main" }) })
+    const res = await ghFetch(`/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`, { method: "POST", body: JSON.stringify({ ref: env.GITHUB_REF_NAME || "main" }) })
       .catch(e => ({ ok: false, status: e.message }));
     if (res.ok && await nextRunWaiting()) { console.log(`Started the next run${attempt ? ` (try ${attempt + 1})` : ""}.`); return; }
     why = res.ok ? "GitHub said yes but no new run appeared" : `HTTP ${res.status}`;
     console.log(`Couldn't start the next run (try ${attempt + 1}): ${why}`);
   }
-  await say(`⚠️ GitHub wouldn't start my next check (${why}), so I may stop watching until its backup timer restarts me, which can take hours. Look at the ticket page yourself meanwhile: ${SHOW.shopUrl}\nTo restart me now: open https://github.com/${REPO}/actions/workflows/ticket-alert.yml and press "Run workflow". If no new run appears there, GitHub itself is having trouble; try again later. Send /status any time: when I'm running, I answer within a minute.`)
+  await say(`⚠️ GitHub wouldn't start my next check (${why}), so I may stop watching until its backup timer restarts me, which can take hours. Look at the ticket page yourself meanwhile: ${SHOW.shopUrl}\nTo restart me now: open https://github.com/${REPO}/actions/workflows/${WORKFLOW} and press "Run workflow". If no new run appears there, GitHub itself is having trouble; try again later. Send /status any time: when I'm running, I answer within a minute.`)
     .catch(e => console.log(e.message));
 }
 
 async function switchOff() {
   if (env.STATE_FILE || !REPO) return;
-  const res = await ghFetch(`/repos/${REPO}/actions/workflows/ticket-alert.yml/disable`, { method: "PUT" });
+  const res = await ghFetch(`/repos/${REPO}/actions/workflows/${WORKFLOW}/disable`, { method: "PUT" });
   console.log(res.ok ? "Workflow switched off." : `Couldn't switch the workflow off: HTTP ${res.status}`);
 }
 
@@ -329,13 +335,13 @@ async function step(st, now) {
 
   const welcome = !st.welcomed;
   if (welcome) {
-    await say(`👋 Ticket alert is on.\nI'm watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI check about once a minute and will message you here the moment tickets appear.\n\n${HELP}`);
+    await say(`👋 Ticket alert is on.\nI'm watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI check about once a minute and will message you here the moment tickets appear.${COMMANDS ? `\n\n${HELP}` : ""}`);
     st.welcomed = true;
     st.show = SHOW.id;
     st.heartbeatDay = dayKey(now);
   } else if (st.show !== SHOW.id) {
     // Now watching another screening: say so, and forget what was seen for the old one.
-    await say(`🔁 Switched: I'm now watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI'll message you here the moment tickets appear.\n\n${HELP}`);
+    await say(`🔁 Switched: I'm now watching ${SHOW.label}. Right now: ${WORD[r.status]}.\nI'll message you here the moment tickets appear.${COMMANDS ? `\n\n${HELP}` : ""}`);
     for (const k of ["last", "alerted", "alertedAt", "warned", "unknownSince", "paused", "booked", "bookedPasses", "bookTries", "bookGaveUp", "bookFailSaid", "failStep", "failSaidAt"]) delete st[k];
     st.show = SHOW.id;
   }
@@ -347,13 +353,13 @@ async function step(st, now) {
     await say(`🔑 Got your ${CODES.length} voucher codes:\n${codeList()}\nThe moment tickets appear I'll send them again with the alert, each on its own so you can copy it.`);
     st.codesSaid = CODES.length;   // only the count: the codes themselves never go in the public state
   }
-  await handleCommands(st, r, now, welcome).catch(e => console.log(`Commands skipped: ${e.message}`));   // never let Telegram commands hold back the alert
+  if (COMMANDS) await handleCommands(st, r, now, welcome).catch(e => console.log(`Commands skipped: ${e.message}`));   // never let Telegram commands hold back the alert
 
   if (r.status === "available") {
     const first = st.last !== "available";
     if (AUTO && !st.booked && !st.bookGaveUp && !st.paused) await autoBook(st, r, first, now);
     else if (!st.booked && !st.paused && (first || now - (st.alertedAt || 0) >= REALERT_MS)) {
-      await say(`🎟 ${first ? "TICKETS AVAILABLE" : "Still available"}: ${SHOW.label}.\nBuy now: ${r.link}${voucherText()}\n\n(Seen at ${clock(now)}. I'll remind you every ${Math.round(REALERT_MS / 60000)} minutes while they're on sale; send /stop once you have them.)`);
+      await say(`🎟 ${first ? "TICKETS AVAILABLE" : "Still available"}: ${SHOW.label}.\nBuy now: ${r.link}${voucherText()}\n\n(Seen at ${clock(now)}. I'll remind you every ${Math.round(REALERT_MS / 60000)} minutes while they're on sale${COMMANDS ? "; send /stop once you have them" : ""}.)`);
       st.alertedAt = now;
       st.alerted = true;
       if (first) for (const c of CODES) await say(c);   // the first code, then the second, each alone
