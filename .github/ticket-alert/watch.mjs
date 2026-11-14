@@ -1,7 +1,7 @@
 // Ticket alert: messages us on Telegram the moment tickets open up for the sold-out screening of
-// You Can See Everything at IDFA (Fri 13 Nov 2026, 20:30, Carré). Two tickets wanted; it only alerts,
+// You Can See Everything at IDFA (Sun 15 Nov 2026, 20:30, The Pulse 1). Two tickets wanted; it only alerts,
 // it never buys. With the secret IDFA_VOUCHER_CODES it sends our Festival Voucher codes with the
-// alert. It watched Nieuw Nederlands Peil 2 and Pulse before; when the screening below changes, it
+// alert. It watched the Fri 13 Nov Carré screening, Nieuw Nederlands Peil 2 and Pulse before; when the screening below changes, it
 // says so and starts afresh.
 //
 // GitHub Actions runs it back to back (each run watches for 5.5 hours, then starts the next; a
@@ -15,10 +15,10 @@ const env = process.env;
 const num = (v, d) => (v !== undefined && v !== "" && isFinite(+v) ? +v : d);
 
 export const SHOW = {
-  id: "idfa-b93aa33b",   // IDFA's id for the screening: b93aa33b-66dc-4440-9853-025c6dafffe3
-  idfaId: "b93aa33b-66dc-4440-9853-025c6dafffe3",
-  label: "You Can See Everything (IDFA), Fri 13 Nov 20:30 at Carré",
-  startsAt: Date.parse(env.STARTS_AT || "2026-11-13T20:30:00+01:00"),
+  id: "idfa-3c4e5d16",   // IDFA's id for the screening: 3c4e5d16-166d-4548-9d28-965cb0464d77
+  idfaId: "3c4e5d16-166d-4548-9d28-965cb0464d77",
+  label: "You Can See Everything (IDFA), Sun 15 Nov 20:30 at The Pulse 1",
+  startsAt: Date.parse(env.STARTS_AT || "2026-11-15T20:30:00+01:00"),
   shopUrl: env.SHOP_URL || "https://festival.idfa.nl/film/715217e7-beea-4efa-b608-600b0caf2636/you-can-see-everything/#tickets",
   shopExpect: "01 november 2026, 16:20",
   festivalUrl: env.FESTIVAL_URL || "https://www.imaginefilmfestival.nl/programma/nieuw-nederlands-peil-2/",
