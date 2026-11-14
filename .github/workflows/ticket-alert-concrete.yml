@@ -1,0 +1,48 @@
+# Telegram alert for tickets to the sold-out The History of Concrete screening (IDFA, Sat 14 Nov 20:30, The Pulse 2).
+# A second copy of the ticket alert: the same .github/ticket-alert/watch.mjs with its own screening, memory branch
+# and run chain, next to ticket-alert.yml. It reads no Telegram commands (/status and /stop stay with the main
+# bot) and switches itself off once the screening starts.
+name: Ticket alert (The History of Concrete)
+
+on:
+  schedule:
+    - cron: "4-59/5 * * * *"
+  workflow_dispatch:
+  push:   # a change to the bot or to this file starts it too
+    branches: [main]
+    paths:
+      - ".github/ticket-alert/**"
+      - ".github/workflows/ticket-alert-concrete.yml"
+
+permissions:
+  contents: write   # its memory, state.json, lives on the ticket-alert-state-concrete branch
+  actions: write    # to start its next run, and to switch this workflow off after the screening
+
+concurrency:
+  group: ticket-alert-concrete
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/ticket-alert
+      - name: Check for tickets
+        run: node .github/ticket-alert/watch.mjs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SHOW_ID: "idfa-cf61b989"
+          IDFA_ID: "cf61b989-5719-41ca-8379-d2f033b40462"
+          SHOW_LABEL: "The History of Concrete (IDFA), Sat 14 Nov 20:30 at The Pulse 2"
+          STARTS_AT: "2026-11-14T20:30:00+01:00"
+          SHOP_URL: "https://festival.idfa.nl/en/film/1c6604d5-b9dc-47fc-a315-f76df1b450eb/the-history-of-concrete/#tickets"
+          STATE_BRANCH: "ticket-alert-state-concrete"
+          WORKFLOW_FILE: "ticket-alert-concrete.yml"
+          COMMANDS: "off"
+          CHECKS: "100000"
+          RUN_SECONDS: "19800"
+          GITHUB_TOKEN: ${{ github.token }}
