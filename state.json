@@ -8,7 +8,7 @@
   "codesSaid": 2,
   "unknownSince": 0,
   "warned": false,
-  "alerted": false,
-  "last": "soldout",
-  "alertedAt": 1794730637844
+  "alerted": true,
+  "last": "available",
+  "alertedAt": 1794749920453
 }
